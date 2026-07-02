@@ -167,7 +167,8 @@ td.actions{white-space:nowrap;text-align:right}
 .gantt-grid-cell.today{background:rgba(46,117,182,0.06)}
 .gantt-bar{position:absolute;top:14px;height:30px;border-radius:8px;background:#4C8B6B;color:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.14);cursor:grab;user-select:none;display:flex;align-items:center;justify-content:flex-start;padding:0 10px;gap:8px;overflow:hidden;z-index:2}
 .gantt-bar,.gantt-resize-handle{touch-action:none}
-.gantt-bar.dragging{cursor:grabbing;opacity:0.92;box-shadow:0 6px 18px rgba(0,0,0,0.22)}
+.gantt-bar.dragging:not(.resizing-left):not(.resizing-right){cursor:grabbing;opacity:0.92;box-shadow:0 6px 18px rgba(0,0,0,0.22)}
+.gantt-bar.resizing-left,.gantt-bar.resizing-right{cursor:ew-resize;opacity:0.96;box-shadow:0 6px 18px rgba(0,0,0,0.18)}
 .gantt-bar.completed{background:#6e8d79}
 .gantt-bar.blocked{background:#b45b5b}
 .gantt-bar.not-started{background:#7a8a92}
@@ -177,9 +178,9 @@ td.actions{white-space:nowrap;text-align:right}
 .gantt-bar-main b{font-size:12px;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gantt-bar-main span{font-size:10px;opacity:0.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gantt-bar-meta{font-size:10px;white-space:nowrap;font-variant-numeric:tabular-nums;opacity:0.95}
-.gantt-resize-handle{position:absolute;top:0;bottom:0;width:8px;cursor:ew-resize}
-.gantt-resize-handle.left{left:0}
-.gantt-resize-handle.right{right:0}
+.gantt-resize-handle{position:absolute;top:0;bottom:0;width:18px;cursor:ew-resize;z-index:5;pointer-events:auto;background:rgba(255,255,255,0.01)}
+.gantt-resize-handle.left{left:-6px}
+.gantt-resize-handle.right{right:-6px}
 .gantt-today-line{position:absolute;top:0;bottom:0;width:2px;background:#ff2d55;opacity:0.85;pointer-events:none;z-index:3}
 .gantt-left-table tbody tr,.gantt-right-table tbody tr{height:58px}
 .gantt-empty{padding:28px 20px;text-align:center;color:var(--muted)}
@@ -631,7 +632,7 @@ function render(){
     case 'tasks': el.innerHTML=renderTasks(); wireTaskCollapse(); break;
     case 'team': el.innerHTML=renderTeam(); break;
     case 'timesheet': el.innerHTML=renderTimesheet(); break;
-    case 'gantt': el.innerHTML=renderGantt(); syncGanttScroll(); break;
+    case 'gantt': el.innerHTML=renderGantt(); syncGanttScroll(); initGanttInteractions(); break;
     case 'notes': el.innerHTML=renderNotes(); break;
   }
 }
@@ -1291,11 +1292,11 @@ function renderGantt(){
         <div class="gantt-row-lane" style="--gantt-day-width:${dayWidth}px;min-width:${dayCount*dayWidth}px">
           <div class="gantt-grid-row">${days.map(d=>`<div class="gantt-grid-cell ${d.getDay()===0||d.getDay()===6?'weekend':''} ${d.getTime()===today.getTime()?'today':''}" style="width:${dayWidth}px;min-width:${dayWidth}px"></div>`).join('')}</div>
           ${todayIndex>=0&&todayIndex<dayCount?`<div class="gantt-today-line" style="left:${todayIndex*dayWidth}px"></div>`:''}
-          <div class="gantt-bar ${statusClass}${unscheduled?' not-started':''}" data-task-id="${esc(t.id)}" style="left:${leftPx}px;width:${widthPx}px${unscheduled?';opacity:0.35':''}" title="${esc(t.name)} | ${esc(assignee?.name||'Unassigned')} | ${esc(projectLabel)} | ${esc(t.startDate||'')}${t.dueDate?` - ${esc(t.dueDate)}`:''}" onpointerdown="ganttBeginDrag(event,'${t.id}','move')">
-            <div class="gantt-resize-handle left" onpointerdown="ganttBeginDrag(event,'${t.id}','resize-left')"></div>
+          <div class="gantt-bar ${statusClass}${unscheduled?' not-started':''}" data-task-id="${esc(t.id)}" style="left:${leftPx}px;width:${widthPx}px${unscheduled?';opacity:0.35':''}" title="${esc(t.name)} | ${esc(assignee?.name||'Unassigned')} | ${esc(projectLabel)} | ${esc(t.startDate||'')}${t.dueDate?` - ${esc(t.dueDate)}`:''}">
+            <div class="gantt-resize-handle left"></div>
             <div class="gantt-bar-main"><b>${esc(t.name)}</b><span>${esc(assignee?.name||'Unassigned')} | ${esc(t.status||'')}</span></div>
             <div class="gantt-bar-meta">${fmtN(actualHours)}h / ${fmtN(t.allocatedHours||0)}h</div>
-            <div class="gantt-resize-handle right" onpointerdown="ganttBeginDrag(event,'${t.id}','resize-right')"></div>
+            <div class="gantt-resize-handle right"></div>
           </div>
         </div>
       </td>
@@ -1344,88 +1345,84 @@ function renderGantt(){
   </div>`;
 }
 
-function ganttBeginDrag(evt, taskId, mode){
+function initGanttInteractions(){
+  document.querySelectorAll('.gantt-bar').forEach(bar => {
+    const taskId = bar.dataset.taskId;
+    const leftHandle = bar.querySelector('.gantt-resize-handle.left');
+    const rightHandle = bar.querySelector('.gantt-resize-handle.right');
+    bar.onmousedown = e => {
+      if (e.target.closest('.gantt-resize-handle')) return;
+      ganttBeginDrag(e, taskId, 'move', bar);
+    };
+    if (leftHandle) leftHandle.onmousedown = e => ganttBeginDrag(e, taskId, 'resize-left', bar);
+    if (rightHandle) rightHandle.onmousedown = e => ganttBeginDrag(e, taskId, 'resize-right', bar);
+  });
+}
+
+function ganttBeginDrag(evt, taskId, mode, barEl){
   evt.preventDefault();
   evt.stopPropagation();
-  const bar = evt.target.closest('.gantt-bar');
-  const lane = evt.target.closest('.gantt-row-lane');
+  const bar = barEl || evt.currentTarget || evt.target.closest('.gantt-bar');
   const rightBody = document.getElementById('ganttRightBody');
-  if(!bar || !lane || !rightBody) return;
+  if(!bar || !rightBody) return;
   const task = taskById(taskId);
   if(!task) return;
   const rangeStart = parseGanttDate(rightBody.dataset.rangeStart);
   const dayWidth = +rightBody.dataset.dayWidth || state.ganttDayWidth || 48;
-  const dayCount = +rightBody.dataset.dayCount || 1;
-  const barRect = bar.getBoundingClientRect();
-  const laneRect = lane.getBoundingClientRect();
-  const startDate = parseGanttDate(task.startDate) || rangeStart;
-  const endDate = parseGanttDate(task.dueDate) || startDate;
-  const initialStartDay = Math.max(0, ganttDayDiff(rangeStart, startDate));
-  const initialSpanDays = Math.max(1, ganttDayDiff(startDate, endDate) + 1);
-  ganttDrag = {
-    taskId,
-    task,
-    mode,
-    bar,
-    lane,
-    rightBody,
-    rangeStart,
-    dayWidth,
-    dayCount,
-    offsetX: evt.clientX - barRect.left,
-    initialStartDay,
-    initialSpanDays,
-    initialLeftPx: parseFloat(bar.style.left) || 0,
-    initialWidthPx: parseFloat(bar.style.width) || (initialSpanDays * dayWidth),
-    previewStartDay: initialStartDay,
-    previewSpanDays: initialSpanDays,
-    onMove: null,
-    onUp: null
-  };
+  const ol = parseFloat(bar.style.left) || 0;
+  const ow = parseFloat(bar.style.width) || dayWidth;
+  const sx = evt.clientX;
+  ganttDrag = { task, bar, mode, rangeStart, dayWidth, sx, ol, ow, onMove:null, onUp:null };
   bar.classList.add('dragging');
+  if(mode === 'resize-left') bar.classList.add('resizing-left');
+  if(mode === 'resize-right') bar.classList.add('resizing-right');
+  document.body.style.userSelect = 'none';
   const onMove = e => ganttUpdateDrag(e);
-  const onUp = e => ganttEndDrag(e);
+  const onUp = () => ganttEndDrag();
   ganttDrag.onMove = onMove;
   ganttDrag.onUp = onUp;
-  document.addEventListener('pointermove', onMove);
-  document.addEventListener('pointerup', onUp);
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
 }
 
 function ganttUpdateDrag(evt){
   if(!ganttDrag) return;
-  const {lane, rightBody, dayWidth, dayCount, mode, offsetX, initialStartDay, initialSpanDays} = ganttDrag;
-  const laneRect = lane.getBoundingClientRect();
-  const x = evt.clientX - laneRect.left + rightBody.scrollLeft;
-  let startDay = initialStartDay;
-  let spanDays = initialSpanDays;
+  const {bar, mode, sx, ol, ow, dayWidth} = ganttDrag;
+  const dx = evt.clientX - sx;
   if(mode === 'move'){
-    startDay = ganttSnapDayFromPx(x - offsetX, dayWidth);
-    startDay = Math.max(0, Math.min(dayCount - initialSpanDays, startDay));
+    bar.style.left = `${ol + dx}px`;
   }else if(mode === 'resize-right'){
-    const endDay = Math.max(initialStartDay + 1, Math.min(dayCount, ganttSnapDayFromPx(x, dayWidth) + 1));
-    spanDays = Math.max(1, endDay - initialStartDay);
-    startDay = initialStartDay;
+    bar.style.width = `${Math.max(dayWidth, ow + dx)}px`;
   }else if(mode === 'resize-left'){
-    startDay = Math.max(0, Math.min(initialStartDay + initialSpanDays - 1, ganttSnapDayFromPx(x, dayWidth)));
-    const endDay = initialStartDay + initialSpanDays;
-    spanDays = Math.max(1, endDay - startDay);
+    if(ow - dx >= dayWidth){
+      bar.style.left = `${ol + dx}px`;
+      bar.style.width = `${ow - dx}px`;
+    }
   }
-  ganttDrag.previewStartDay = startDay;
-  ganttDrag.previewSpanDays = spanDays;
-  const leftPx = startDay * dayWidth;
-  const widthPx = Math.max(spanDays * dayWidth - 4, Math.max(28, Math.round(dayWidth * 0.8)));
-  ganttDrag.bar.style.left = `${leftPx}px`;
-  ganttDrag.bar.style.width = `${widthPx}px`;
 }
 
 function ganttEndDrag(){
   if(!ganttDrag) return;
-  document.removeEventListener('pointermove', ganttDrag.onMove);
-  document.removeEventListener('pointerup', ganttDrag.onUp);
-  ganttDrag.bar.classList.remove('dragging');
-  const {task, rangeStart, previewStartDay, previewSpanDays} = ganttDrag;
-  const startDate = ganttAddDays(rangeStart, previewStartDay);
-  const endDate = ganttAddDays(startDate, Math.max(0, previewSpanDays - 1));
+  document.removeEventListener('mousemove', ganttDrag.onMove);
+  document.removeEventListener('mouseup', ganttDrag.onUp);
+  const {task, bar, mode, rangeStart, dayWidth} = ganttDrag;
+  bar.classList.remove('dragging','resizing-left','resizing-right');
+  document.body.style.userSelect = '';
+  const rawLeft = Math.max(0, parseFloat(bar.style.left) || 0);
+  const rawWidth = Math.max(dayWidth, parseFloat(bar.style.width) || dayWidth);
+  const snappedLeft = Math.max(0, Math.round(rawLeft / dayWidth) * dayWidth);
+  const snappedWidth = Math.max(dayWidth, Math.round((rawWidth + 2) / dayWidth) * dayWidth - 2);
+  const startDate = ganttAddDays(rangeStart, Math.round(snappedLeft / dayWidth));
+  const spanDays = Math.max(1, Math.round((snappedWidth + 2) / dayWidth));
+  const endDate = ganttAddDays(startDate, spanDays - 1);
+  if(mode === 'move'){
+    bar.style.left = `${snappedLeft}px`;
+  }else if(mode === 'resize-left'){
+    bar.style.left = `${snappedLeft}px`;
+    bar.style.width = `${snappedWidth}px`;
+  }else if(mode === 'resize-right'){
+    bar.style.width = `${snappedWidth}px`;
+  }
   task.startDate = ganttIsoDate(startDate);
   task.dueDate = ganttIsoDate(endDate);
   captureGanttScroll();
