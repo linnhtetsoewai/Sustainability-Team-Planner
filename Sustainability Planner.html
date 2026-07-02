@@ -53,6 +53,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .util-legend-btn.active{color:var(--dark)}
 .util-legend-reset{font-size:11px;color:var(--accent);font-weight:700;margin-left:4px}
 .util-legend-swatch{width:12px;height:12px;border-radius:999px;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.35)}
+.util-legend-swatch.over100{animation:utilLegendPulse 0.8s ease-in-out infinite;box-shadow:0 0 0 1px rgba(255,255,255,0.9), 0 0 8px rgba(217,75,75,0.65), 0 0 16px rgba(217,75,75,0.4)}
 .util-legend-line{width:18px;height:0;display:inline-block;border-top:3px solid currentColor;flex:0 0 auto}
 .util-legend-line.dashed{border-top-style:dashed;border-top-width:2px}
 .util-chart-wrap{position:relative;border:1px solid var(--border);border-radius:10px;background:linear-gradient(180deg,#fff 0%,#fbfcfb 100%);overflow:hidden}
@@ -83,8 +84,20 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .util-series-node{cursor:pointer;pointer-events:all}
 .util-series-node.actual{fill:#fff;stroke-width:2.5}
 .util-series-node.alloc{fill:#fff;stroke-width:2.5}
+.util-series-node.over100-ring{fill:rgba(224,102,102,0.12);stroke:#d94b4b;stroke-width:2;animation:utilOver100Pulse 0.8s ease-in-out infinite;pointer-events:none}
+.util-series-node.over100-core{fill:#fff;stroke:#d94b4b;stroke-width:2.5}
+.util-series-node.over100-core.alloc{fill:#fff;stroke:#d94b4b;stroke-width:2.5}
+.util-series-node.over100-core.actual{fill:#fff;stroke:#d94b4b;stroke-width:2.5}
 .util-series-point{stroke:#fff;stroke-width:2;cursor:pointer}
 .util-series-point:hover{r:6}
+@keyframes utilOver100Pulse{
+  0%,100%{opacity:0.45;filter:drop-shadow(0 0 4px rgba(217,75,75,0.45))}
+  50%{opacity:1;filter:drop-shadow(0 0 10px rgba(217,75,75,0.95))}
+}
+@keyframes utilLegendPulse{
+  0%,100%{transform:scale(1);filter:drop-shadow(0 0 4px rgba(217,75,75,0.35))}
+  50%{transform:scale(1.18);filter:drop-shadow(0 0 10px rgba(217,75,75,0.9))}
+}
 .tbl-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border)}
 table{width:100%;border-collapse:collapse;background:#fff;font-size:13px}
 th{background:var(--dark);color:#fff;padding:11px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.4px;font-weight:600;white-space:nowrap}
@@ -1392,14 +1405,22 @@ function renderUtilizationChart(config){
     const actualNodes = row.actual.map((v, i) => {
       const cx = xPos(i).toFixed(1);
       const cy = yPos(v.util).toFixed(1);
-      const label = `${row.member.shortName || row.member.name || ''}, ${Math.round(+v.util || 0)}%, ${fmtShortDate(v.week)}`;
-      return `<circle class="util-series-node actual" cx="${cx}" cy="${cy}" r="4" fill="${row.color}" stroke="${row.color}"><title>${esc(label)}</title></circle>`;
+      const pct = +v.util || 0;
+      const label = `${row.member.shortName || row.member.name || ''}, ${Math.round(pct)}%, ${fmtShortDate(v.week)}`;
+      const warn = pct > 100;
+      return warn
+        ? `<g><circle class="util-series-node over100-ring" cx="${cx}" cy="${cy}" r="9"></circle><circle class="util-series-node actual over100-core" cx="${cx}" cy="${cy}" r="4" fill="${row.color}" stroke="${row.color}"><title>${esc(label)}</title></circle></g>`
+        : `<circle class="util-series-node actual" cx="${cx}" cy="${cy}" r="4" fill="${row.color}" stroke="${row.color}"><title>${esc(label)}</title></circle>`;
     }).join('');
     const allocNodes = row.allocated.map((v, i) => {
       const cx = xPos(i).toFixed(1);
       const cy = yPos(v.util).toFixed(1);
-      const label = `${row.member.shortName || row.member.name || ''}, ${Math.round(+v.util || 0)}%, ${fmtShortDate(v.week)}`;
-      return `<circle class="util-series-node alloc" cx="${cx}" cy="${cy}" r="3.5" fill="${row.color}" stroke="${row.color}"><title>${esc(label)}</title></circle>`;
+      const pct = +v.util || 0;
+      const label = `${row.member.shortName || row.member.name || ''}, ${Math.round(pct)}%, ${fmtShortDate(v.week)}`;
+      const warn = pct > 100;
+      return warn
+        ? `<g><circle class="util-series-node over100-ring" cx="${cx}" cy="${cy}" r="9"></circle><circle class="util-series-node alloc over100-core" cx="${cx}" cy="${cy}" r="3.5" fill="${row.color}" stroke="${row.color}"><title>${esc(label)}</title></circle></g>`
+        : `<circle class="util-series-node alloc" cx="${cx}" cy="${cy}" r="3.5" fill="${row.color}" stroke="${row.color}"><title>${esc(label)}</title></circle>`;
     }).join('');
     return `<g>
       ${allocatedLine}
@@ -1408,6 +1429,7 @@ function renderUtilizationChart(config){
       ${actualNodes}
     </g>`;
   }).join('');
+  const rowHasOver100 = row => [...row.actual, ...row.allocated].some(v => (+v.util || 0) > 100);
   return `<div class="card" style="margin-bottom:20px">
     <div class="util-chart-shell">
       <div class="util-chart-top">
@@ -1420,10 +1442,11 @@ function renderUtilizationChart(config){
             const id = String(r.member?.id || '');
             const label = esc(r.member.shortName || r.member.name || '');
             const active = selectionKey && selectedSeriesId && id === String(selectedSeriesId);
+            const warn = rowHasOver100(r);
             if (selectionKey) {
-              return `<button type="button" class="util-legend-item util-legend-btn ${active ? 'active' : ''}" onclick="${active ? `setUtilizationFocus('${selectionKey}','')` : `setUtilizationFocus('${selectionKey}','${esc(id)}')`}"><span class="util-legend-swatch" style="background:${r.color}"></span><span>${label}${active ? ' <span class="util-legend-reset">Reset</span>' : ''}</span></button>`;
+              return `<button type="button" class="util-legend-item util-legend-btn ${active ? 'active' : ''}" onclick="${active ? `setUtilizationFocus('${selectionKey}','')` : `setUtilizationFocus('${selectionKey}','${esc(id)}')`}"><span class="util-legend-swatch ${warn ? 'over100' : ''}" style="background:${r.color}"></span><span>${label}${active ? ' <span class="util-legend-reset">Reset</span>' : ''}</span></button>`;
             }
-            return `<div class="util-legend-item"><span class="util-legend-swatch" style="background:${r.color}"></span><span>${label}</span></div>`;
+            return `<div class="util-legend-item"><span class="util-legend-swatch ${warn ? 'over100' : ''}" style="background:${r.color}"></span><span>${label}</span></div>`;
           }).join('') : ''}
           <div class="util-legend-item" style="color:#4C8B6B"><span class="util-legend-line"></span><span>Actual utilization</span></div>
           <div class="util-legend-item" style="color:#4C8B6B"><span class="util-legend-line dashed"></span><span>Allocated utilization</span></div>

@@ -1,5 +1,5 @@
 // Sustainability Team Planner - auto-generated database file
-// Last saved: 2026-07-02T19:52:52.726Z
+// Last saved: 2026-07-02T20:05:13.891Z
 // Do not edit manually unless you know what you are doing.
 window.__DB__ = {
   "settings": {
@@ -332,6 +332,26 @@ window.__DB__ = {
         },
         {
           "date": "2026-07-13",
+          "hours": 8
+        }
+      ]
+    },
+    {
+      "id": "4gg8dbdi",
+      "taskType": "project",
+      "projectId": "p_noma",
+      "name": "Package Review",
+      "assigneeId": "t_areesha",
+      "allocatedHours": 8,
+      "actualHours": 0,
+      "startDate": "2026-07-10",
+      "dueDate": "2026-07-10",
+      "status": "Not Started",
+      "priority": "Medium",
+      "notes": "",
+      "dailyAllocations": [
+        {
+          "date": "2026-07-10",
           "hours": 8
         }
       ]
