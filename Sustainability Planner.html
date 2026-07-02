@@ -49,26 +49,35 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .util-legend{display:flex;flex-wrap:wrap;gap:10px 14px}
 .util-legend-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--charcoal);font-weight:600;white-space:nowrap}
 .util-legend-swatch{width:12px;height:12px;border-radius:999px;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.35)}
+.util-legend-line{width:18px;height:0;display:inline-block;border-top:3px solid currentColor;flex:0 0 auto}
+.util-legend-line.dashed{border-top-style:dashed;border-top-width:2px}
 .util-chart-wrap{position:relative;border:1px solid var(--border);border-radius:10px;background:linear-gradient(180deg,#fff 0%,#fbfcfb 100%);overflow:hidden}
 .util-chart-grid{display:grid;grid-template-columns:220px minmax(0,1fr);min-width:0}
 .util-chart-left{border-right:1px solid var(--border);background:#fff}
 .util-chart-right{overflow-x:auto;overflow-y:hidden;min-width:0;background:#fff}
+.util-chart-body{display:grid;grid-template-columns:56px minmax(0,1fr);min-width:0}
+.util-y-axis{position:relative;width:56px;border-right:1px solid var(--border);background:#fff}
+.util-y-label{position:absolute;left:0;right:0;transform:translateY(-50%);text-align:center;font-size:11px;color:#000;font-variant-numeric:tabular-nums;pointer-events:none}
+.util-chart-scroll{overflow-x:auto;overflow-y:hidden;min-width:0;background:#fff}
 .util-left-head,.util-week-head-wrap{background:var(--dark);color:#fff}
 .util-left-head{height:38px;display:flex;align-items:center;padding:0 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px}
 .util-left-row{height:56px;display:flex;align-items:center;padding:0 14px;border-top:1px solid var(--border);gap:10px}
 .util-left-row b{display:block;font-size:13px;color:var(--charcoal)}
 .util-left-row span{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+.util-time-header-stack{display:flex;flex-direction:column;min-width:max-content}
+.util-year-head-row{display:flex;align-items:stretch;min-width:max-content;background:var(--dark)}
+.util-year-head-row{height:18px}
+.util-year-head-cell,.util-week-head-cell{display:flex;align-items:center;justify-content:center;flex:0 0 auto;white-space:nowrap;border-right:1px solid rgba(255,255,255,0.12);color:#fff}
+.util-year-head-cell{font-size:10px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase}
 .util-week-head-wrap{display:flex;align-items:stretch;height:38px;min-width:max-content}
 .util-week-head-cell{flex:0 0 var(--util-week-width,56px);min-width:var(--util-week-width,56px);display:flex;align-items:center;justify-content:center;border-right:1px solid rgba(255,255,255,0.12);font-size:11px;font-weight:700;letter-spacing:0.2px;white-space:nowrap}
+.util-week-head-cell.today{background:rgba(76,139,107,0.28);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.08)}
 .util-chart-svg{display:block;min-width:max-content}
 .util-grid-line{stroke:rgba(31,78,60,0.12);stroke-width:1}
 .util-series-line{fill:none;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
-.util-series-line.alloc{stroke-dasharray:6 5;opacity:0.85}
+.util-series-line.alloc{stroke-width:3.5;stroke-dasharray:6 5;stroke-linecap:round;opacity:0.85}
 .util-series-point{stroke:#fff;stroke-width:2;cursor:pointer}
 .util-series-point:hover{r:6}
-.util-tooltip{position:absolute;z-index:5;display:none;pointer-events:none;min-width:160px;max-width:240px;padding:10px 12px;border-radius:8px;background:rgba(31,78,60,0.96);color:#fff;box-shadow:0 8px 24px rgba(0,0,0,0.18);font-size:12px;line-height:1.45}
-.util-tooltip b{display:block;font-size:13px;margin-bottom:2px}
-.util-tooltip .muted{opacity:0.85}
 .tbl-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border)}
 table{width:100%;border-collapse:collapse;background:#fff;font-size:13px}
 th{background:var(--dark);color:#fff;padding:11px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.4px;font-weight:600;white-space:nowrap}
@@ -110,6 +119,8 @@ td.actions{white-space:nowrap;text-align:right}
 .gantt-legend-item{display:flex;align-items:center;gap:6px}
 .gantt-swatch{width:14px;height:10px;border-radius:999px;background:var(--accent)}
 .gantt-toolbar{display:flex;align-items:center;gap:10px;margin-left:auto;flex-wrap:wrap}
+.gantt-toolbar select{padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:#fff;font-family:inherit;min-width:160px}
+.gantt-toolbar select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(76,139,107,0.15)}
 .gantt-zoom-controls{display:flex;gap:8px;align-items:center}
 .gantt-shell{display:grid;grid-template-columns:640px minmax(0,1fr);border-top:1px solid var(--border);max-width:100%;height:calc(100vh - 220px);min-height:420px;overflow:hidden}
 .gantt-pane{min-width:0;scrollbar-gutter:stable both-edges}
@@ -227,8 +238,8 @@ textarea{resize:vertical;min-height:60px}
     <span class="brand">Sustainability Team Planner</span>
   </div>
   <div class="top-actions">
-    <button class="btn btn-outline-light" id="saveBtn" onclick="saveToFile()" title="Save to database.js">Save<span id="dirtyDot" style="display:none;color:#FFD54F;margin-left:4px">●</span></button>
-    <button class="btn btn-outline-light" onclick="reloadFromFile()" title="Reload from database.js">Reload</button>
+    <button class="btn btn-outline-light" id="saveBtn" onclick="saveToFile()" title="Save to src/database.js">Save<span id="dirtyDot" style="display:none;color:#FFD54F;margin-left:4px">●</span></button>
+    <button class="btn btn-outline-light" onclick="reloadFromFile()" title="Reload from src/database.js">Reload</button>
     <button class="btn btn-outline-light" onclick="exportExcel()" title="Export to Excel">Excel</button>
     <button class="btn btn-outline-light" onclick="exportJSON()" title="Download JSON backup">JSON</button>
     <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
@@ -238,11 +249,11 @@ textarea{resize:vertical;min-height:60px}
 
 <aside class="sidebar" id="sidebar">
   <a class="nav-item active" data-view="dashboard">Dashboard</a>
-  <a class="nav-item" data-view="projects">Projects</a>
+  <a class="nav-item" data-view="gantt">Timeline</a>
   <a class="nav-item" data-view="tasks">Tasks</a>
+  <a class="nav-item" data-view="timesheet">Task Log</a>
+  <a class="nav-item" data-view="projects">Projects</a>
   <a class="nav-item" data-view="team">Team</a>
-  <a class="nav-item" data-view="timesheet">Timesheet</a>
-  <a class="nav-item" data-view="gantt">Gantt Chart</a>
   <a class="nav-item" data-view="notes">Notes &amp; Reminders</a>
 </aside>
 
@@ -254,8 +265,8 @@ textarea{resize:vertical;min-height:60px}
 
 <div class="toast-container" id="toasts"></div>
 
-<!-- Load shared database from same folder. If not found, falls back to localStorage or seed. -->
-<script src="database.js" onerror="console.log('database.js not found — using localStorage or seed')"></script>
+<!-- Load shared database from src/. If not found, falls back to localStorage or seed. -->
+<script src="src/database.js" onerror="console.log('src/database.js not found — using localStorage or seed')"></script>
 
 <script>
 // =====================================================
@@ -285,7 +296,7 @@ function defaultDB(){
     {id:p3,code:'12687994',name:'BAG Masterplan',shortName:'BAG',client:'Modon',pm:'J. Pardesi',sustainabilityLead:t2,startDate:'2026-03-01',endDate:'2027-02-28',allocatedHours:800,allocatedBudget:280000,status:'In Progress',notes:'Estidama + Fitwel evidence coordination'},
     {id:p4,code:'12676543',name:'NoMA Sustainability Advisory',shortName:'NoMA',client:'NoMA Holdings',pm:'M.T. Jawed',sustainabilityLead:t1,startDate:'2026-05-01',endDate:'2026-09-30',allocatedHours:240,allocatedBudget:84000,status:'Not Started',notes:'Advisory + LEED pre-assessment'}
   ];
-  const T=(pi,n,ai,ah,acth,sd,dd,st,pr,nt)=>({id:uid(),projectId:pi,name:n,assigneeId:ai,allocatedHours:ah,actualHours:acth,startDate:sd,dueDate:dd,status:st,priority:pr,notes:nt});
+  const T=(pi,n,ai,ah,acth,sd,dd,st,pr,nt,tp='project')=>({id:uid(),projectId:pi,taskType:tp,name:n,assigneeId:ai,allocatedHours:ah,actualHours:acth,startDate:sd,dueDate:dd,status:st,priority:pr,notes:nt});
   const tasks=[
     T(p1,'Estidama PBRS gap analysis',t2,48,42,'2026-01-20','2026-03-15','Completed','High','Baseline gap analysis vs 2 Pearl target'),
     T(p1,'LEED credit tracker setup',t3,24,20,'2026-02-01','2026-03-01','Completed','Medium','Live tracker on SharePoint'),
@@ -342,6 +353,10 @@ function normalizeDB(db){
   });
   db.projects = Array.isArray(db.projects) ? db.projects : [];
   db.tasks = Array.isArray(db.tasks) ? db.tasks : [];
+  db.tasks.forEach(t => {
+    t.taskType = t.taskType || (t.projectId ? 'project' : 'internal');
+    if (t.taskType !== 'project') t.projectId = t.projectId || '';
+  });
   db.timesheet = Array.isArray(db.timesheet) ? db.timesheet : [];
   db.notes = Array.isArray(db.notes) ? db.notes : [];
   return db;
@@ -349,7 +364,7 @@ function normalizeDB(db){
 
 function loadDB(){
   if (typeof window.__DB__ !== 'undefined' && window.__DB__ && window.__DB__.projects) {
-    console.log('Loaded database from database.js');
+    console.log('Loaded database from src/database.js');
     state.source = 'file';
     return normalizeDB(JSON.parse(JSON.stringify(window.__DB__)));
   }
@@ -380,7 +395,7 @@ function updateDirtyIndicator(){
   const status = document.getElementById('fileStatus');
   if (status) {
     if (fileHandle) status.innerHTML = 'Linked: ' + fileHandle.name + (state.dirty ? ' (unsaved)' : '');
-    else if (state.source === 'file') status.innerHTML = 'database.js loaded automatically';
+    else if (state.source === 'file') status.innerHTML = 'src/database.js loaded automatically';
     else if (state.source === 'localStorage') status.innerHTML = 'localStorage only';
     else status.innerHTML = 'Sample data';
   }
@@ -416,12 +431,12 @@ async function saveToFile(){
   URL.revokeObjectURL(url);
   state.dirty = false;
   updateDirtyIndicator();
-  toast('database.js downloaded - replace file in folder');
+  toast('database.js downloaded - replace file in src/');
 }
 
 async function linkDatabaseFile(){
   if (!('showOpenFilePicker' in window)) {
-    alert('Direct file linking requires Chrome, Edge, or Opera.\n\nOn other browsers, use Save to download database.js and manually replace in the folder.');
+    alert('Direct file linking requires Chrome, Edge, or Opera.\n\nOn other browsers, use Save to download database.js and manually replace it in src/.');
     return;
   }
   try {
@@ -442,7 +457,7 @@ async function linkDatabaseFile(){
 }
 
 async function reloadFromFile(){
-  if (state.dirty && !confirm('You have unsaved changes. Reload from database.js anyway?')) return;
+  if (state.dirty && !confirm('You have unsaved changes. Reload from src/database.js anyway?')) return;
   if (fileHandle) {
     try {
       const file = await fileHandle.getFile();
@@ -463,7 +478,7 @@ async function reloadFromFile(){
       toast('Reload failed: ' + e.message, true); return;
     }
   }
-  if (confirm('Reload the page to re-read database.js?\n\nAny unsaved changes will be lost.')) location.reload();
+  if (confirm('Reload the page to re-read src/database.js?\n\nAny unsaved changes will be lost.')) location.reload();
 }
 
 function startFilePolling(){
@@ -485,7 +500,7 @@ function showUpdateBanner(){
   const b = document.createElement('div');
   b.id = 'updateBanner';
   b.style.cssText = 'position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#E8B84A;color:#2B2B2B;padding:10px 18px;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,0.2);z-index:1500;font-size:13px;font-weight:600;display:flex;align-items:center;gap:12px';
-  b.innerHTML = 'A teammate updated database.js. <button class="btn btn-primary btn-sm" onclick="reloadFromFile();this.parentElement.remove()">Reload now</button> <button class="btn-icon" onclick="this.parentElement.remove()" style="color:#2B2B2B">✕</button>';
+  b.innerHTML = 'A teammate updated src/database.js. <button class="btn btn-primary btn-sm" onclick="reloadFromFile();this.parentElement.remove()">Reload now</button> <button class="btn-icon" onclick="this.parentElement.remove()" style="color:#2B2B2B">✕</button>';
   document.body.appendChild(b);
 }
 
@@ -555,7 +570,9 @@ function priorityBadge(p){
 const projectById=id=>state.db.projects.find(p=>p.id===id);
 const personById=id=>state.db.team.find(t=>t.id===id);
 const taskById=id=>state.db.tasks.find(t=>t.id===id);
-const tasksForProject=pid=>state.db.tasks.filter(t=>t.projectId===pid);
+const isProjectTask=t=>String(t?.taskType||'project')==='project' && !!t?.projectId;
+const taskLabel=t=>t?.taskType==='leave' ? 'Leave' : (t?.taskType==='internal' || !t?.projectId ? 'Internal' : 'Project');
+const tasksForProject=pid=>state.db.tasks.filter(t=>t.projectId===pid && isProjectTask(t));
 function projectTotals(pid){
   const ts=tasksForProject(pid);
   const allocHrs=ts.reduce((s,t)=>s+(+t.allocatedHours||0),0);
@@ -565,28 +582,33 @@ function projectTotals(pid){
   return {allocHrs,actualHrs,allocBudget,actualBudget};
 }
 function personTotals(id){
-  const ts=state.db.tasks.filter(t=>t.assigneeId===id);
+  const ts=state.db.tasks.filter(t=>t.assigneeId===id && t.taskType!=='leave');
   const allocHrs=ts.reduce((s,t)=>s+(+t.allocatedHours||0),0);
   const actualHrs=state.db.timesheet.filter(x=>x.personId===id).reduce((s,x)=>s+(+x.hoursLogged||0),0);
   return {allocHrs,actualHrs};
 }
+function personLeaveHoursByWeek(id, weekEnd){
+  const weekStart = weekStartSaturday(weekEnd);
+  return state.db.tasks
+    .filter(t => t.assigneeId === id && t.taskType === 'leave')
+    .reduce((sum, t) => {
+      const start = parseGanttDate(t.startDate);
+      const end = parseGanttDate(t.dueDate);
+      if (!start || !end) return sum;
+      const taskDays = diffDaysInclusive(start, end);
+      const overlapStart = new Date(Math.max(start.getTime(), weekStart.getTime()));
+      const overlapEnd = new Date(Math.min(end.getTime(), weekEnd.getTime()));
+      if (overlapEnd < overlapStart) return sum;
+      const overlapDays = diffDaysInclusive(overlapStart, overlapEnd);
+      return sum + ((+t.allocatedHours || 0) * (overlapDays / taskDays));
+    }, 0);
+}
+function effectiveCapacityForWeek(member, weekEnd){
+  const weeklyCapacity = +member?.weeklyCapacity || 40;
+  const leaveHours = personLeaveHoursByWeek(member?.id, weekEnd);
+  return Math.max(0, weeklyCapacity - leaveHours);
+}
 function isOverdue(d,st){if(!d)return false;if(st==='Closed'||st==='Completed')return false;return d<todayISO();}
-function showUtilTooltip(evt, el){
-  const tip = document.getElementById('utilChartTooltip');
-  const wrap = el?.closest('.util-chart-wrap');
-  if (!tip || !wrap || !el) return;
-  tip.innerHTML = `<b>${esc(el.dataset.person||'')}</b><div>${esc(el.dataset.week||'')}</div><div class="muted">Actual: ${esc(el.dataset.actualHours||'0')}h (${esc(el.dataset.actualUtil||'0.0%')})</div><div class="muted">Allocated: ${esc(el.dataset.allocHours||'0')}h (${esc(el.dataset.allocUtil||'0.0%')})</div>`;
-  const rect = wrap.getBoundingClientRect();
-  const x = Math.min(Math.max((evt?.clientX || rect.left) - rect.left + 14, 12), rect.width - 180);
-  const y = Math.min(Math.max((evt?.clientY || rect.top) - rect.top + 14, 12), rect.height - 96);
-  tip.style.left = `${x}px`;
-  tip.style.top = `${y}px`;
-  tip.style.display = 'block';
-}
-function hideUtilTooltip(){
-  const tip = document.getElementById('utilChartTooltip');
-  if (tip) tip.style.display = 'none';
-}
 function toast(msg,error=false){
   const el=document.createElement('div');
   el.className='toast'+(error?' error':'');
@@ -744,6 +766,70 @@ function diffDaysInclusive(a, b){
   return Math.max(1, Math.floor((end - start) / 86400000) + 1);
 }
 
+function hashString(value){
+  let hash = 0;
+  const str = String(value || '');
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash);
+}
+
+const memberColorOverrides = new Map([
+  ['Mrunmai Vaidya', '#0F766E'],
+  ['Areesha Rashid', '#C2410C'],
+  ['Linn Htet Soe Wai', '#6D28D9']
+]);
+const memberColorPalette = [
+  '#0F766E', '#C2410C', '#6D28D9', '#1D4ED8', '#BE185D', '#15803D',
+  '#B45309', '#7C3AED', '#0E7490', '#4D7C0F', '#9D174D', '#7C2D12'
+];
+
+function memberColor(member){
+  const name = String(member?.name || '').trim();
+  if (memberColorOverrides.has(name)) return memberColorOverrides.get(name);
+  const seed = member?.id || name || 'member';
+  return memberColorPalette[hashString(seed) % memberColorPalette.length];
+}
+
+function lerp(a, b, t){
+  return a + ((b - a) * t);
+}
+
+function hexToRgb(hex){
+  const m = String(hex || '').replace('#','').match(/^([0-9a-f]{6})$/i);
+  if (!m) return {r:0,g:0,b:0};
+  const n = parseInt(m[1], 16);
+  return {r:(n >> 16) & 255, g:(n >> 8) & 255, b:n & 255};
+}
+
+function rgbToHex({r,g,b}){
+  return '#' + [r,g,b].map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('');
+}
+
+function mixHex(a, b, t){
+  const ca = hexToRgb(a);
+  const cb = hexToRgb(b);
+  return rgbToHex({r: lerp(ca.r, cb.r, t), g: lerp(ca.g, cb.g, t), b: lerp(ca.b, cb.b, t)});
+}
+
+function utilizationHeatColor(value){
+  const v = Math.max(0, Math.min(100, +value || 0));
+  if (v <= 40) return mixHex('#dc2626', '#facc15', v / 40);
+  if (v <= 80) return mixHex('#facc15', '#16a34a', (v - 40) / 40);
+  return '#16a34a';
+}
+
+const projectColorPalette = [
+  '#1D4ED8', '#0F766E', '#C2410C', '#7C3AED', '#BE185D', '#15803D',
+  '#B45309', '#0E7490', '#4D7C0F', '#9D174D', '#7C2D12', '#6D28D9'
+];
+
+function projectColor(project){
+  const seed = project?.id || project?.code || project?.shortName || 'project';
+  return projectColorPalette[hashString(seed) % projectColorPalette.length];
+}
+
 function getWeeklyUtilizationChartData(){
   const team = state.db.team.slice();
   const taskDates = state.db.tasks.flatMap(t => [parseGanttDate(t.startDate), parseGanttDate(t.dueDate)]).filter(Boolean);
@@ -765,16 +851,16 @@ function getWeeklyUtilizationChartData(){
     actualTotals.set(`${x.personId || '__unassigned__'}__${key}`, (actualTotals.get(`${x.personId || '__unassigned__'}__${key}`) || 0) + (+x.hoursLogged || 0));
   });
   const rows = team.map((m, idx) => {
-    const capacity = +m.weeklyCapacity || 40;
     const actual = [];
     const allocated = [];
     weeks.forEach(weekEnd => {
       const key = ganttIsoDate(weekEnd);
       const actualHours = actualTotals.get(`${m.id}__${key}`) || 0;
+      const capacity = effectiveCapacityForWeek(m, weekEnd);
       actual.push({week:key, hours:actualHours, util:capacity ? (actualHours / capacity) * 100 : 0});
       const weekStart = weekStartSaturday(weekEnd);
       let allocHours = 0;
-      state.db.tasks.filter(t => t.assigneeId === m.id).forEach(t => {
+      state.db.tasks.filter(t => t.assigneeId === m.id && t.taskType !== 'leave').forEach(t => {
         const start = parseGanttDate(t.startDate);
         const end = parseGanttDate(t.dueDate);
         if (!start || !end) return;
@@ -787,81 +873,185 @@ function getWeeklyUtilizationChartData(){
       });
       allocated.push({week:key, hours:allocHours, util:capacity ? (allocHours / capacity) * 100 : 0});
     });
-    return {member:m, color:['#1F4E3C','#4C8B6B','#6D9F72','#3C7D5B'][idx % 4], actual, allocated};
+    return {member:m, color:memberColor(m), actual, allocated};
   });
   return {weeks, rows};
 }
 
-function renderUtilizationChart(){
-  const data = getWeeklyUtilizationChartData();
-  if (!data.weeks.length) {
-    return `<div class="card empty" style="margin-bottom:0">No timesheet data yet to chart.</div>`;
+function getWeeklyProjectUtilizationChartData(){
+  const projects = state.db.projects.slice();
+  const taskDates = state.db.tasks.flatMap(t => [parseGanttDate(t.startDate), parseGanttDate(t.dueDate)]).filter(Boolean);
+  const sheetDates = state.db.timesheet.map(x => parseGanttDate(x.weekEnding)).filter(Boolean);
+  const allDates = [...taskDates, ...sheetDates];
+  if (!allDates.length) return {weeks:[], rows:[]};
+  const minDate = new Date(Math.min(...allDates.map(d => d.getTime())));
+  const maxDate = new Date(Math.max(...allDates.map(d => d.getTime())));
+  const startWeekEnd = weekEndFriday(minDate);
+  const endWeekEnd = weekEndFriday(maxDate);
+  const weeks = [];
+  for (let d = new Date(startWeekEnd); d <= endWeekEnd; d = addDaysSafe(d, 7)) weeks.push(new Date(d));
+  const actualTotals = new Map();
+  state.db.timesheet.forEach(x => {
+    if (!x.weekEnding || !x.projectId) return;
+    const d = parseGanttDate(x.weekEnding);
+    if (!d) return;
+    const key = ganttIsoDate(d);
+    actualTotals.set(`${x.projectId}__${key}`, (actualTotals.get(`${x.projectId}__${key}`) || 0) + (+x.hoursLogged || 0));
+  });
+  const rows = projects.map((p) => {
+    const capacity = +p.allocatedHours || 0;
+    const actual = [];
+    const allocated = [];
+    weeks.forEach(weekEnd => {
+      const key = ganttIsoDate(weekEnd);
+      const actualHours = actualTotals.get(`${p.id}__${key}`) || 0;
+      actual.push({week:key, hours:actualHours, util:capacity ? (actualHours / capacity) * 100 : 0});
+      const weekStart = weekStartSaturday(weekEnd);
+      let allocHours = 0;
+      state.db.tasks.filter(t => t.projectId === p.id).forEach(t => {
+        const start = parseGanttDate(t.startDate);
+        const end = parseGanttDate(t.dueDate);
+        if (!start || !end) return;
+        const taskDays = diffDaysInclusive(start, end);
+        const overlapStart = new Date(Math.max(start.getTime(), weekStart.getTime()));
+        const overlapEnd = new Date(Math.min(end.getTime(), weekEnd.getTime()));
+        if (overlapEnd < overlapStart) return;
+        const overlapDays = diffDaysInclusive(overlapStart, overlapEnd);
+        allocHours += (+t.allocatedHours || 0) * (overlapDays / taskDays);
+      });
+      allocated.push({week:key, hours:allocHours, util:capacity ? (allocHours / capacity) * 100 : 0});
+    });
+    return {member:p, color:projectColor(p), actual, allocated};
+  });
+  return {weeks, rows};
+}
+
+function getAverageUtilizationChartData(){
+  const base = getWeeklyUtilizationChartData();
+  if (!base.weeks.length) return {weeks:[], rows:[]};
+  const rows = base.weeks.map((week, idx) => {
+    const weekKey = ganttIsoDate(week);
+    const actuals = base.rows.map(r => r.actual[idx]?.util || 0);
+    const allocs = base.rows.map(r => r.allocated[idx]?.util || 0);
+    const avgActual = actuals.length ? actuals.reduce((s,n)=>s+n,0) / actuals.length : 0;
+    const avgAlloc = allocs.length ? allocs.reduce((s,n)=>s+n,0) / allocs.length : 0;
+    return {week:weekKey, actual:avgActual, allocated:avgAlloc};
+  });
+  return {weeks: base.weeks, rows:[{member:{name:'Average utilization', role:'All team members'}, color:'#4C8B6B', actual: rows.map(r=>({week:r.week, util:r.actual, hours:0})), allocated: rows.map(r=>({week:r.week, util:r.allocated, hours:0}))}]};
+}
+
+function buildTimelineHeaderRows(weeks, weekWidth, currentWeekKey){
+  const yearSpans = [];
+  let start = 0;
+  while (start < weeks.length) {
+    const base = weeks[start];
+    let end = start + 1;
+    while (end < weeks.length && weeks[end].getFullYear() === base.getFullYear()) end += 1;
+    yearSpans.push({label:String(base.getFullYear()), start, count:end-start});
+    start = end;
   }
-  const weekWidth = 56;
-  const leftWidth = 220;
-  const headerH = 38;
-  const rowH = 56;
-  const chartWidth = leftWidth + (data.weeks.length * weekWidth);
-  const chartHeight = headerH + (data.rows.length * rowH);
+  const yearRow = yearSpans.map(span => `<div class="util-year-head-cell" style="width:${span.count * weekWidth}px;min-width:${span.count * weekWidth}px">${esc(span.label)}</div>`).join('');
+  const weekRow = weeks.map(week => {
+    const key = ganttIsoDate(week);
+    const active = key === currentWeekKey;
+    return `<div class="util-week-head-cell ${active ? 'today' : ''}" style="--util-week-width:${weekWidth}px">${esc(fmtShortDate(key))}</div>`;
+  }).join('');
+  return {yearRow, weekRow};
+}
+
+function renderUtilizationChart(config){
+  const data = config.data;
+  if (!data.weeks.length) {
+    return `<div class="card empty" style="margin-bottom:0">No task log data yet to chart.</div>`;
+  }
+  const title = config.title || 'Weekly Utilization by Team Member';
+  const note = config.note || 'Solid line shows actual hours logged. Dashed line shows allocated hours spread across each task timeline.';
+  const includeMemberLegend = config.includeMemberLegend !== false;
+  const gradientActual = config.gradientActual === true || title === 'Weekly Utilization' || title === 'Weekly Team Utilization';
+  const gradientAllocated = config.gradientAllocated === true || title === 'Weekly Utilization' || title === 'Weekly Team Utilization';
+  const currentWeekKey = ganttIsoDate(weekEndFriday(parseGanttDate(todayISO())));
+  const weekWidth = 54;
+  const topPad = 20;
+  const bottomPad = 44;
+  const headerHeight = 56;
+  const chartWidth = data.weeks.length * weekWidth;
+  const chartHeight = 300;
   const yTicks = [0, 25, 50, 75, 100];
-  const xPos = i => leftWidth + (i * weekWidth) + (weekWidth / 2);
-  const yPos = pct => headerH + rowH - 10 - (Math.max(0, Math.min(100, pct)) / 100) * (rowH - 18);
-  const headerCells = data.weeks.map(week => `<div class="util-week-head-cell" style="--util-week-width:${weekWidth}px">${esc(fmtShortDate(ganttIsoDate(week)))}</div>`).join('');
-  const rows = data.rows.map((row, rIdx) => {
-    const top = headerH + (rIdx * rowH);
-    const rowMid = top + (rowH / 2);
-    const yGrid = yTicks.map(p => {
-      const y = top + rowH - 10 - ((p / 100) * (rowH - 18));
-      return `<line class="util-grid-line" x1="${leftWidth}" y1="${y}" x2="${chartWidth}" y2="${y}"></line>`;
-    }).join('');
-    const xGrid = data.weeks.map((_, i) => {
-      const x = leftWidth + (i * weekWidth);
-      return `<line class="util-grid-line" x1="${x}" y1="${top}" x2="${x}" y2="${top + rowH}"></line>`;
-    }).join('');
+  const xPos = i => (i * weekWidth) + (weekWidth / 2);
+  const yPos = pct => topPad + (chartHeight - topPad - bottomPad) - (Math.max(0, Math.min(100, pct)) / 100) * (chartHeight - topPad - bottomPad);
+  const headers = buildTimelineHeaderRows(data.weeks, weekWidth, currentWeekKey);
+  const grid = yTicks.map(p => {
+    const y = yPos(p);
+    return `<line class="util-grid-line" x1="0" y1="${y}" x2="${chartWidth}" y2="${y}"></line>`;
+  }).join('');
+  const weekLines = data.weeks.map((_, i) => {
+    const x = i * weekWidth;
+    const weekKey = ganttIsoDate(data.weeks[i]);
+    const isCurrent = weekKey === currentWeekKey;
+    const fill = isCurrent ? 'rgba(76,139,107,0.10)' : 'transparent';
+    return `<rect x="${x}" y="${topPad}" width="${weekWidth}" height="${chartHeight - topPad - bottomPad}" fill="${fill}"></rect>
+            <line class="util-grid-line" x1="${x}" y1="${topPad}" x2="${x}" y2="${chartHeight - bottomPad}"></line>`;
+  }).join('');
+  const yAxis = yTicks.map(p => `<div class="util-y-label" style="top:${headerHeight + yPos(p)}px">${p}%</div>`).join('');
+  const series = data.rows.map((row, idx) => {
     const allocPts = row.allocated.map((v, i) => `${xPos(i).toFixed(1)},${yPos(v.util).toFixed(1)}`).join(' ');
     const actPts = row.actual.map((v, i) => `${xPos(i).toFixed(1)},${yPos(v.util).toFixed(1)}`).join(' ');
-    const dots = row.actual.map((v, i) => {
-      const x = xPos(i);
-      const y = yPos(v.util);
-      return `<circle class="util-series-point" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.2" fill="${row.color}"
-        data-person="${esc(row.member.name)}" data-week="${esc(fmtShortDate(v.week))}"
-        data-actual-hours="${fmtN(v.hours)}" data-actual-util="${fmtP(v.util / 100)}"
-        data-alloc-hours="${fmtN(row.allocated[i]?.hours || 0)}" data-alloc-util="${fmtP((row.allocated[i]?.util || 0) / 100)}"
-        onmouseenter="showUtilTooltip(event,this)" onmousemove="showUtilTooltip(event,this)" onmouseleave="hideUtilTooltip()"></circle>`;
-    }).join('');
-    return `<g transform="translate(0,${top})">
-      ${yGrid}
-      ${xGrid}
-      <text x="14" y="${rowMid - 2}" fill="var(--charcoal)" font-size="13" font-weight="700">${esc(row.member.name)}</text>
-      <text x="14" y="${rowMid + 13}" fill="var(--muted)" font-size="11">${esc(row.member.role || '')}</text>
-      <polyline class="util-series-line alloc" points="${allocPts}" stroke="${row.color}"></polyline>
-      <polyline class="util-series-line" points="${actPts}" stroke="${row.color}"></polyline>
-      ${dots}
+    const last = row.actual[row.actual.length - 1] || {util:0};
+    const labelY = Math.min(chartHeight - bottomPad - 6, Math.max(topPad + 12, yPos(last.util)));
+    const labelX = xPos(data.weeks.length - 1) + 8;
+    const actualLine = gradientActual
+      ? row.actual.slice(0, -1).map((v, i) => {
+          const next = row.actual[i + 1];
+          const x1 = xPos(i).toFixed(1);
+          const y1 = yPos(v.util).toFixed(1);
+          const x2 = xPos(i + 1).toFixed(1);
+          const y2 = yPos(next.util).toFixed(1);
+          const c = utilizationHeatColor(((+v.util || 0) + (+next.util || 0)) / 2);
+          return `<line class="util-series-line" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}"></line>`;
+        }).join('')
+      : `<polyline class="util-series-line" points="${actPts}" stroke="${row.color}"></polyline>`;
+    const allocatedLine = gradientAllocated
+      ? row.allocated.slice(0, -1).map((v, i) => {
+          const next = row.allocated[i + 1];
+          const x1 = xPos(i).toFixed(1);
+          const y1 = yPos(v.util).toFixed(1);
+          const x2 = xPos(i + 1).toFixed(1);
+          const y2 = yPos(next.util).toFixed(1);
+          const c = utilizationHeatColor(((+v.util || 0) + (+next.util || 0)) / 2);
+          return `<line class="util-series-line alloc" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}"></line>`;
+        }).join('')
+      : `<polyline class="util-series-line alloc" points="${allocPts}" stroke="${row.color}"></polyline>`;
+    return `<g>
+      ${allocatedLine}
+      ${actualLine}
+      <text x="${Math.min(labelX, chartWidth - 12)}" y="${labelY - 6}" fill="${row.color}" font-size="11" font-weight="700">${esc(row.member.name)}</text>
     </g>`;
   }).join('');
   return `<div class="card" style="margin-bottom:20px">
     <div class="util-chart-shell">
       <div class="util-chart-top">
         <div>
-          <h2 style="margin-bottom:6px">Weekly Utilization by Team Member</h2>
-          <div class="util-chart-note">Solid line shows actual hours logged. Dotted line shows allocated hours spread across each task timeline.</div>
+          <h2 style="margin-bottom:6px">${esc(title)}</h2>
+          <div class="util-chart-note">${esc(note)}</div>
         </div>
         <div class="util-legend">
-          <div class="util-legend-item"><span class="util-legend-swatch" style="background:#4C8B6B"></span><span>Actual utilization</span></div>
-          <div class="util-legend-item"><span class="util-legend-swatch" style="background:transparent;border-bottom:2px dashed #4C8B6B;border-radius:0;box-shadow:none;height:0"></span><span>Allocated utilization</span></div>
+          ${includeMemberLegend ? data.rows.map(r => `<div class="util-legend-item"><span class="util-legend-swatch" style="background:${r.color}"></span><span>${esc(r.member.name)}</span></div>`).join('') : ''}
+          <div class="util-legend-item" style="color:#4C8B6B"><span class="util-legend-line"></span><span>Actual utilization</span></div>
+          <div class="util-legend-item" style="color:#4C8B6B"><span class="util-legend-line dashed"></span><span>Allocated utilization</span></div>
         </div>
       </div>
       <div class="util-chart-wrap">
-        <div class="util-tooltip" id="utilChartTooltip"></div>
-        <div class="util-chart-grid">
-          <div class="util-chart-left">
-            <div class="util-left-head">Member</div>
-            ${data.rows.map(r => `<div class="util-left-row"><div><b>${esc(r.member.name)}</b><span>${esc(r.member.role || '')}</span></div></div>`).join('')}
-          </div>
-          <div class="util-chart-right">
-            <div class="util-week-head-wrap">${headerCells}</div>
+        <div class="util-chart-body">
+          <div class="util-y-axis" style="height:${chartHeight + headerHeight}px">${yAxis}</div>
+          <div class="util-chart-scroll">
+            <div class="util-time-header-stack" style="width:${chartWidth}px">
+              <div class="util-year-head-row">${headers.yearRow}</div>
+              <div class="util-week-head-wrap">${headers.weekRow}</div>
+            </div>
             <svg class="util-chart-svg" width="${chartWidth}" height="${chartHeight}">
-              ${rows}
+              ${grid}
+              ${weekLines}
+              ${series}
             </svg>
           </div>
         </div>
@@ -870,25 +1060,42 @@ function renderUtilizationChart(){
   </div>`;
 }
 
+function renderWeeklyAverageChart(){
+  const base = getWeeklyUtilizationChartData();
+  if (!base.weeks.length) {
+    return `<div class="card empty" style="margin-bottom:20px">No task log data yet to chart.</div>`;
+  }
+  const rows = base.weeks.map((week, idx) => {
+    const actuals = base.rows.map(r => r.actual[idx]?.util || 0);
+    const allocs = base.rows.map(r => r.allocated[idx]?.util || 0);
+    const avgActual = actuals.length ? actuals.reduce((s, n) => s + n, 0) / actuals.length : 0;
+    const avgAlloc = allocs.length ? allocs.reduce((s, n) => s + n, 0) / allocs.length : 0;
+    return {week: ganttIsoDate(week), actual: avgActual, allocated: avgAlloc};
+  });
+  return renderUtilizationChart({
+    title: 'Weekly Team Utilization',
+    note: 'Average utilization across all team members. Solid line shows average actual utilization and dashed line shows average allocated utilization.',
+    includeMemberLegend: false,
+    data: {
+      weeks: base.weeks,
+      rows: [{
+        member: {name: 'All team members', role: 'Average across the team'},
+        color: '#4C8B6B',
+        actual: rows.map(r => ({week: r.week, util: r.actual, hours: 0})),
+        allocated: rows.map(r => ({week: r.week, util: r.allocated, hours: 0}))
+      }]
+    }
+  });
+}
+
 function renderDashboard(){
   const db=state.db;
   const totalProjects=db.projects.length;
   const totalTasks=db.tasks.length;
-  const totalAllocHrs=db.tasks.reduce((s,t)=>s+(+t.allocatedHours||0),0);
+  const totalAllocHrs=db.tasks.filter(t=>t.taskType!=='leave').reduce((s,t)=>s+(+t.allocatedHours||0),0);
   const totalActualHrs=db.tasks.reduce((s,t)=>s+taskActualHours(t),0);
-  const totalAllocBudget=db.tasks.reduce((s,t)=>s+taskBudget(t,'allocatedHours'),0);
+  const totalAllocBudget=db.tasks.filter(t=>t.taskType!=='leave').reduce((s,t)=>s+taskBudget(t,'allocatedHours'),0);
   const totalActualBudget=db.tasks.reduce((s,t)=>s+taskBudget(t,'actualHours'),0);
-  const teamRows=db.team.map(m=>{
-    const tot=personTotals(m.id); const cap=(m.weeklyCapacity||40)*db.settings.weeksInPeriod;
-    const util=cap?tot.actualHrs/cap:0;
-    return `<tr><td><b>${esc(m.name)}</b><div style="font-size:11px;color:var(--muted)">${esc(m.role)}</div></td><td class="num">${cap}</td><td class="num">${fmtN(tot.allocHrs)}</td><td class="num">${fmtN(tot.actualHrs)}</td><td>${badgePct(util)}</td></tr>`;
-  }).join('');
-  const projRows=db.projects.map(p=>{
-    const t=projectTotals(p.id);
-    const pctH=t.allocHrs?t.actualHrs/t.allocHrs:0;
-    const pctB=t.allocBudget?t.actualBudget/t.allocBudget:0;
-    return `<tr><td><b>${esc(p.shortName)}</b><div style="font-size:11px;color:var(--muted)">${esc(p.code)}</div></td><td class="num">${fmtN(t.allocHrs)}</td><td class="num">${fmtN(t.actualHrs)}</td><td class="num">${fmtC(t.allocBudget)}</td><td class="num">${fmtC(t.actualBudget)}</td><td>${badgePct(pctH)}</td><td>${badgePct(pctB)}</td></tr>`;
-  }).join('');
   const upcoming=db.tasks.filter(t=>t.status!=='Completed'&&t.dueDate).sort((a,b)=>a.dueDate.localeCompare(b.dueDate)).slice(0,5);
   const upRows=upcoming.map(t=>{
     const p=projectById(t.projectId); const m=personById(t.assigneeId);
@@ -906,9 +1113,19 @@ function renderDashboard(){
     <div class="kpi"><div class="kpi-label">Actual Budget</div><div class="kpi-value" style="font-size:24px">${fmtC(totalActualBudget)}</div></div>
     <div class="kpi" style="border-left-color:${overdueNotes?'var(--red)':'var(--accent)'}"><div class="kpi-label">Overdue Follow-ups</div><div class="kpi-value" style="color:${overdueNotes?'var(--red)':'var(--dark)'}">${overdueNotes}</div></div>
   </div>
-  ${renderUtilizationChart()}
-  <div class="card"><h2>Utilization by Team Member</h2><div class="tbl-wrap"><table><thead><tr><th>Name</th><th class="num">Capacity (hrs)</th><th class="num">Allocated</th><th class="num">Actual</th><th>Utilization</th></tr></thead><tbody>${teamRows}</tbody></table></div></div>
-  <div class="card"><h2>Utilization by Project</h2><div class="tbl-wrap"><table><thead><tr><th>Project</th><th class="num">Alloc Hrs</th><th class="num">Actual Hrs</th><th class="num">Alloc Budget</th><th class="num">Actual Budget</th><th>% Hrs</th><th>% Budget</th></tr></thead><tbody>${projRows}</tbody></table></div></div>
+  ${renderWeeklyAverageChart()}
+  ${renderUtilizationChart({
+    title:'Weekly Utilization by Team Member',
+    note:'Solid line shows actual hours logged. Dashed line shows allocated hours spread across each task timeline.',
+    includeMemberLegend:true,
+    data:getWeeklyUtilizationChartData()
+  })}
+  ${renderUtilizationChart({
+    title:'Weekly Utilization by Project',
+    note:'Solid line shows actual hours logged. Dashed line shows allocated hours spread across each project timeline.',
+    includeMemberLegend:true,
+    data:getWeeklyProjectUtilizationChartData()
+  })}
   <div class="card"><h2>Upcoming Deadlines (Top 5)</h2><div class="tbl-wrap"><table><thead><tr><th>Due</th><th>Project</th><th>Task</th><th>Assignee</th><th>Status</th></tr></thead><tbody>${upRows}</tbody></table></div></div>`;
 }
 
@@ -928,30 +1145,42 @@ function renderProjects(){
 function renderTasks(){
   const f=state.filters;
   let tasks=state.db.tasks.slice();
-  if(f.taskProj) tasks=tasks.filter(t=>t.projectId===f.taskProj);
+  if(f.taskProj==='__internal__') tasks=tasks.filter(t=>!isProjectTask(t));
+  else if(f.taskProj) tasks=tasks.filter(t=>t.projectId===f.taskProj);
   if(f.taskAsg) tasks=tasks.filter(t=>t.assigneeId===f.taskAsg);
   if(f.taskStatus) tasks=tasks.filter(t=>t.status===f.taskStatus);
   if(f.taskSearch){const q=f.taskSearch.toLowerCase();tasks=tasks.filter(t=>(t.name+(t.notes||'')).toLowerCase().includes(q));}
-  const projOpts=['<option value="">All projects</option>'].concat(state.db.projects.map(p=>`<option value="${p.id}" ${f.taskProj===p.id?'selected':''}>${esc(p.shortName)}</option>`)).join('');
+  const projOpts=['<option value="">All projects</option>',`<option value="__internal__" ${f.taskProj==='__internal__'?'selected':''}>Internal / Leave</option>`].concat(state.db.projects.map(p=>`<option value="${p.id}" ${f.taskProj===p.id?'selected':''}>${esc(p.shortName)}</option>`)).join('');
   const asgOpts=['<option value="">All assignees</option>'].concat(state.db.team.map(m=>`<option value="${m.id}" ${f.taskAsg===m.id?'selected':''}>${esc(m.name)}</option>`)).join('');
   const stOpts=['','Not Started','In Progress','Blocked','Completed'].map(s=>`<option value="${s}" ${f.taskStatus===s?'selected':''}>${s||'All statuses'}</option>`).join('');
-  const groups=state.db.projects.map(p=>{
-    const pts=tasks.filter(t=>t.projectId===p.id).sort((a,b)=>(a.dueDate||'').localeCompare(b.dueDate||''));
+  const renderRow = t => {
+    const m=personById(t.assigneeId);
+    const alloc=+t.allocatedHours||0, actual=taskActualHours(t);
+    const pct=alloc?actual/alloc:0;
+    const overdue=isOverdue(t.dueDate,t.status);
+    const expanded=state.taskExpanded.has(t.id);
+    const logs=taskLogSummary(t.id);
+    const typeTag = t.taskType && t.taskType !== 'project' ? `<span class="badge badge-grey" style="margin-left:8px">${esc(t.taskType==='leave'?'Leave':'Internal')}</span>` : '';
+    const detail=expanded?`<tr class="task-detail-row"><td colspan="12"><div class="task-detail-panel"><div class="task-detail-head"><span>Task Log breakdown</span><span>${fmtN(logs.reduce((s,x)=>s+(+x.hours||0),0))}h logged</span></div>${logs.length?`<div class="task-log-list">${logs.map(x=>`<div class="task-log-item"><div><b>${esc(x.name)}</b><div class="task-log-meta">${x.entries} entry${x.entries===1?'':'ies'}</div></div><div class="task-log-hours">${fmtN(x.hours)}h</div><div class="task-log-hours">${fmtC(x.budget)}</div></div>`).join('')}</div>`:`<div class="task-log-empty">No task log entries yet for this task.</div>`}</div></td></tr>`:'';
+    return `<tr><td><button class="task-toggle ${expanded?'expanded':''}" onclick="toggleTaskDetails('${t.id}', event)">&#9662;</button></td><td><div class="task-toggle-wrap"><div class="task-name"><div>${esc(t.name)}${typeTag}</div><div style="font-size:11px;color:var(--muted)">${esc(t.notes||'')}</div></div></div></td><td>${esc(m?.name||'—')}</td><td class="num">${fmtN(alloc)}</td><td class="num">${fmtN(actual)}</td><td class="num">${fmtC(taskBudget(t,'allocatedHours'))}</td><td class="num">${fmtC(taskBudget(t,'actualHours'))}</td><td>${esc(t.dueDate||'—')} ${overdue?'<span class="badge badge-red">!</span>':''}</td><td>${statusBadge(t.status)}</td><td>${priorityBadge(t.priority)}</td><td>${taskProgress(actual, alloc)}</td><td class="actions"><button class="btn-icon" onclick="openTaskModal('${t.id}')">Edit</button><button class="btn-icon danger" onclick="deleteTask('${t.id}')">Delete</button></td></tr>${detail}`;
+  };
+  const projectGroups=state.db.projects.map(p=>{
+    const pts=tasks.filter(t=>t.projectId===p.id && isProjectTask(t)).sort((a,b)=>(a.dueDate||'').localeCompare(b.dueDate||''));
     if(!pts.length) return '';
     const tot=projectTotals(p.id);
     const collapsed=state.collapsed.has(p.id);
-    const rows=pts.map(t=>{
-      const m=personById(t.assigneeId);
-      const alloc=+t.allocatedHours||0, actual=taskActualHours(t);
-      const pct=alloc?actual/alloc:0;
-      const overdue=isOverdue(t.dueDate,t.status);
-      const expanded=state.taskExpanded.has(t.id);
-      const logs=taskLogSummary(t.id);
-      const detail=expanded?`<tr class="task-detail-row"><td colspan="12"><div class="task-detail-panel"><div class="task-detail-head"><span>Timesheet breakdown</span><span>${fmtN(logs.reduce((s,x)=>s+(+x.hours||0),0))}h logged</span></div>${logs.length?`<div class="task-log-list">${logs.map(x=>`<div class="task-log-item"><div><b>${esc(x.name)}</b><div class="task-log-meta">${x.entries} entry${x.entries===1?'':'ies'}</div></div><div class="task-log-hours">${fmtN(x.hours)}h</div><div class="task-log-hours">${fmtC(x.budget)}</div></div>`).join('')}</div>`:`<div class="task-log-empty">No timesheet entries yet for this task.</div>`}</div></td></tr>`:'';
-      return `<tr><td><button class="task-toggle ${expanded?'expanded':''}" onclick="toggleTaskDetails('${t.id}', event)">&#9662;</button></td><td><div class="task-toggle-wrap"><div class="task-name"><div>${esc(t.name)}</div><div style="font-size:11px;color:var(--muted)">${esc(t.notes||'')}</div></div></div></td><td>${esc(m?.name||'—')}</td><td class="num">${fmtN(alloc)}</td><td class="num">${fmtN(actual)}</td><td class="num">${fmtC(taskBudget(t,'allocatedHours'))}</td><td class="num">${fmtC(taskBudget(t,'actualHours'))}</td><td>${esc(t.dueDate||'—')} ${overdue?'<span class="badge badge-red">!</span>':''}</td><td>${statusBadge(t.status)}</td><td>${priorityBadge(t.priority)}</td><td>${taskProgress(actual, alloc)}</td><td class="actions"><button class="btn-icon" onclick="openTaskModal('${t.id}')">Edit</button><button class="btn-icon danger" onclick="deleteTask('${t.id}')">Delete</button></td></tr>${detail}`;
-    }).join('');
+    const rows=pts.map(renderRow).join('');
     return `<div class="project-group ${collapsed?'collapsed':''}" data-pid="${p.id}"><div class="project-group-header"><span class="pg-chevron">&#9660;</span><span class="pg-title">${esc(p.shortName)}</span><span class="pg-code">${esc(p.code)}</span><div class="pg-stats"><div class="pg-stat"><b>${fmtN(tot.actualHrs)}h / ${fmtN(tot.allocHrs)}h</b><span>Actual/Alloc</span></div><div class="pg-stat"><b>${fmtC(tot.allocBudget)}</b><span>Allocated</span></div><div class="pg-stat"><b>${pts.length}</b><span>Tasks</span></div></div></div><div class="project-group-body"><div class="tbl-wrap"><table><thead><tr><th></th><th>Task</th><th>Assignee</th><th class="num">Alloc</th><th class="num">Actual</th><th class="num">Alloc AED</th><th class="num">Actual AED</th><th>Due</th><th>Status</th><th>Priority</th><th>Actual/Alloc</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div></div>`;
   }).filter(Boolean).join('');
+  const internalTasks=tasks.filter(t=>!isProjectTask(t)).sort((a,b)=>(a.dueDate||'').localeCompare(b.dueDate||''));
+  const internalGroup=internalTasks.length ? (() => {
+    const allocHrs=internalTasks.reduce((s,t)=>s+(+t.allocatedHours||0),0);
+    const actualHrs=internalTasks.reduce((s,t)=>s+taskActualHours(t),0);
+    const allocBudget=internalTasks.reduce((s,t)=>s+taskBudget(t,'allocatedHours'),0);
+    const collapsed=state.collapsed.has('__internal__');
+    return `<div class="project-group ${collapsed?'collapsed':''}" data-pid="__internal__"><div class="project-group-header"><span class="pg-chevron">&#9660;</span><span class="pg-title">Internal / Leave</span><span class="pg-code">N/A</span><div class="pg-stats"><div class="pg-stat"><b>${fmtN(actualHrs)}h / ${fmtN(allocHrs)}h</b><span>Actual/Alloc</span></div><div class="pg-stat"><b>${fmtC(allocBudget)}</b><span>Allocated</span></div><div class="pg-stat"><b>${internalTasks.length}</b><span>Tasks</span></div></div></div><div class="project-group-body"><div class="tbl-wrap"><table><thead><tr><th></th><th>Task</th><th>Assignee</th><th class="num">Alloc</th><th class="num">Actual</th><th class="num">Alloc AED</th><th class="num">Actual AED</th><th>Due</th><th>Status</th><th>Priority</th><th>Actual/Alloc</th><th></th></tr></thead><tbody>${internalTasks.map(renderRow).join('')}</tbody></table></div></div></div>`;
+  })() : '';
+  const groups=projectGroups+internalGroup;
   return `<h1 class="view-title">Tasks</h1><p class="view-sub">Grouped by project. Click header to collapse.</p>
   <div class="toolbar"><select onchange="state.filters.taskProj=this.value;render()">${projOpts}</select><select onchange="state.filters.taskAsg=this.value;render()">${asgOpts}</select><select onchange="state.filters.taskStatus=this.value;render()">${stOpts}</select><input type="text" placeholder="Search…" value="${esc(f.taskSearch||'')}" oninput="state.filters.taskSearch=this.value;render()"><span class="spacer"></span><button class="btn btn-primary" onclick="openTaskModal()">+ Add Task</button></div>
   ${groups||`<div class="card empty">No tasks match your filters.</div>`}`;
@@ -973,34 +1202,41 @@ function toggleTaskDetails(taskId, event){
 }
 function renderTeam(){
   const rows=state.db.team.map(m=>{
-    const tot=personTotals(m.id); const cap=(m.weeklyCapacity||40)*state.db.settings.weeksInPeriod;
+    const tot=personTotals(m.id); const baseCap=(m.weeklyCapacity||40)*state.db.settings.weeksInPeriod; const leaveHrs=state.db.tasks.filter(t=>t.assigneeId===m.id&&t.taskType==='leave').reduce((s,t)=>s+(+t.allocatedHours||0),0); const cap=Math.max(0,baseCap-leaveHrs);
     const util=cap?tot.actualHrs/cap:0; const allocUtil=cap?tot.allocHrs/cap:0;
-    return `<tr><td><b>${esc(m.name)}</b></td><td>${esc(m.role)}</td><td style="font-size:12px">${esc(m.email)}</td><td class="num">${m.weeklyCapacity}</td><td class="num">${fmtC(personRate(m.id))}</td><td class="num">${cap}</td><td class="num">${fmtN(tot.allocHrs)}</td><td class="num">${fmtN(tot.actualHrs)}</td><td>${badgePct(allocUtil)}</td><td>${badgePct(util)}</td><td style="font-size:12px;max-width:220px">${esc(m.skills||'')}</td><td class="actions"><button class="btn-icon" onclick="openTeamModal('${m.id}')">Edit</button><button class="btn-icon danger" onclick="deleteTeam('${m.id}')">Delete</button></td></tr>`;
+    return `<tr><td><b>${esc(m.name)}</b></td><td>${esc(m.role)}</td><td style="font-size:12px">${esc(m.email)}</td><td class="num">${m.weeklyCapacity}</td><td class="num">${fmtC(personRate(m.id))}</td><td class="num">${fmtN(cap)}</td><td class="num">${fmtN(tot.allocHrs)}</td><td class="num">${fmtN(tot.actualHrs)}</td><td>${badgePct(allocUtil)}</td><td>${badgePct(util)}</td><td style="font-size:12px;max-width:220px">${esc(m.skills||'')}</td><td class="actions"><button class="btn-icon" onclick="openTeamModal('${m.id}')">Edit</button><button class="btn-icon danger" onclick="deleteTeam('${m.id}')">Delete</button></td></tr>`;
   }).join('');
   return `<h1 class="view-title">Team</h1><p class="view-sub">Capacity & utilization over a rolling ${state.db.settings.weeksInPeriod}-week period.</p>
   <div class="toolbar"><span class="spacer"></span><button class="btn btn-primary" onclick="openTeamModal()">+ Add Team Member</button></div>
-  <div class="card" style="padding:0"><div class="tbl-wrap"><table><thead><tr><th>Name</th><th>Role</th><th>Email</th><th class="num">Wk Cap</th><th class="num">Rate</th><th class="num">Period</th><th class="num">Alloc</th><th class="num">Actual</th><th>Alloc Util</th><th>Actual Util</th><th>Skills</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  <div class="card" style="padding:0"><div class="tbl-wrap"><table><thead><tr><th>Name</th><th>Role</th><th>Email</th><th class="num">Wk Cap</th><th class="num">Rate</th><th class="num">Avail Period</th><th class="num">Alloc</th><th class="num">Actual</th><th>Alloc Util</th><th>Actual Util</th><th>Skills</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
 }
 
 function renderTimesheet(){
   const f=state.filters;
   let list=state.db.timesheet.slice().sort((a,b)=>(b.weekEnding||'').localeCompare(a.weekEnding||''));
   if(f.tsPerson) list=list.filter(x=>x.personId===f.tsPerson);
-  if(f.tsProject) list=list.filter(x=>x.projectId===f.tsProject);
+  if(f.tsProject==='__internal__') list=list.filter(x=>!x.projectId || !isProjectTask(taskById(x.taskId)));
+  else if(f.tsProject) list=list.filter(x=>x.projectId===f.tsProject);
   const personOpts=['<option value="">All people</option>'].concat(state.db.team.map(m=>`<option value="${m.id}" ${f.tsPerson===m.id?'selected':''}>${esc(m.name)}</option>`)).join('');
-  const projectOpts=['<option value="">All projects</option>'].concat(state.db.projects.map(p=>`<option value="${p.id}" ${f.tsProject===p.id?'selected':''}>${esc(p.shortName)}</option>`)).join('');
+  const projectOpts=['<option value="">All projects</option>',`<option value="__internal__" ${f.tsProject==='__internal__'?'selected':''}>Internal / Leave</option>`].concat(state.db.projects.map(p=>`<option value="${p.id}" ${f.tsProject===p.id?'selected':''}>${esc(p.shortName)}</option>`)).join('');
   const rows=list.map(x=>{
     const p=projectById(x.projectId), m=personById(x.personId), t=taskById(x.taskId);
-    return `<tr><td>${esc(x.weekEnding)}</td><td>${esc(m?.name||'&mdash;')}</td><td>${esc(p?.shortName||'&mdash;')}</td><td style="font-size:12px">${esc(t?.name||'&mdash;')}</td><td class="num">${fmtN(x.hoursLogged)}</td><td>${x.billable==='Y'?'<span class="badge badge-green">Y</span>':'<span class="badge badge-grey">N</span>'}</td><td style="font-size:12px">${esc(x.notes||'')}</td><td class="actions"><button class="btn-icon" onclick="openTimesheetModal('${x.id}')">Edit</button><button class="btn-icon danger" onclick="deleteTimesheet('${x.id}')">Delete</button></td></tr>`;
-  }).join('')||`<tr><td colspan="8" class="empty">No timesheet entries yet.</td></tr>`;
-  return `<h1 class="view-title">Timesheet</h1><p class="view-sub">Weekly hour logs determine task Actual Hours automatically.</p>
+    const projLabel=p?.shortName || (t?.taskType==='leave' ? 'Leave' : 'Internal');
+    return `<tr><td>${esc(x.weekEnding)}</td><td>${esc(m?.name||'&mdash;')}</td><td>${esc(projLabel)}</td><td style="font-size:12px">${esc(t?.name||'&mdash;')}</td><td class="num">${fmtN(x.hoursLogged)}</td><td>${x.billable==='Y'?'<span class="badge badge-green">Y</span>':'<span class="badge badge-grey">N</span>'}</td><td style="font-size:12px">${esc(x.notes||'')}</td><td class="actions"><button class="btn-icon" onclick="openTimesheetModal('${x.id}')">Edit</button><button class="btn-icon danger" onclick="deleteTimesheet('${x.id}')">Delete</button></td></tr>`;
+  }).join('')||`<tr><td colspan="8" class="empty">No task log entries yet.</td></tr>`;
+  return `<h1 class="view-title">Task Log</h1><p class="view-sub">Weekly hour logs determine task Actual Hours automatically.</p>
   <div class="toolbar"><select onchange="state.filters.tsPerson=this.value;render()">${personOpts}</select><select onchange="state.filters.tsProject=this.value;render()">${projectOpts}</select><span class="spacer"></span><button class="btn btn-primary" onclick="openTimesheetModal()">+ Log Hours</button></div>
   <div class="card" style="padding:0"><div class="tbl-wrap"><table><thead><tr><th>Week Ending</th><th>Person</th><th>Project</th><th>Task</th><th class="num">Hours</th><th>Billable</th><th>Notes</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
 }
 function renderGantt(){
-  const tasks=state.db.tasks.slice().sort((a,b)=>(a.startDate||'').localeCompare(b.startDate||'')||(a.dueDate||'').localeCompare(b.dueDate||''));
+  const f=state.filters;
+  let tasks=state.db.tasks.slice();
+  if(f.ganttAsg) tasks=tasks.filter(t=>t.assigneeId===f.ganttAsg);
+  if(f.ganttProject) tasks=tasks.filter(t=>t.projectId===f.ganttProject);
+  tasks=tasks.sort((a,b)=>(a.startDate||'').localeCompare(b.startDate||'')||(a.dueDate||'').localeCompare(b.dueDate||''));
   if(!tasks.length){
-    return `<h1 class="view-title">Gantt Chart</h1><p class="view-sub">Task timelines by assignee.</p><div class="card empty">No tasks to chart yet.</div>`;
+    const emptyMsg=state.db.tasks.length ? 'No tasks match the selected filters.' : 'No tasks to chart yet.';
+    return `<h1 class="view-title">Timeline</h1><p class="view-sub">Task timelines by assignee.</p><div class="card empty">${emptyMsg}</div>`;
   }
   const dayWidth=state.ganttDayWidth||48;
   const dates=tasks.flatMap(t=>[t.startDate,t.dueDate]).map(parseGanttDate).filter(Boolean);
@@ -1034,11 +1270,13 @@ function renderGantt(){
   const leftRows=tasks.map(t=>{
     const assignee=personById(t.assigneeId);
     const project=projectById(t.projectId);
-    return `<tr><td class="gantt-left gantt-task-name"><div class="gantt-task-stack" style="cursor:pointer" onclick="openTaskModal('${t.id}')"><b>${esc(t.name)}</b><span>${esc(t.status)}</span></div></td><td class="gantt-left gantt-assignee">${esc(assignee?.name||'Unassigned')}</td><td class="gantt-left gantt-project">${esc(project?.shortName||'&mdash;')}</td></tr>`;
+    const projectLabel=project?.shortName || (t.taskType==='leave' ? 'Leave' : 'Internal');
+    return `<tr><td class="gantt-left gantt-task-name"><div class="gantt-task-stack" style="cursor:pointer" onclick="openTaskModal('${t.id}')"><b>${esc(t.name)}</b><span>${esc(t.status)}</span></div></td><td class="gantt-left gantt-assignee">${esc(assignee?.name||'Unassigned')}</td><td class="gantt-left gantt-project">${esc(projectLabel)}</td></tr>`;
   }).join('');
   const rightRows=tasks.map(t=>{
     const assignee=personById(t.assigneeId);
     const project=projectById(t.projectId);
+    const projectLabel=project?.shortName || (t.taskType==='leave' ? 'Leave' : 'Internal');
     const taskStart=parseGanttDate(t.startDate) || start;
     const taskEnd=parseGanttDate(t.dueDate) || taskStart;
     const leftDays=Math.max(0, ganttDayDiff(start, taskStart));
@@ -1053,7 +1291,7 @@ function renderGantt(){
         <div class="gantt-row-lane" style="--gantt-day-width:${dayWidth}px;min-width:${dayCount*dayWidth}px">
           <div class="gantt-grid-row">${days.map(d=>`<div class="gantt-grid-cell ${d.getDay()===0||d.getDay()===6?'weekend':''} ${d.getTime()===today.getTime()?'today':''}" style="width:${dayWidth}px;min-width:${dayWidth}px"></div>`).join('')}</div>
           ${todayIndex>=0&&todayIndex<dayCount?`<div class="gantt-today-line" style="left:${todayIndex*dayWidth}px"></div>`:''}
-          <div class="gantt-bar ${statusClass}${unscheduled?' not-started':''}" data-task-id="${esc(t.id)}" style="left:${leftPx}px;width:${widthPx}px${unscheduled?';opacity:0.35':''}" title="${esc(t.name)} | ${esc(assignee?.name||'Unassigned')} | ${esc(project?.shortName||'&mdash;')} | ${esc(t.startDate||'')}${t.dueDate?` - ${esc(t.dueDate)}`:''}" onpointerdown="ganttBeginDrag(event,'${t.id}','move')">
+          <div class="gantt-bar ${statusClass}${unscheduled?' not-started':''}" data-task-id="${esc(t.id)}" style="left:${leftPx}px;width:${widthPx}px${unscheduled?';opacity:0.35':''}" title="${esc(t.name)} | ${esc(assignee?.name||'Unassigned')} | ${esc(projectLabel)} | ${esc(t.startDate||'')}${t.dueDate?` - ${esc(t.dueDate)}`:''}" onpointerdown="ganttBeginDrag(event,'${t.id}','move')">
             <div class="gantt-resize-handle left" onpointerdown="ganttBeginDrag(event,'${t.id}','resize-left')"></div>
             <div class="gantt-bar-main"><b>${esc(t.name)}</b><span>${esc(assignee?.name||'Unassigned')} | ${esc(t.status||'')}</span></div>
             <div class="gantt-bar-meta">${fmtN(actualHours)}h / ${fmtN(t.allocatedHours||0)}h</div>
@@ -1063,10 +1301,15 @@ function renderGantt(){
       </td>
     </tr>`;
   }).join('');
-  return `<h1 class="view-title">Gantt Chart</h1>
+  const ganttAsgOpts=['<option value="">All assignees</option>'].concat(state.db.team.map(m=>`<option value="${m.id}" ${f.ganttAsg===m.id?'selected':''}>${esc(m.name)}</option>`)).join('');
+  const ganttProjectOpts=['<option value="">All projects</option>'].concat(state.db.projects.map(p=>`<option value="${p.id}" ${f.ganttProject===p.id?'selected':''}>${esc(p.shortName)}</option>`)).join('');
+  return `<h1 class="view-title">Timeline</h1>
   <div class="gantt-card">
     <div class="gantt-header">
       <div class="gantt-toolbar">
+        <select onchange="state.filters.ganttAsg=this.value;render()">${ganttAsgOpts}</select>
+        <select onchange="state.filters.ganttProject=this.value;render()">${ganttProjectOpts}</select>
+        <span class="spacer"></span>
         <button class="btn btn-primary btn-sm" type="button" onclick="openTaskModal(null,{startDate:'${ganttIsoDate(start)}',dueDate:'${ganttIsoDate(ganttAddDays(start,5))}'})">+ Add Task</button>
         <div class="gantt-zoom-controls">
           <button class="btn btn-secondary btn-sm" type="button" onclick="zoomGantt(-8)" title="Zoom out">-</button>
@@ -1237,7 +1480,7 @@ function saveProject(e,id){
 }
 function deleteProject(id){
   const p=projectById(id);
-  if(!confirm(`Delete project "${p.shortName}" and all its tasks & timesheet entries?`)) return;
+  if(!confirm(`Delete project "${p.shortName}" and all its tasks & task log entries?`)) return;
   state.db.tasks=state.db.tasks.filter(t=>t.projectId!==id);
   state.db.timesheet=state.db.timesheet.filter(x=>x.projectId!==id);
   state.db.projects=state.db.projects.filter(x=>x.id!==id);
@@ -1246,26 +1489,29 @@ function deleteProject(id){
 
 // TASK CRUD
 function openTaskModal(id, defaults={}){
-  const base={projectId:state.db.projects[0]?.id||'',name:'',assigneeId:state.db.team[0]?.id||'',allocatedHours:0,startDate:'',dueDate:'',status:'Not Started',priority:'Medium',notes:''};
+  const base={taskType:'project',projectId:state.db.projects[0]?.id||'',name:'',assigneeId:state.db.team[0]?.id||'',allocatedHours:0,startDate:'',dueDate:'',status:'Not Started',priority:'Medium',notes:''};
   const t=id?taskById(id):Object.assign({}, base, defaults);
-  const projOpts=state.db.projects.map(p=>`<option value="${p.id}" ${t.projectId===p.id?'selected':''}>${esc(p.shortName)} &mdash; ${esc(p.code)}</option>`).join('');
+  const projOpts=['<option value="">— No project / internal —</option>'].concat(state.db.projects.map(p=>`<option value="${p.id}" ${t.projectId===p.id?'selected':''}>${esc(p.shortName)} &mdash; ${esc(p.code)}</option>`)).join('');
   const asgOpts=state.db.team.map(m=>`<option value="${m.id}" ${t.assigneeId===m.id?'selected':''}>${esc(m.name)}</option>`).join('');
   const stOpts=['Not Started','In Progress','Blocked','Completed'].map(s=>`<option value="${s}" ${t.status===s?'selected':''}>${s}</option>`).join('');
   const prOpts=['High','Medium','Low'].map(s=>`<option value="${s}" ${t.priority===s?'selected':''}>${s}</option>`).join('');
+  const typeOpts=[['project','Project task'],['internal','Internal work'],['leave','Leave']].map(([v,l])=>`<option value="${v}" ${String(t.taskType||'project')===v?'selected':''}>${l}</option>`).join('');
   const actual=taskActualHours(t);
   openModal(`<h3>${id?'Edit':'Add'} Task</h3><form onsubmit="saveTask(event,'${id||''}');return false">
-    <div class="form-row"><div class="form-group"><label>Project *</label><select required name="projectId">${projOpts}</select></div><div class="form-group"><label>Assignee *</label><select required name="assigneeId">${asgOpts}</select></div></div>
+    <div class="form-row"><div class="form-group"><label>Task Type *</label><select required name="taskType">${typeOpts}</select></div><div class="form-group"><label>Project</label><select name="projectId">${projOpts}</select></div></div>
+    <div class="form-row"><div class="form-group"><label>Assignee *</label><select required name="assigneeId">${asgOpts}</select></div><div class="form-group"><label>Status</label><select name="status">${stOpts}</select></div></div>
     <div class="form-group"><label>Task Name *</label><input required name="name" value="${esc(t.name)}"></div>
-    <div class="form-row"><div class="form-group"><label>Allocated Hours</label><input type="number" name="allocatedHours" value="${t.allocatedHours||0}" min="0" step="0.5"></div><div class="form-group"><label>Actual Hours</label><input type="text" value="${fmtN(actual)} (from Timesheet)" readonly></div></div>
+    <div class="form-row"><div class="form-group"><label>Allocated Hours</label><input type="number" name="allocatedHours" value="${t.allocatedHours||0}" min="0" step="0.5"></div><div class="form-group"><label>Actual Hours</label><input type="text" value="${fmtN(actual)} (from Task Log)" readonly></div></div>
     <div class="form-row"><div class="form-group"><label>Start Date</label><input type="date" name="startDate" value="${esc(t.startDate)}"></div><div class="form-group"><label>Due Date</label><input type="date" name="dueDate" value="${esc(t.dueDate)}"></div></div>
-    <div class="form-row"><div class="form-group"><label>Status</label><select name="status">${stOpts}</select></div><div class="form-group"><label>Priority</label><select name="priority">${prOpts}</select></div></div>
+    <div class="form-row"><div class="form-group"><label>Priority</label><select name="priority">${prOpts}</select></div><div class="form-group"><label>Project Note</label><input type="text" value="Use Internal or Leave when no project applies" readonly></div></div>
     <div class="form-group"><label>Notes</label><textarea name="notes">${esc(t.notes)}</textarea></div>
     <div class="modal-actions"><button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button><button type="submit" class="btn btn-primary">Save</button></div></form>`);
 }
 function saveTask(e,id){
   e.preventDefault(); const f=e.target,g=n=>f.elements[n].value;
   const taskId=id||uid();
-  const data={projectId:g('projectId'),name:g('name'),assigneeId:g('assigneeId'),allocatedHours:+g('allocatedHours')||0,actualHours:taskActualHours(taskId),startDate:g('startDate'),dueDate:g('dueDate'),status:g('status'),priority:g('priority'),notes:g('notes')};
+  const taskType=g('taskType')||'project';
+  const data={taskType,projectId:taskType==='project'?(g('projectId')||''):'',name:g('name'),assigneeId:g('assigneeId'),allocatedHours:+g('allocatedHours')||0,actualHours:taskActualHours(taskId),startDate:g('startDate'),dueDate:g('dueDate'),status:g('status'),priority:g('priority'),notes:g('notes')};
   if(id){Object.assign(taskById(id),data);toast('Task updated');}else{state.db.tasks.push({id:taskId,...data});toast('Task added');}
   saveDB();closeModal();render();
 }
@@ -1306,12 +1552,16 @@ function deleteTeam(id){
 // TIMESHEET CRUD
 function openTimesheetModal(id){
   const ts=id?state.db.timesheet.find(x=>x.id===id):{weekEnding:todayISO(),personId:state.db.team[0]?.id||'',projectId:state.db.projects[0]?.id||'',taskId:'',hoursLogged:0,billable:'Y',notes:''};
-  const projOpts=state.db.projects.map(p=>`<option value="${p.id}" ${ts.projectId===p.id?'selected':''}>${esc(p.shortName)}</option>`).join('');
+  const projOpts=['<option value="">— Internal / no project —</option>'].concat(state.db.projects.map(p=>`<option value="${p.id}" ${ts.projectId===p.id?'selected':''}>${esc(p.shortName)}</option>`)).join('');
   const perOpts=state.db.team.map(m=>`<option value="${m.id}" ${ts.personId===m.id?'selected':''}>${esc(m.name)}</option>`).join('');
-  const taskOpts=state.db.tasks.filter(t=>t.projectId===ts.projectId).map(t=>`<option value="${t.id}" ${ts.taskId===t.id?'selected':''}>${esc(t.name)}</option>`).join('');
+  const taskOpts=state.db.tasks.slice().sort((a,b)=>((a.taskType||'project')+(a.name||'')).localeCompare((b.taskType||'project')+(b.name||''))).map(t=>{
+    const proj=projectById(t.projectId);
+    const label=t.taskType==='leave' ? `Leave — ${t.name}` : `${t.name} — ${proj?.shortName||'Internal'}`;
+    return `<option value="${t.id}" ${ts.taskId===t.id?'selected':''}>${esc(label)}</option>`;
+  }).join('');
   openModal(`<h3>${id?'Edit':'Log'} Hours</h3><form onsubmit="saveTimesheet(event,'${id||''}');return false">
     <div class="form-row"><div class="form-group"><label>Week Ending *</label><input required type="date" name="weekEnding" value="${esc(ts.weekEnding)}"></div><div class="form-group"><label>Person *</label><select required name="personId">${perOpts}</select></div></div>
-    <div class="form-row"><div class="form-group"><label>Project *</label><select required name="projectId" onchange="updateTaskOptions(this)">${projOpts}</select></div><div class="form-group"><label>Task</label><select name="taskId" id="tsTaskSelect"><option value="">&mdash;</option>${taskOpts}</select></div></div>
+    <div class="form-row"><div class="form-group"><label>Project</label><select name="projectId" onchange="updateTaskOptions(this)">${projOpts}</select></div><div class="form-group"><label>Task</label><select name="taskId" id="tsTaskSelect"><option value="">&mdash;</option>${taskOpts}</select></div></div>
     <div class="form-row"><div class="form-group"><label>Hours *</label><input required type="number" name="hoursLogged" value="${ts.hoursLogged||0}" min="0" step="0.25"></div><div class="form-group"><label>Billable</label><select name="billable"><option value="Y" ${ts.billable==='Y'?'selected':''}>Yes</option><option value="N" ${ts.billable==='N'?'selected':''}>No</option></select></div></div>
     <div class="form-group"><label>Notes</label><textarea name="notes">${esc(ts.notes)}</textarea></div>
     <div class="modal-actions"><button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button><button type="submit" class="btn btn-primary">Save</button></div></form>`);
@@ -1320,19 +1570,24 @@ function openTimesheetModal(id){
 function updateTaskOptions(sel){
   if(!sel) return;
   const pid=sel.value;
-  const opts=['<option value="">&mdash;</option>'].concat(state.db.tasks.filter(t=>t.projectId===pid).map(t=>`<option value="${t.id}">${esc(t.name)}</option>`)).join('');
+  const opts=['<option value="">&mdash;</option>'].concat(state.db.tasks.filter(t=>!pid || t.projectId===pid || !isProjectTask(t)).map(t=>{
+    const proj=projectById(t.projectId);
+    const label=t.taskType==='leave' ? `Leave — ${t.name}` : `${t.name} — ${proj?.shortName||'Internal'}`;
+    return `<option value="${t.id}">${esc(label)}</option>`;
+  })).join('');
   const target=document.getElementById('tsTaskSelect');
   if(target) target.innerHTML=opts;
 }
 function saveTimesheet(e,id){
   e.preventDefault(); const f=e.target,g=n=>f.elements[n].value;
   const taskId=g('taskId');
-  const data={weekEnding:g('weekEnding'),personId:g('personId'),projectId:g('projectId'),taskId,hoursLogged:+g('hoursLogged')||0,billable:g('billable'),notes:g('notes')};
-  if(id){Object.assign(state.db.timesheet.find(x=>x.id===id),data);toast('Timesheet updated');}else{state.db.timesheet.push({id:uid(),...data});toast('Hours logged');}
+  const task=taskById(taskId);
+  const data={weekEnding:g('weekEnding'),personId:g('personId'),projectId:g('projectId')||task?.projectId||'',taskId,hoursLogged:+g('hoursLogged')||0,billable:g('billable'),notes:g('notes')};
+  if(id){Object.assign(state.db.timesheet.find(x=>x.id===id),data);toast('Task Log updated');}else{state.db.timesheet.push({id:uid(),...data});toast('Hours logged');}
   saveDB();closeModal();render();
 }
 function deleteTimesheet(id){
-  if(!confirm('Delete this timesheet entry?')) return;
+  if(!confirm('Delete this task log entry?')) return;
   state.db.timesheet=state.db.timesheet.filter(x=>x.id!==id);
   saveDB();render();toast('Entry deleted');
 }
@@ -1401,7 +1656,7 @@ function exportExcel(){
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(teamSheet),'Team');
   const tsSheet=[['Week Ending','Person','Project Code','Task','Hours','Billable','Notes']];
   db.timesheet.forEach(x=>{const p=projectById(x.projectId),m=personById(x.personId),t=taskById(x.taskId);tsSheet.push([x.weekEnding,m?.name||'',p?.code||'',t?.name||'',x.hoursLogged,x.billable,x.notes||'']);});
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(tsSheet),'Timesheet');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(tsSheet),'Task Log');
   const nSheet=[['Created','Owner','Category','Subject','Details','Follow-up','Status','Priority']];
   db.notes.forEach(n=>{const own=personById(n.ownerId);nSheet.push([n.dateCreated,own?.name||'',n.category,n.subject,n.details,n.followUpDate,n.status,n.priority]);});
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(nSheet),'Notes');
@@ -1429,8 +1684,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.querySelectorAll('.nav-item').forEach(item=>{
     item.addEventListener('click',()=>{state.currentView=item.dataset.view;document.getElementById('sidebar').classList.remove('open');render();});
   });
-  document.getElementById('modal-overlay').addEventListener('click',e=>{if(e.target.id==='modal-overlay') closeModal();});
-  document.addEventListener('keydown',e=>{if(e.key==='Escape') closeModal();});
+  document.getElementById('modal-overlay').addEventListener('click',e=>{e.stopPropagation();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape' && document.getElementById('modal-overlay').classList.contains('active')) e.preventDefault();});
   document.getElementById('hamburgerBtn').addEventListener('click',()=>{document.getElementById('sidebar').classList.toggle('open');});
   render();
   updateDirtyIndicator();
