@@ -48,6 +48,10 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .util-chart-note{color:var(--muted);font-size:12px}
 .util-legend{display:flex;flex-wrap:wrap;gap:10px 14px}
 .util-legend-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--charcoal);font-weight:600;white-space:nowrap}
+.util-legend-btn{padding:0;border:none;background:none;cursor:pointer}
+.util-legend-btn:hover{opacity:0.9}
+.util-legend-btn.active{color:var(--dark)}
+.util-legend-reset{font-size:11px;color:var(--accent);font-weight:700;margin-left:4px}
 .util-legend-swatch{width:12px;height:12px;border-radius:999px;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.35)}
 .util-legend-line{width:18px;height:0;display:inline-block;border-top:3px solid currentColor;flex:0 0 auto}
 .util-legend-line.dashed{border-top-style:dashed;border-top-width:2px}
@@ -76,6 +80,9 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .util-grid-line{stroke:rgba(31,78,60,0.12);stroke-width:1}
 .util-series-line{fill:none;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
 .util-series-line.alloc{stroke-width:3.5;stroke-dasharray:6 5;stroke-linecap:round;opacity:0.85}
+.util-series-node{cursor:pointer;pointer-events:all}
+.util-series-node.actual{fill:#fff;stroke-width:2.5}
+.util-series-node.alloc{fill:#fff;stroke-width:2.5}
 .util-series-point{stroke:#fff;stroke-width:2;cursor:pointer}
 .util-series-point:hover{r:6}
 .tbl-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border)}
@@ -118,6 +125,25 @@ td.actions{white-space:nowrap;text-align:right}
 .task-log-meta{font-size:11px;color:var(--muted)}
 .task-log-hours{font-weight:700;color:var(--dark);font-variant-numeric:tabular-nums}
 .task-log-empty{font-size:12px;color:var(--muted);padding:8px 0}
+.task-allocation-panel{margin-top:14px;padding:14px;border:1px solid var(--border);border-radius:10px;background:linear-gradient(180deg,#fbfdfb 0%,#f6faf7 100%)}
+.task-allocation-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap;margin-bottom:12px}
+.task-allocation-title{color:var(--dark);font-size:13px;font-weight:700;letter-spacing:0.2px;text-transform:uppercase}
+.task-allocation-note{margin-top:4px;font-size:11px;color:var(--muted);line-height:1.5;max-width:520px}
+.task-allocation-summary{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.task-allocation-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;max-height:320px;overflow:auto;padding-right:4px}
+.task-allocation-day{border:1px solid var(--border);border-radius:8px;background:#fff;padding:10px;display:flex;flex-direction:column;gap:8px}
+.task-allocation-day.weekend{background:#fafaf7}
+.task-allocation-day.today{border-color:var(--accent);box-shadow:0 0 0 1px rgba(76,139,107,0.12) inset}
+.task-allocation-day-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.task-allocation-day-name{font-size:11px;font-weight:700;color:var(--dark);text-transform:uppercase;letter-spacing:0.3px}
+.task-allocation-day-date{font-size:12px;font-weight:600;color:var(--charcoal);margin-top:2px}
+.task-allocation-day input{padding:7px 8px;text-align:right;font-variant-numeric:tabular-nums}
+.task-allocation-footer{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.task-allocation-status{font-size:12px;font-weight:700}
+.task-allocation-status.ok{color:var(--green)}
+.task-allocation-status.warn{color:var(--red)}
+.task-allocation-actions{display:flex;gap:8px;flex-wrap:wrap}
+.task-allocation-empty{margin-top:10px;padding:12px;border:1px dashed var(--border);border-radius:8px;background:#fff;color:var(--muted);font-size:12px;line-height:1.5}
 .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
 .toolbar input,.toolbar select{padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:#fff;font-family:inherit}
 .toolbar input:focus,.toolbar select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(76,139,107,0.15)}
@@ -183,6 +209,12 @@ td.actions{white-space:nowrap;text-align:right}
 .gantt-bar.not-started{background:#7a8a92}
 .gantt-bar.in-progress{background:#4C8B6B}
 .gantt-bar:hover{filter:brightness(1.03)}
+.gantt-bar.overload{animation:ganttPulseGlow 0.7s ease-in-out infinite; background:linear-gradient(90deg,#d34a4a 0%,#c93f3f 100%); border:2px solid #8d1f1f; box-shadow:0 0 0 2px rgba(255,255,255,0.96), 0 0 0 4px rgba(224,102,102,0.45), 0 0 18px rgba(224,102,102,0.75), 0 0 34px rgba(232,184,74,0.55); color:#fff}
+.gantt-bar.overload:hover{filter:brightness(1.05)}
+@keyframes ganttPulseGlow{
+  0%,100%{box-shadow:0 0 0 2px rgba(255,255,255,0.96), 0 0 0 4px rgba(224,102,102,0.40), 0 0 16px rgba(224,102,102,0.68), 0 0 30px rgba(232,184,74,0.45)}
+  50%{box-shadow:0 0 0 2px rgba(255,255,255,0.96), 0 0 0 6px rgba(224,102,102,0.58), 0 0 24px rgba(224,102,102,0.92), 0 0 42px rgba(232,184,74,0.70)}
+}
 .gantt-bar-main{display:flex;flex-direction:column;min-width:0;flex:1 1 auto}
 .gantt-bar-main b{font-size:12px;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gantt-bar-main span{font-size:10px;opacity:0.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -306,7 +338,7 @@ const SAVE_FILE_PATH = 'C:\\Users\\linnh\\Documents\\AAA\\Sustainability Planner
 const uid = () => Math.random().toString(36).slice(2,10);
 const todayISO = () => new Date().toISOString().slice(0,10);
 
-let state = {db:null, currentView:'dashboard', filters:{}, collapsed:new Set(), taskExpanded:new Set(), projectExpanded:new Set(), dirty:false, source:'seed', ganttDayWidth:48, ganttScroll:{top:0,left:0}};
+let state = {db:null, currentView:'dashboard', filters:{}, chartFocus:{team:'',project:''}, collapsed:new Set(), taskExpanded:new Set(), projectExpanded:new Set(), dirty:false, source:'seed', ganttDayWidth:48, ganttScroll:{top:0,left:0}};
 let ganttDrag = null;
 let fileHandle = null;
 let lastFileModified = null;
@@ -421,6 +453,9 @@ function normalizeDB(db){
   db.tasks.forEach(t => {
     t.taskType = t.taskType || (t.projectId ? 'project' : 'internal');
     if (t.taskType !== 'project') t.projectId = t.projectId || '';
+    t.allocatedHours = +t.allocatedHours || 0;
+    t.actualHours = +t.actualHours || 0;
+    t.dailyAllocations = normalizeTaskDailyAllocations(t.dailyAllocations);
   });
   db.timesheet = Array.isArray(db.timesheet) ? db.timesheet : [];
   db.notes = Array.isArray(db.notes) ? db.notes : [];
@@ -501,6 +536,7 @@ function saveUIState(){
     localStorage.setItem('ghd_planner_ui_state', JSON.stringify({
       currentView: state.currentView,
       filters: state.filters,
+      chartFocus: state.chartFocus,
       collapsed: [...state.collapsed],
       taskExpanded: [...state.taskExpanded],
       projectExpanded: [...state.projectExpanded],
@@ -516,6 +552,7 @@ function loadUIState(){
     if (ui && typeof ui === 'object') {
       if (ui.currentView) state.currentView = ui.currentView;
       if (ui.filters && typeof ui.filters === 'object') state.filters = {...state.filters, ...ui.filters};
+      if (ui.chartFocus && typeof ui.chartFocus === 'object') state.chartFocus = {...state.chartFocus, ...ui.chartFocus};
       if (Array.isArray(ui.collapsed)) state.collapsed = new Set(ui.collapsed);
       if (Array.isArray(ui.taskExpanded)) state.taskExpanded = new Set(ui.taskExpanded);
       if (Array.isArray(ui.projectExpanded)) state.projectExpanded = new Set(ui.projectExpanded);
@@ -726,6 +763,161 @@ function taskBudget(task,hoursKey='actualHours'){
   if(hoursKey==='actualHours') return taskActualBudget(task);
   return (+task?.[hoursKey] || 0) * taskRate(task);
 }
+function roundTaskHours(value){
+  return Math.round((+value || 0) * 100) / 100;
+}
+function taskDateRange(startValue, endValue){
+  const start = parseGanttDate(startValue);
+  const end = parseGanttDate(endValue);
+  if (!start || !end || end < start) return [];
+  const days = [];
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) days.push(ganttIsoDate(d));
+  return days;
+}
+function taskWorkdayRange(startValue, endValue){
+  return taskDateRange(startValue, endValue).filter(date => {
+    const d = parseGanttDate(date);
+    return d && d.getDay() !== 0 && d.getDay() !== 6;
+  });
+}
+function normalizeTaskDailyAllocations(raw){
+  if (Array.isArray(raw)) {
+    return raw
+      .map(entry => ({
+        date: String(entry?.date || '').slice(0, 10),
+        hours: roundTaskHours(entry?.hours)
+      }))
+      .filter(entry => entry.date);
+  }
+  if (raw && typeof raw === 'object') {
+    return Object.entries(raw)
+      .map(([date, hours]) => ({date: String(date).slice(0, 10), hours: roundTaskHours(hours)}))
+      .filter(entry => entry.date);
+  }
+  return [];
+}
+function buildEvenTaskAllocations(dates, totalHours){
+  const total = roundTaskHours(totalHours);
+  if (!dates.length) return [];
+  const base = roundTaskHours(Math.floor((total / dates.length) * 100) / 100);
+  const entries = dates.map(date => ({date, hours: base}));
+  let remainder = roundTaskHours(total - (base * dates.length));
+  let i = 0;
+  while (remainder > 0.0001 && i < 5000) {
+    entries[i % entries.length].hours = roundTaskHours(entries[i % entries.length].hours + 0.01);
+    remainder = roundTaskHours(remainder - 0.01);
+    i += 1;
+  }
+  while (remainder < -0.0001 && i < 10000) {
+    entries[i % entries.length].hours = roundTaskHours(Math.max(0, entries[i % entries.length].hours - 0.01));
+    remainder = roundTaskHours(remainder + 0.01);
+    i += 1;
+  }
+  return entries;
+}
+function taskAllocationEntries(task){
+  const dates = taskWorkdayRange(task?.startDate, task?.dueDate);
+  if (!dates.length) return [];
+  const raw = normalizeTaskDailyAllocations(task?.dailyAllocations);
+  const byDate = new Map(raw.map(entry => [entry.date, roundTaskHours(entry.hours)]));
+  if (raw.length) {
+    return dates.map(date => ({date, hours: roundTaskHours(byDate.get(date) || 0)}));
+  }
+  return buildEvenTaskAllocations(dates, task?.allocatedHours || 0);
+}
+function taskAllocationTotal(task){
+  return taskAllocationEntries(task).reduce((sum, entry) => sum + roundTaskHours(entry.hours), 0);
+}
+function taskAllocationMap(task){
+  return new Map(taskAllocationEntries(task).map(entry => [entry.date, roundTaskHours(entry.hours)]));
+}
+function ganttTaskOverloadDates(tasks){
+  const assigneeLoad = new Map();
+  tasks.forEach(t => {
+    const assigneeId = t?.assigneeId || '__unassigned__';
+    const dayLoad = assigneeLoad.get(assigneeId) || new Map();
+    taskAllocationEntries(t).forEach(entry => {
+      dayLoad.set(entry.date, roundTaskHours((dayLoad.get(entry.date) || 0) + roundTaskHours(entry.hours)));
+    });
+    assigneeLoad.set(assigneeId, dayLoad);
+  });
+  const overloadByTask = new Map();
+  tasks.forEach(t => {
+    const assigneeId = t?.assigneeId || '__unassigned__';
+    const dayLoad = assigneeLoad.get(assigneeId);
+    const overloadedDates = new Set();
+    if (dayLoad) {
+      taskAllocationEntries(t).forEach(entry => {
+        if ((dayLoad.get(entry.date) || 0) > 8) overloadedDates.add(entry.date);
+      });
+    }
+    overloadByTask.set(t.id, overloadedDates);
+  });
+  return overloadByTask;
+}
+function taskAllocationDateLabel(date){
+  const d = parseGanttDate(date);
+  if (!d) return String(date || '');
+  return d.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'2-digit'});
+}
+function taskAllocationStatus(task, entries, targetHours){
+  const target = roundTaskHours(targetHours ?? task?.allocatedHours ?? 0);
+  const total = roundTaskHours((entries || taskAllocationEntries(task)).reduce((sum, entry) => sum + roundTaskHours(entry.hours), 0));
+  const delta = roundTaskHours(target - total);
+  return {target, total, delta, matches: Math.abs(delta) < 0.01};
+}
+function captureTaskAllocationInputs(form){
+  const values = new Map();
+  if (!form) return values;
+  form.querySelectorAll('[data-alloc-date]').forEach(input => {
+    const date = input.dataset.allocDate;
+    if (!date) return;
+    values.set(date, roundTaskHours(input.value));
+  });
+  return values;
+}
+function computeTaskAllocationDraft(task, form, preserveCurrent){
+  const allocatedHours = roundTaskHours(form?.elements?.allocatedHours?.value ?? task?.allocatedHours ?? 0);
+  const startDate = form?.elements?.startDate?.value ?? task?.startDate ?? '';
+  const dueDate = form?.elements?.dueDate?.value ?? task?.dueDate ?? '';
+  const dates = taskWorkdayRange(startDate, dueDate);
+  if (!dates.length) return {allocatedHours, startDate, dueDate, dates, entries:[]};
+  if (form?.dataset?.allocationAutoFill === '1') {
+    return {allocatedHours, startDate, dueDate, dates, entries: buildEvenTaskAllocations(dates, allocatedHours)};
+  }
+  if (form?.dataset?.allocationCleared === '1') {
+    return {allocatedHours, startDate, dueDate, dates, entries: dates.map(date => ({date, hours: 0}))};
+  }
+  const stored = new Map(normalizeTaskDailyAllocations(task?.dailyAllocations).map(entry => [entry.date, roundTaskHours(entry.hours)]));
+  const current = preserveCurrent ? captureTaskAllocationInputs(form) : new Map();
+  const source = preserveCurrent && current.size ? current : stored;
+  let entries = dates.map(date => ({date, hours: roundTaskHours(source.get(date) || 0)}));
+  const hasAnyHours = entries.some(entry => entry.hours > 0);
+  if (!preserveCurrent && (!stored.size || !hasAnyHours) && allocatedHours > 0) {
+    entries = buildEvenTaskAllocations(dates, allocatedHours);
+  }
+  return {allocatedHours, startDate, dueDate, dates, entries};
+}
+function renderTaskAllocationBuilder(task, form, preserveCurrent){
+  const draft = computeTaskAllocationDraft(task, form, preserveCurrent);
+  if (!draft.dates.length) {
+    return `<div class="task-allocation-panel"><div class="task-allocation-title">Daily Allocation Calendar</div><div class="task-allocation-empty">Pick start and due dates that include at least one weekday. The schedule only uses Monday to Friday and must total the allocated hours before the task can be saved.</div></div>`;
+  }
+  const status = taskAllocationStatus(task, draft.entries, draft.allocatedHours);
+  const today = todayISO();
+  const cards = draft.dates.map(date => {
+    const d = parseGanttDate(date);
+    const hours = draft.entries.find(entry => entry.date === date)?.hours ?? 0;
+    return `<div class="task-allocation-day ${date === today ? 'today' : ''}"><div class="task-allocation-day-head"><div><div class="task-allocation-day-name">${esc(d ? d.toLocaleDateString('en-US', {weekday:'short'}) : '')}</div><div class="task-allocation-day-date">${esc(taskAllocationDateLabel(date))}</div></div><span class="badge badge-blue">Workday</span></div><input type="number" min="0" step="0.01" inputmode="decimal" data-alloc-date="${esc(date)}" value="${hours ? esc(hours) : ''}" placeholder="0.00"></div>`;
+  }).join('');
+  return `<div class="task-allocation-panel" data-task-allocation-panel><div class="task-allocation-head"><div><div class="task-allocation-title">Daily Allocation Calendar</div><div class="task-allocation-note">${esc(draft.dates.length)} day${draft.dates.length === 1 ? '' : 's'} from ${esc(taskAllocationDateLabel(draft.dates[0]))} to ${esc(taskAllocationDateLabel(draft.dates[draft.dates.length - 1]))}. Enter the hours for each day so the schedule totals exactly <b>${fmtN(draft.allocatedHours)}</b> hours.</div></div><div class="task-allocation-summary"><span class="badge badge-blue">Allocated ${fmtN(draft.allocatedHours)}h</span><span class="badge ${status.matches ? 'badge-green' : 'badge-red'}">Scheduled ${fmtN(status.total)}h</span><span class="badge ${status.matches ? 'badge-green' : 'badge-red'}">${status.matches ? 'Totals match' : `Off by ${fmtN(Math.abs(status.delta))}h`}</span></div></div><div class="task-allocation-grid">${cards}</div><div class="task-allocation-footer"><div class="task-allocation-status ${status.matches ? 'ok' : 'warn'}">${status.matches ? 'Daily schedule matches allocated hours.' : 'Daily schedule still needs to equal the allocated hours.'}</div><div class="task-allocation-actions"><button type="button" class="btn btn-secondary btn-sm" data-action="task-allocation-fill">Auto-fill evenly</button><button type="button" class="btn btn-secondary btn-sm" data-action="task-allocation-zero">Clear schedule</button></div></div></div>`;
+}
+function refreshTaskAllocationBuilder(form, task){
+  const root = form?.querySelector('[data-task-allocation-root]');
+  if (!root) return;
+  const preserveCurrent = form.dataset.allocationEdited === '1';
+  root.innerHTML = renderTaskAllocationBuilder(task, form, preserveCurrent);
+}
 
 function badgePct(pct){
   const cls = pct>1?'badge-red':(pct>=0.8?'badge-amber':'badge-green');
@@ -777,15 +969,12 @@ function personLeaveHoursByWeek(id, weekEnd){
   return state.db.tasks
     .filter(t => t.assigneeId === id && t.taskType === 'leave')
     .reduce((sum, t) => {
-      const start = parseGanttDate(t.startDate);
-      const end = parseGanttDate(t.dueDate);
-      if (!start || !end) return sum;
-      const taskDays = diffDaysInclusive(start, end);
-      const overlapStart = new Date(Math.max(start.getTime(), weekStart.getTime()));
-      const overlapEnd = new Date(Math.min(end.getTime(), weekEnd.getTime()));
-      if (overlapEnd < overlapStart) return sum;
-      const overlapDays = diffDaysInclusive(overlapStart, overlapEnd);
-      return sum + ((+t.allocatedHours || 0) * (overlapDays / taskDays));
+      const alloc = taskAllocationEntries(t);
+      return sum + alloc.reduce((taskSum, entry) => {
+        const day = parseGanttDate(entry.date);
+        if (!day || day < weekStart || day > weekEnd) return taskSum;
+        return taskSum + roundTaskHours(entry.hours);
+      }, 0);
     }, 0);
 }
 function effectiveCapacityForWeek(member, weekEnd){
@@ -1016,18 +1205,29 @@ function projectColor(project){
   return projectColorPalette[hashString(seed) % projectColorPalette.length];
 }
 
-function getWeeklyUtilizationChartData(){
-  const team = state.db.team.slice();
-  const taskDates = state.db.tasks.flatMap(t => [parseGanttDate(t.startDate), parseGanttDate(t.dueDate)]).filter(Boolean);
-  const sheetDates = state.db.timesheet.map(x => parseGanttDate(x.weekEnding)).filter(Boolean);
-  const allDates = [...taskDates, ...sheetDates];
-  if (!allDates.length) return {weeks:[], rows:[]};
-  const minDate = new Date(Math.min(...allDates.map(d => d.getTime())));
-  const maxDate = new Date(Math.max(...allDates.map(d => d.getTime())));
-  const startWeekEnd = weekEndFriday(minDate);
-  const endWeekEnd = weekEndFriday(maxDate);
+function setUtilizationFocus(key, value){
+  if (!state.chartFocus) state.chartFocus = {team:'', project:''};
+  state.chartFocus[key] = value || '';
+  render();
+}
+
+function selectedUtilizationSeries(selectionKey){
+  return state.chartFocus?.[selectionKey] || '';
+}
+
+function getDashboardWeekWindow(){
+  const today = parseGanttDate(todayISO()) || new Date();
+  const currentWeekEnd = weekEndFriday(today);
+  const startWeekEnd = addDaysSafe(currentWeekEnd, -14);
+  const endWeekEnd = addDaysSafe(currentWeekEnd, 140);
   const weeks = [];
   for (let d = new Date(startWeekEnd); d <= endWeekEnd; d = addDaysSafe(d, 7)) weeks.push(new Date(d));
+  return {weeks, startWeekEnd, endWeekEnd, currentWeekEnd};
+}
+
+function getWeeklyUtilizationChartData(){
+  const team = state.db.team.slice();
+  const {weeks} = getDashboardWeekWindow();
   const actualTotals = new Map();
   state.db.timesheet.forEach(x => {
     if (!x.weekEnding) return;
@@ -1044,19 +1244,13 @@ function getWeeklyUtilizationChartData(){
       const actualHours = actualTotals.get(`${m.id}__${key}`) || 0;
       const capacity = effectiveCapacityForWeek(m, weekEnd);
       actual.push({week:key, hours:actualHours, util:capacity ? (actualHours / capacity) * 100 : 0});
-      const weekStart = weekStartSaturday(weekEnd);
-      let allocHours = 0;
-      state.db.tasks.filter(t => t.assigneeId === m.id && t.taskType !== 'leave').forEach(t => {
-        const start = parseGanttDate(t.startDate);
-        const end = parseGanttDate(t.dueDate);
-        if (!start || !end) return;
-        const taskDays = diffDaysInclusive(start, end);
-        const overlapStart = new Date(Math.max(start.getTime(), weekStart.getTime()));
-        const overlapEnd = new Date(Math.min(end.getTime(), weekEnd.getTime()));
-        if (overlapEnd < overlapStart) return;
-        const overlapDays = diffDaysInclusive(overlapStart, overlapEnd);
-        allocHours += (+t.allocatedHours || 0) * (overlapDays / taskDays);
-      });
+      const allocHours = state.db.tasks
+        .filter(t => t.assigneeId === m.id && t.taskType !== 'leave')
+        .reduce((taskSum, t) => taskSum + taskAllocationEntries(t).reduce((sum, entry) => {
+          const day = parseGanttDate(entry.date);
+          if (!day || day > weekEnd || day < weekStartSaturday(weekEnd)) return sum;
+          return sum + roundTaskHours(entry.hours);
+        }, 0), 0);
       allocated.push({week:key, hours:allocHours, util:capacity ? (allocHours / capacity) * 100 : 0});
     });
     return {member:m, color:memberColor(m), actual, allocated};
@@ -1066,16 +1260,7 @@ function getWeeklyUtilizationChartData(){
 
 function getWeeklyProjectUtilizationChartData(){
   const projects = state.db.projects.slice();
-  const taskDates = state.db.tasks.flatMap(t => [parseGanttDate(t.startDate), parseGanttDate(t.dueDate)]).filter(Boolean);
-  const sheetDates = state.db.timesheet.map(x => parseGanttDate(x.weekEnding)).filter(Boolean);
-  const allDates = [...taskDates, ...sheetDates];
-  if (!allDates.length) return {weeks:[], rows:[]};
-  const minDate = new Date(Math.min(...allDates.map(d => d.getTime())));
-  const maxDate = new Date(Math.max(...allDates.map(d => d.getTime())));
-  const startWeekEnd = weekEndFriday(minDate);
-  const endWeekEnd = weekEndFriday(maxDate);
-  const weeks = [];
-  for (let d = new Date(startWeekEnd); d <= endWeekEnd; d = addDaysSafe(d, 7)) weeks.push(new Date(d));
+  const {weeks} = getDashboardWeekWindow();
   const actualTotals = new Map();
   state.db.timesheet.forEach(x => {
     if (!x.weekEnding || !x.projectId) return;
@@ -1092,19 +1277,13 @@ function getWeeklyProjectUtilizationChartData(){
       const key = ganttIsoDate(weekEnd);
       const actualHours = actualTotals.get(`${p.id}__${key}`) || 0;
       actual.push({week:key, hours:actualHours, util:capacity ? (actualHours / capacity) * 100 : 0});
-      const weekStart = weekStartSaturday(weekEnd);
-      let allocHours = 0;
-      state.db.tasks.filter(t => t.projectId === p.id).forEach(t => {
-        const start = parseGanttDate(t.startDate);
-        const end = parseGanttDate(t.dueDate);
-        if (!start || !end) return;
-        const taskDays = diffDaysInclusive(start, end);
-        const overlapStart = new Date(Math.max(start.getTime(), weekStart.getTime()));
-        const overlapEnd = new Date(Math.min(end.getTime(), weekEnd.getTime()));
-        if (overlapEnd < overlapStart) return;
-        const overlapDays = diffDaysInclusive(overlapStart, overlapEnd);
-        allocHours += (+t.allocatedHours || 0) * (overlapDays / taskDays);
-      });
+      const allocHours = state.db.tasks
+        .filter(t => t.projectId === p.id)
+        .reduce((taskSum, t) => taskSum + taskAllocationEntries(t).reduce((sum, entry) => {
+          const day = parseGanttDate(entry.date);
+          if (!day || day > weekEnd || day < weekStartSaturday(weekEnd)) return sum;
+          return sum + roundTaskHours(entry.hours);
+        }, 0), 0);
       allocated.push({week:key, hours:allocHours, util:capacity ? (allocHours / capacity) * 100 : 0});
     });
     return {member:p, color:projectColor(p), actual, allocated};
@@ -1151,8 +1330,14 @@ function renderUtilizationChart(config){
     return `<div class="card empty" style="margin-bottom:0">No task log data yet to chart.</div>`;
   }
   const title = config.title || 'Weekly Utilization by Team Member';
-  const note = config.note || 'Solid line shows actual hours logged. Dashed line shows allocated hours spread across each task timeline.';
+  const note = config.note || 'Solid line shows actual hours logged. Dashed line shows allocated hours from the task\'s daily schedule.';
   const includeMemberLegend = config.includeMemberLegend !== false;
+  const selectionKey = config.selectionKey || '';
+  const selectedSeriesId = selectionKey ? selectedUtilizationSeries(selectionKey) : '';
+  const visibleRows = selectedSeriesId ? data.rows.filter(r => String(r.member?.id || '') === String(selectedSeriesId)) : data.rows;
+  const chartRows = visibleRows.length ? visibleRows : data.rows;
+  const maxUtil = Math.max(100, ...chartRows.flatMap(row => [...row.actual, ...row.allocated].map(v => +v.util || 0)));
+  const chartMax = Math.max(100, Math.ceil(maxUtil / 10) * 10);
   const gradientActual = config.gradientActual === true || title === 'Weekly Utilization' || title === 'Weekly Team Utilization';
   const gradientAllocated = config.gradientAllocated === true || title === 'Weekly Utilization' || title === 'Weekly Team Utilization';
   const currentWeekKey = ganttIsoDate(weekEndFriday(parseGanttDate(todayISO())));
@@ -1162,9 +1347,9 @@ function renderUtilizationChart(config){
   const headerHeight = 56;
   const chartWidth = data.weeks.length * weekWidth;
   const chartHeight = 300;
-  const yTicks = [0, 25, 50, 75, 100];
+  const yTicks = chartMax <= 100 ? [0, 25, 50, 75, 100] : [0, 25, 50, 75, 100, chartMax];
   const xPos = i => (i * weekWidth) + (weekWidth / 2);
-  const yPos = pct => topPad + (chartHeight - topPad - bottomPad) - (Math.max(0, Math.min(100, pct)) / 100) * (chartHeight - topPad - bottomPad);
+  const yPos = pct => topPad + (chartHeight - topPad - bottomPad) - (Math.max(0, Math.min(chartMax, pct)) / chartMax) * (chartHeight - topPad - bottomPad);
   const headers = buildTimelineHeaderRows(data.weeks, weekWidth, currentWeekKey);
   const grid = yTicks.map(p => {
     const y = yPos(p);
@@ -1179,12 +1364,9 @@ function renderUtilizationChart(config){
             <line class="util-grid-line" x1="${x}" y1="${topPad}" x2="${x}" y2="${chartHeight - bottomPad}"></line>`;
   }).join('');
   const yAxis = yTicks.map(p => `<div class="util-y-label" style="top:${headerHeight + yPos(p)}px">${p}%</div>`).join('');
-  const series = data.rows.map((row, idx) => {
+  const series = chartRows.map((row, idx) => {
     const allocPts = row.allocated.map((v, i) => `${xPos(i).toFixed(1)},${yPos(v.util).toFixed(1)}`).join(' ');
     const actPts = row.actual.map((v, i) => `${xPos(i).toFixed(1)},${yPos(v.util).toFixed(1)}`).join(' ');
-    const last = row.actual[row.actual.length - 1] || {util:0};
-    const labelY = Math.min(chartHeight - bottomPad - 6, Math.max(topPad + 12, yPos(last.util)));
-    const labelX = xPos(data.weeks.length - 1) + 8;
     const actualLine = gradientActual
       ? row.actual.slice(0, -1).map((v, i) => {
           const next = row.actual[i + 1];
@@ -1207,10 +1389,23 @@ function renderUtilizationChart(config){
           return `<line class="util-series-line alloc" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}"></line>`;
         }).join('')
       : `<polyline class="util-series-line alloc" points="${allocPts}" stroke="${row.color}"></polyline>`;
+    const actualNodes = row.actual.map((v, i) => {
+      const cx = xPos(i).toFixed(1);
+      const cy = yPos(v.util).toFixed(1);
+      const label = `${row.member.shortName || row.member.name || ''}, ${Math.round(+v.util || 0)}%, ${fmtShortDate(v.week)}`;
+      return `<circle class="util-series-node actual" cx="${cx}" cy="${cy}" r="4" fill="${row.color}" stroke="${row.color}"><title>${esc(label)}</title></circle>`;
+    }).join('');
+    const allocNodes = row.allocated.map((v, i) => {
+      const cx = xPos(i).toFixed(1);
+      const cy = yPos(v.util).toFixed(1);
+      const label = `${row.member.shortName || row.member.name || ''}, ${Math.round(+v.util || 0)}%, ${fmtShortDate(v.week)}`;
+      return `<circle class="util-series-node alloc" cx="${cx}" cy="${cy}" r="3.5" fill="${row.color}" stroke="${row.color}"><title>${esc(label)}</title></circle>`;
+    }).join('');
     return `<g>
       ${allocatedLine}
       ${actualLine}
-      <text x="${Math.min(labelX, chartWidth - 12)}" y="${labelY - 6}" fill="${row.color}" font-size="11" font-weight="700">${esc(row.member.shortName || row.member.name || '')}</text>
+      ${allocNodes}
+      ${actualNodes}
     </g>`;
   }).join('');
   return `<div class="card" style="margin-bottom:20px">
@@ -1221,7 +1416,15 @@ function renderUtilizationChart(config){
           <div class="util-chart-note">${esc(note)}</div>
         </div>
         <div class="util-legend">
-          ${includeMemberLegend ? data.rows.map(r => `<div class="util-legend-item"><span class="util-legend-swatch" style="background:${r.color}"></span><span>${esc(r.member.shortName || r.member.name || '')}</span></div>`).join('') : ''}
+          ${includeMemberLegend ? data.rows.map(r => {
+            const id = String(r.member?.id || '');
+            const label = esc(r.member.shortName || r.member.name || '');
+            const active = selectionKey && selectedSeriesId && id === String(selectedSeriesId);
+            if (selectionKey) {
+              return `<button type="button" class="util-legend-item util-legend-btn ${active ? 'active' : ''}" onclick="${active ? `setUtilizationFocus('${selectionKey}','')` : `setUtilizationFocus('${selectionKey}','${esc(id)}')`}"><span class="util-legend-swatch" style="background:${r.color}"></span><span>${label}${active ? ' <span class="util-legend-reset">Reset</span>' : ''}</span></button>`;
+            }
+            return `<div class="util-legend-item"><span class="util-legend-swatch" style="background:${r.color}"></span><span>${label}</span></div>`;
+          }).join('') : ''}
           <div class="util-legend-item" style="color:#4C8B6B"><span class="util-legend-line"></span><span>Actual utilization</span></div>
           <div class="util-legend-item" style="color:#4C8B6B"><span class="util-legend-line dashed"></span><span>Allocated utilization</span></div>
         </div>
@@ -1302,14 +1505,16 @@ function renderDashboard(){
   ${renderWeeklyAverageChart()}
   ${renderUtilizationChart({
     title:'Weekly Utilization by Team Member',
-    note:'Solid line shows actual hours logged. Dashed line shows allocated hours spread across each task timeline.',
+    note:'Solid line shows actual hours logged. Dashed line shows allocated hours from the task\'s daily schedule.',
     includeMemberLegend:true,
+    selectionKey:'team',
     data:getWeeklyUtilizationChartData()
   })}
   ${renderUtilizationChart({
     title:'Weekly Utilization by Project',
-    note:'Solid line shows actual hours logged. Dashed line shows allocated hours spread across each project timeline.',
+    note:'Solid line shows actual hours logged. Dashed line shows allocated hours from task daily schedules.',
     includeMemberLegend:true,
+    selectionKey:'project',
     data:getWeeklyProjectUtilizationChartData()
   })}
   <div class="card"><h2>Upcoming Deadlines (Top 5)</h2><div class="tbl-wrap"><table><thead><tr><th>Due</th><th>Project</th><th>Task</th><th>Assignee</th><th>Status</th></tr></thead><tbody>${upRows}</tbody></table></div></div>`;
@@ -1338,14 +1543,16 @@ function renderDashboardV2(){
   ${renderWeeklyAverageChart()}
   ${renderUtilizationChart({
     title:'Weekly Utilization by Team Member',
-    note:'Solid line shows actual hours logged. Dashed line shows allocated hours spread across each task timeline.',
+    note:'Solid line shows actual hours logged. Dashed line shows allocated hours from the task\'s daily schedule.',
     includeMemberLegend:true,
+    selectionKey:'team',
     data:getWeeklyUtilizationChartData()
   })}
   ${renderUtilizationChart({
     title:'Weekly Utilization by Project',
-    note:'Solid line shows actual hours logged. Dashed line shows allocated hours spread across each project timeline.',
+    note:'Solid line shows actual hours logged. Dashed line shows allocated hours from task daily schedules.',
     includeMemberLegend:true,
+    selectionKey:'project',
     data:getWeeklyProjectUtilizationChartData()
   })}
   <div class="card"><h2>Upcoming Submissions</h2><div class="tbl-wrap"><table><thead><tr><th>Submission</th><th>Project</th><th>Stage</th><th>Kick-off</th><th>Owner</th><th>Status</th></tr></thead><tbody>${upcomingSubmissions.map(m=>{const p=projectById(m.projectId);const owner=personById(m.ownerId);const overdue=m.submissionDate<todayISO();return `<tr><td>${esc(m.submissionDate)} ${overdue?'<span class="badge badge-red">Overdue</span>':''}</td><td>${esc(p?.shortName||'—')}</td><td>${esc(m.stageName||'—')} <span class="badge badge-grey" style="margin-left:6px">${esc(m.submissionLabel||'')}</span></td><td>${esc(m.kickoffDate||'—')}</td><td>${esc(owner?.name||'—')}</td><td>${statusBadge(m.status)}</td></tr>`;}).join('')||`<tr><td colspan="6" class="empty">No upcoming submissions</td></tr>`}</tbody></table></div></div>`;
@@ -1486,6 +1693,7 @@ function renderGantt(){
   const fmtDateNum=d=>String(d.getDate()).padStart(2,'0');
   const today=new Date(); today.setHours(0,0,0,0);
   const todayIndex=ganttDayDiff(start, today);
+  const overloadByTask = ganttTaskOverloadDates(tasks);
   const monthGroups=[];
   let currentMonth=null;
   days.forEach(d=>{
@@ -1522,12 +1730,15 @@ function renderGantt(){
     const statusClass=String(t.status||'').toLowerCase().replace(/\s+/g,'-');
     const unscheduled=!(t.startDate || t.dueDate);
     const actualHours=taskActualHours(t);
+    const overloadDates=overloadByTask.get(t.id);
+    const overloadClass=overloadDates && overloadDates.size ? ' overload' : '';
+    const overloadTitle=overloadDates && overloadDates.size ? ` | Overloaded days: ${[...overloadDates].map(fmtShortDate).join(', ')}` : '';
     return `<tr>
       <td class="gantt-scale-cell">
         <div class="gantt-row-lane" style="--gantt-day-width:${dayWidth}px;min-width:${dayCount*dayWidth}px">
           <div class="gantt-grid-row">${days.map(d=>`<div class="gantt-grid-cell ${d.getDay()===0||d.getDay()===6?'weekend':''} ${d.getTime()===today.getTime()?'today':''}" style="width:${dayWidth}px;min-width:${dayWidth}px"></div>`).join('')}</div>
           ${todayIndex>=0&&todayIndex<dayCount?`<div class="gantt-today-line" style="left:${todayIndex*dayWidth}px"></div>`:''}
-          <div class="gantt-bar ${statusClass}${unscheduled?' not-started':''}" data-task-id="${esc(t.id)}" style="left:${leftPx}px;width:${widthPx}px${unscheduled?';opacity:0.35':''}" title="${esc(t.name)} | ${esc(assignee?.name||'Unassigned')} | ${esc(projectLabel)} | ${esc(t.startDate||'')}${t.dueDate?` - ${esc(t.dueDate)}`:''}">
+          <div class="gantt-bar ${statusClass}${unscheduled?' not-started':''}${overloadClass}" data-task-id="${esc(t.id)}" style="left:${leftPx}px;width:${widthPx}px${unscheduled?';opacity:0.35':''}" title="${esc(t.name)} | ${esc(assignee?.name||'Unassigned')} | ${esc(projectLabel)} | ${esc(t.startDate||'')}${t.dueDate?` - ${esc(t.dueDate)}`:''}${overloadTitle}">
             <div class="gantt-resize-handle left"></div>
             <div class="gantt-bar-main"><b>${esc(t.name)}</b><span>${esc(assignee?.name||'Unassigned')} | ${esc(t.status||'')}</span></div>
             <div class="gantt-bar-meta">${fmtN(actualHours)}h / ${fmtN(t.allocatedHours||0)}h</div>
@@ -1750,7 +1961,7 @@ function deleteMilestone(id){
 
 // TASK CRUD
 function openTaskModal(id, defaults={}){
-  const base={taskType:'project',projectId:state.db.projects[0]?.id||'',name:'',assigneeId:state.db.team[0]?.id||'',allocatedHours:0,startDate:'',dueDate:'',status:'Not Started',priority:'Medium',notes:''};
+  const base={taskType:'project',projectId:state.db.projects[0]?.id||'',name:'',assigneeId:state.db.team[0]?.id||'',allocatedHours:0,startDate:'',dueDate:'',status:'Not Started',priority:'Medium',notes:'',dailyAllocations:[]};
   const t=id?taskById(id):Object.assign({}, base, defaults);
   const projOpts=['<option value="">— No project / internal —</option>'].concat(state.db.projects.map(p=>`<option value="${p.id}" ${t.projectId===p.id?'selected':''}>${esc(p.shortName)} &mdash; ${esc(p.code)}</option>`)).join('');
   const asgOpts=state.db.team.map(m=>`<option value="${m.id}" ${t.assigneeId===m.id?'selected':''}>${esc(m.name)}</option>`).join('');
@@ -1762,17 +1973,87 @@ function openTaskModal(id, defaults={}){
     <div class="form-row"><div class="form-group"><label>Task Type *</label><select required name="taskType">${typeOpts}</select></div><div class="form-group"><label>Project</label><select name="projectId">${projOpts}</select></div></div>
     <div class="form-row"><div class="form-group"><label>Assignee *</label><select required name="assigneeId">${asgOpts}</select></div><div class="form-group"><label>Status</label><select name="status">${stOpts}</select></div></div>
     <div class="form-group"><label>Task Name *</label><input required name="name" value="${esc(t.name)}"></div>
-    <div class="form-row"><div class="form-group"><label>Allocated Hours</label><input type="number" name="allocatedHours" value="${t.allocatedHours||0}" min="0" step="0.5"></div><div class="form-group"><label>Actual Hours</label><input type="text" value="${fmtN(actual)} (from Task Log)" readonly></div></div>
+    <div class="form-row"><div class="form-group"><label>Allocated Hours</label><input type="number" name="allocatedHours" value="${t.allocatedHours||0}" min="0" step="0.01"></div><div class="form-group"><label>Actual Hours</label><input type="text" value="${fmtN(actual)} (from Task Log)" readonly></div></div>
     <div class="form-row"><div class="form-group"><label>Start Date</label><input type="date" name="startDate" value="${esc(t.startDate)}"></div><div class="form-group"><label>Due Date</label><input type="date" name="dueDate" value="${esc(t.dueDate)}"></div></div>
     <div class="form-row"><div class="form-group"><label>Priority</label><select name="priority">${prOpts}</select></div><div class="form-group"><label>Project Note</label><input type="text" value="Use Internal or Leave when no project applies" readonly></div></div>
     <div class="form-group"><label>Notes</label><textarea name="notes">${esc(t.notes)}</textarea></div>
+    <div id="task-allocation-root"></div>
     <div class="modal-actions"><button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button><button type="submit" class="btn btn-primary">Save</button></div></form>`);
+  setTimeout(() => wireTaskAllocationBuilder(document.querySelector('#modal-content form'), t), 0);
+}
+function wireTaskAllocationBuilder(form, task){
+  if (!form) return;
+  const root = form.querySelector('#task-allocation-root');
+  if (!root) return;
+  form.dataset.allocationEdited = normalizeTaskDailyAllocations(task?.dailyAllocations).length ? '1' : '0';
+  form.dataset.allocationCleared = '0';
+  form.dataset.allocationAutoFill = '0';
+  const renderRoot = () => {
+    const preserveCurrent = form.dataset.allocationEdited === '1';
+    root.innerHTML = renderTaskAllocationBuilder(task, form, preserveCurrent);
+  };
+  if (!form._taskAllocationBound) {
+    form.addEventListener('input', e => {
+      if (e.target.matches('[name="allocatedHours"],[name="startDate"],[name="dueDate"]')) {
+        form.dataset.allocationCleared = '0';
+        form.dataset.allocationAutoFill = '0';
+        renderRoot();
+      }
+      if (e.target.matches('[data-alloc-date]')) {
+        form.dataset.allocationCleared = '0';
+        form.dataset.allocationAutoFill = '0';
+        form.dataset.allocationEdited = '1';
+      }
+    });
+    form.addEventListener('change', e => {
+      if (e.target.matches('[name="allocatedHours"],[name="startDate"],[name="dueDate"]')) {
+        form.dataset.allocationCleared = '0';
+        form.dataset.allocationAutoFill = '0';
+        renderRoot();
+      }
+      if (e.target.matches('[data-alloc-date]')) {
+        form.dataset.allocationCleared = '0';
+        form.dataset.allocationAutoFill = '0';
+        form.dataset.allocationEdited = '1';
+        renderRoot();
+      }
+    });
+    form.addEventListener('click', e => {
+      const fill = e.target.closest('[data-action="task-allocation-fill"]');
+      const clear = e.target.closest('[data-action="task-allocation-zero"]');
+      if (!fill && !clear) return;
+      e.preventDefault();
+      if (fill) {
+        form.dataset.allocationCleared = '0';
+        form.dataset.allocationAutoFill = '1';
+        form.dataset.allocationEdited = '0';
+        renderRoot();
+      } else {
+        form.dataset.allocationCleared = '1';
+        form.dataset.allocationAutoFill = '0';
+        form.dataset.allocationEdited = '1';
+        renderRoot();
+      }
+    });
+    form._taskAllocationBound = true;
+  }
+  renderRoot();
 }
 function saveTask(e,id){
   e.preventDefault(); const f=e.target,g=n=>f.elements[n].value;
   const taskId=id||uid();
   const taskType=g('taskType')||'project';
-  const data={taskType,projectId:taskType==='project'?(g('projectId')||''):'',name:g('name'),assigneeId:g('assigneeId'),allocatedHours:+g('allocatedHours')||0,actualHours:taskActualHours(taskId),startDate:g('startDate'),dueDate:g('dueDate'),status:g('status'),priority:g('priority'),notes:g('notes')};
+  const startDate=g('startDate');
+  const dueDate=g('dueDate');
+  const allocatedHours=roundTaskHours(g('allocatedHours'));
+  const allocInputs = captureTaskAllocationInputs(f);
+  const dailyAllocations = taskWorkdayRange(startDate, dueDate).map(date => ({date, hours: roundTaskHours(allocInputs.get(date) || 0)}));
+  const allocationTotal = roundTaskHours(dailyAllocations.reduce((sum, entry) => sum + roundTaskHours(entry.hours), 0));
+  if (startDate && dueDate && allocatedHours > 0 && Math.abs(allocationTotal - allocatedHours) >= 0.01) {
+    toast('Daily allocation must match the allocated hours.', true);
+    return;
+  }
+  const data={taskType,projectId:taskType==='project'?(g('projectId')||''):'',name:g('name'),assigneeId:g('assigneeId'),allocatedHours,actualHours:taskActualHours(taskId),startDate,dueDate,status:g('status'),priority:g('priority'),notes:g('notes'),dailyAllocations};
   if(id){Object.assign(taskById(id),data);toast('Task updated');}else{state.db.tasks.push({id:taskId,...data});toast('Task added');}
   saveDB();closeModal();render();
 }

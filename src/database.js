@@ -1,5 +1,5 @@
 // Sustainability Team Planner - auto-generated database file
-// Last saved: 2026-07-02T18:58:08.342Z
+// Last saved: 2026-07-02T19:52:52.726Z
 // Do not edit manually unless you know what you are doing.
 window.__DB__ = {
   "settings": {
@@ -149,46 +149,76 @@ window.__DB__ = {
   ],
   "tasks": [
     {
-      "id": "task_09",
-      "projectId": "p_canopies",
-      "name": "Facade shading study",
-      "assigneeId": "t_linn",
-      "allocatedHours": 40,
-      "actualHours": 0,
-      "startDate": "2026-05-01",
-      "dueDate": "2026-08-30",
-      "status": "In Progress",
-      "priority": "Medium",
-      "notes": "",
-      "taskType": "project"
-    },
-    {
       "id": "4b9me9xu",
       "projectId": "p_ta13",
       "name": "Reviewing all Submission Package",
       "assigneeId": "t_linn",
-      "allocatedHours": 16,
+      "allocatedHours": 40,
       "actualHours": 0,
       "startDate": "2026-07-01",
       "dueDate": "2026-07-07",
       "status": "In Progress",
       "priority": "High",
       "notes": "",
-      "taskType": "project"
+      "taskType": "project",
+      "dailyAllocations": [
+        {
+          "date": "2026-07-01",
+          "hours": 8
+        },
+        {
+          "date": "2026-07-02",
+          "hours": 8
+        },
+        {
+          "date": "2026-07-03",
+          "hours": 8
+        },
+        {
+          "date": "2026-07-06",
+          "hours": 8
+        },
+        {
+          "date": "2026-07-07",
+          "hours": 8
+        }
+      ]
     },
     {
       "id": "flr2rg1t",
       "projectId": "p_ta13",
       "name": "Reviewing all LEED/Estidam/Fitwel Submission Package",
       "assigneeId": "t_areesha",
-      "allocatedHours": 24,
-      "actualHours": 0,
+      "allocatedHours": 40,
+      "actualHours": 5,
       "startDate": "2026-07-01",
       "dueDate": "2026-07-07",
       "status": "In Progress",
       "priority": "High",
       "notes": "",
-      "taskType": "project"
+      "taskType": "project",
+      "dailyAllocations": [
+        {
+          "date": "2026-07-01",
+          "hours": 8
+        },
+        {
+          "date": "2026-07-02",
+          "hours": 8
+        },
+        {
+          "date": "2026-07-03",
+          "hours": 8
+        },
+        {
+          "date": "2026-07-06",
+          "hours": 8
+        },
+        {
+          "date": "2026-07-07",
+          "hours": 8
+        }
+      ]
     },
     {
       "id": "t2ppdrj0",
@@ -196,16 +226,139 @@ window.__DB__ = {
       "projectId": "p_ta13",
       "name": "Shading Analysis",
       "assigneeId": "t_linn",
-      "allocatedHours": 2,
+      "allocatedHours": 8,
       "actualHours": 0,
-      "startDate": "2026-07-03",
-      "dueDate": "2026-07-03",
+      "startDate": "2026-07-08",
+      "dueDate": "2026-07-08",
       "status": "Not Started",
       "priority": "Medium",
-      "notes": "Re-running shading analysis with updated landscape plan"
+      "notes": "Re-running shading analysis with updated landscape plan",
+      "dailyAllocations": [
+        {
+          "date": "2026-07-08",
+          "hours": 8
+        }
+      ]
+    },
+    {
+      "id": "ochcqmt3",
+      "taskType": "project",
+      "projectId": "p_ta13",
+      "name": "Updating DD Report",
+      "assigneeId": "t_linn",
+      "allocatedHours": 24,
+      "actualHours": 0,
+      "startDate": "2026-07-08",
+      "dueDate": "2026-07-10",
+      "status": "Not Started",
+      "priority": "Medium",
+      "notes": "Thermal Comfort Sections",
+      "dailyAllocations": [
+        {
+          "date": "2026-07-08",
+          "hours": 8
+        },
+        {
+          "date": "2026-07-09",
+          "hours": 8
+        },
+        {
+          "date": "2026-07-10",
+          "hours": 8
+        }
+      ]
+    },
+    {
+      "id": "t854nos1",
+      "taskType": "project",
+      "projectId": "p_ta13",
+      "name": "Updating DD Report",
+      "assigneeId": "t_areesha",
+      "allocatedHours": 24,
+      "actualHours": 0,
+      "startDate": "2026-07-08",
+      "dueDate": "2026-07-10",
+      "status": "Not Started",
+      "priority": "Medium",
+      "notes": "Remaining Sections",
+      "dailyAllocations": [
+        {
+          "date": "2026-07-08",
+          "hours": 8
+        },
+        {
+          "date": "2026-07-09",
+          "hours": 8
+        },
+        {
+          "date": "2026-07-10",
+          "hours": 8
+        }
+      ]
+    },
+    {
+      "id": "acz2kxkn",
+      "taskType": "project",
+      "projectId": "p_bag",
+      "name": "Stakeholder Coordination",
+      "assigneeId": "t_mrunmai",
+      "allocatedHours": 48,
+      "actualHours": 0,
+      "startDate": "2026-07-06",
+      "dueDate": "2026-07-13",
+      "status": "In Progress",
+      "priority": "Medium",
+      "notes": "",
+      "dailyAllocations": [
+        {
+          "date": "2026-07-06",
+          "hours": 8
+        },
+        {
+          "date": "2026-07-07",
+          "hours": 8
+        },
+        {
+          "date": "2026-07-08",
+          "hours": 8
+        },
+        {
+          "date": "2026-07-09",
+          "hours": 8
+        },
+        {
+          "date": "2026-07-10",
+          "hours": 8
+        },
+        {
+          "date": "2026-07-13",
+          "hours": 8
+        }
+      ]
     }
   ],
-  "timesheet": [],
+  "timesheet": [
+    {
+      "id": "c1n8sve9",
+      "weekEnding": "2026-07-03",
+      "personId": "t_areesha",
+      "projectId": "p_ta13",
+      "taskId": "flr2rg1t",
+      "hoursLogged": 5,
+      "billable": "Y",
+      "notes": ""
+    },
+    {
+      "id": "yyrd09v0",
+      "weekEnding": "2026-07-03",
+      "personId": "t_linn",
+      "projectId": "p_ta13",
+      "taskId": "4b9me9xu",
+      "hoursLogged": 5,
+      "billable": "Y",
+      "notes": ""
+    }
+  ],
   "notes": [
     {
       "id": "n_01",
