@@ -92,14 +92,23 @@ td.actions{white-space:nowrap;text-align:right}
 .badge-red{background:#FADCDC;color:#993030}
 .badge-grey{background:#E7E6E6;color:#555}
 .badge-blue{background:#DDE7F0;color:#2A4E70}
-.task-progress{display:flex;flex-direction:column;gap:6px;min-width:150px}
+.task-progress{display:flex;flex-direction:column;gap:6px;min-width:0;width:100%}
 .task-progress-text{display:flex;justify-content:space-between;gap:10px;font-size:11px;color:var(--muted);font-weight:600}
 .task-progress-track{height:10px;border-radius:999px;background:#E7ECE8;overflow:hidden;border:1px solid rgba(0,0,0,0.06)}
 .task-progress-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--amber) 0%,var(--green) 100%)}
 .task-toggle{width:26px;height:26px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;background:rgba(31,78,60,0.08);color:var(--dark);font-size:12px;line-height:1;flex:0 0 auto}
 .task-toggle:hover{background:rgba(31,78,60,0.15)}
-.task-toggle-wrap{display:flex;align-items:flex-start;gap:10px}
-.task-toggle-wrap .task-name{min-width:0}
+.project-group-body .tbl-wrap{overflow-x:hidden}
+.project-group-body table{width:100%;table-layout:fixed;border-collapse:collapse}
+.project-group-body th,.project-group-body td{vertical-align:middle;text-align:center}
+.project-group-body td.num{text-align:center}
+.project-group-body td:nth-child(2),.project-group-body th:nth-child(2){text-align:left}
+.project-group-body td.actions{text-align:center;white-space:nowrap}
+.project-group-body td.actions .btn-icon{padding:0 6px}
+.task-toggle-wrap{display:flex;align-items:center;justify-content:center;gap:10px;min-width:0}
+.task-toggle-wrap .task-name{min-width:0;width:100%;text-align:left}
+.task-toggle-wrap .task-name > div:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task-toggle-wrap .task-name > div:last-child{overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .task-detail-row td{background:#F8FBF8;border-bottom:1px solid var(--border);padding:0 12px 12px}
 .task-detail-panel{margin:0 0 4px 36px;padding:12px 14px;border:1px solid var(--border);border-radius:8px;background:#fff}
 .task-detail-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px;font-size:12px;color:var(--muted);font-weight:600}
@@ -290,6 +299,10 @@ textarea{resize:vertical;min-height:60px}
 // DATA LAYER
 // =====================================================
 const DB_KEY = 'ghd_planner_db';
+const FILE_HANDLE_DB = 'ghd_planner_file_handle';
+const FILE_HANDLE_STORE = 'handles';
+const FILE_HANDLE_KEY = 'database-js';
+const SAVE_FILE_PATH = 'C:\\Users\\linnh\\Documents\\AAA\\Sustainability Planner\\src\\';
 const uid = () => Math.random().toString(36).slice(2,10);
 const todayISO = () => new Date().toISOString().slice(0,10);
 
@@ -298,6 +311,7 @@ let ganttDrag = null;
 let fileHandle = null;
 let lastFileModified = null;
 let pollTimer = null;
+let pendingSaveLinkResolve = null;
 
 function defaultDB(){
   const t1=uid(),t2=uid(),t3=uid();
@@ -440,6 +454,48 @@ function saveDB(){
   updateDirtyIndicator();
 }
 
+function openFileHandleDB(){
+  return new Promise((resolve, reject) => {
+    if (!('indexedDB' in window)) {
+      resolve(null);
+      return;
+    }
+    const req = indexedDB.open(FILE_HANDLE_DB, 1);
+    req.onupgradeneeded = () => {
+      req.result.createObjectStore(FILE_HANDLE_STORE);
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error || new Error('IndexedDB unavailable'));
+  });
+}
+
+async function storeFileHandle(handle){
+  const db = await openFileHandleDB();
+  if (!db) return;
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction(FILE_HANDLE_STORE, 'readwrite');
+    tx.objectStore(FILE_HANDLE_STORE).put(handle, FILE_HANDLE_KEY);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error || new Error('Could not store file handle'));
+  });
+  db.close();
+}
+
+async function loadStoredFileHandle(){
+  const db = await openFileHandleDB();
+  if (!db) return null;
+  try {
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction(FILE_HANDLE_STORE, 'readonly');
+      const req = tx.objectStore(FILE_HANDLE_STORE).get(FILE_HANDLE_KEY);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => reject(req.error || new Error('Could not load file handle'));
+    });
+  } finally {
+    db.close();
+  }
+}
+
 function saveUIState(){
   try {
     localStorage.setItem('ghd_planner_ui_state', JSON.stringify({
@@ -473,57 +529,111 @@ function updateDirtyIndicator(){
   const status = document.getElementById('fileStatus');
   if (status) {
     if (fileHandle) status.innerHTML = 'Linked: ' + fileHandle.name + (state.dirty ? ' (unsaved)' : '');
-    else if (state.source === 'file') status.innerHTML = 'src/database.js loaded automatically';
     else if (state.source === 'localStorage') status.innerHTML = 'localStorage only';
-    else status.innerHTML = 'Sample data';
+    else status.innerHTML = '';
   }
+}
+
+async function ensureLinkedFileHandle(){
+  if (fileHandle) return fileHandle;
+  try {
+    const stored = await loadStoredFileHandle();
+    if (stored) {
+      fileHandle = stored;
+      const file = await stored.getFile();
+      lastFileModified = file.lastModified;
+      updateDirtyIndicator();
+      startFilePolling();
+      return fileHandle;
+    }
+  } catch (e) {}
+  return null;
+}
+
+function resolveSaveLink(handle){
+  if (!pendingSaveLinkResolve) return;
+  const resolve = pendingSaveLinkResolve;
+  pendingSaveLinkResolve = null;
+  resolve(handle || null);
+}
+
+function openSaveLinkDialog(){
+  return new Promise(resolve => {
+    pendingSaveLinkResolve = resolve;
+    openModal(`<h3>Link database file</h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px">Click Copy to copy the file path, then choose <code>database.js</code> in the file picker.</p>
+      <div style="padding:12px;border:1px solid var(--border);border-radius:8px;background:#f8fbf8;font-size:12px;word-break:break-all;user-select:text">${esc(SAVE_FILE_PATH)}</div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal();resolveSaveLink(null)">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="copyPathAndPickFile()">Copy</button>
+      </div>`);
+  });
+}
+
+async function copyPathAndPickFile(){
+  try {
+    await navigator.clipboard.writeText(SAVE_FILE_PATH);
+    toast('Path copied');
+  } catch (e) {
+    toast('Copy failed: ' + e.message, true);
+    return;
+  }
+  closeModal();
+  const handle = await linkDatabaseFile(true);
+  resolveSaveLink(handle);
 }
 
 async function saveToFile(){
   const jsContent = '// Sustainability Team Planner - auto-generated database file\n// Last saved: ' + new Date().toISOString() + '\n// Do not edit manually unless you know what you are doing.\nwindow.__DB__ = ' + JSON.stringify(state.db, null, 2) + ';\n';
   try {
-    const res = await fetch('http://127.0.0.1:43123/save', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({content: jsContent}),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok || !data.ok) throw new Error(data.error || 'Save bridge failed');
+    let handle = await ensureLinkedFileHandle();
+    if (!handle) handle = await openSaveLinkDialog();
+    if (!handle) return;
+    const perm = await handle.queryPermission({mode:'readwrite'});
+    const granted = perm === 'granted' ? 'granted' : await handle.requestPermission({mode:'readwrite'});
+    if (granted !== 'granted') throw new Error('Write permission denied');
+    const writable = await handle.createWritable();
+    await writable.write(jsContent);
+    await writable.close();
+    const file = await handle.getFile();
+    lastFileModified = file.lastModified;
     state.dirty = false;
     updateDirtyIndicator();
-    toast('Saved to src/database.js');
-    return;
+    toast('Saved to ' + handle.name);
   } catch (e) {
     toast('Save failed: ' + e.message, true);
     return;
   }
 }
 
-async function linkDatabaseFile(){
+async function linkDatabaseFile(silent = false){
   if (!('showOpenFilePicker' in window)) {
-    alert('Direct file linking requires Chrome, Edge, or Opera.\n\nOn other browsers, use Save to download database.js and manually replace it in src/.');
-    return;
+    if (!silent) alert('Direct file linking requires Chrome, Edge, or Opera.');
+    return null;
   }
   try {
     const [handle] = await window.showOpenFilePicker({
       types: [{description:'Database JS', accept:{'text/javascript':['.js']}}]
     });
     const perm = await handle.requestPermission({mode:'readwrite'});
-    if (perm !== 'granted') { toast('Permission denied', true); return; }
+    if (perm !== 'granted') { if (!silent) toast('Permission denied', true); return null; }
     fileHandle = handle;
     const file = await handle.getFile();
     lastFileModified = file.lastModified;
+    await storeFileHandle(handle);
     updateDirtyIndicator();
-    toast('Linked to ' + handle.name);
+    if (!silent) toast('Linked to ' + handle.name);
     startFilePolling();
+    return handle;
   } catch(e) {
-    if (e.name !== 'AbortError') toast('Link failed: ' + e.message, true);
+    if (e.name !== 'AbortError' && !silent) toast('Link failed: ' + e.message, true);
+    return null;
   }
 }
 
 async function reloadFromFile(){
   if (state.dirty && !confirm('You have unsaved changes. Reload from src/database.js anyway?')) return;
-  if (fileHandle) {
+  if (await ensureLinkedFileHandle()) {
     try {
       const file = await fileHandle.getFile();
       const text = await file.text();
@@ -543,7 +653,9 @@ async function reloadFromFile(){
       toast('Reload failed: ' + e.message, true); return;
     }
   }
-  if (confirm('Reload the page to re-read src/database.js?\n\nAny unsaved changes will be lost.')) location.reload();
+  if (confirm('No linked file found yet. Pick src/database.js now?')) {
+    await linkDatabaseFile();
+  }
 }
 
 function startFilePolling(){
@@ -1289,7 +1401,7 @@ function renderTasks(){
     const tot=projectTotals(p.id);
     const collapsed=state.collapsed.has(p.id);
     const rows=pts.map(renderRow).join('');
-    return `<div class="project-group ${collapsed?'collapsed':''}" data-pid="${p.id}"><div class="project-group-header"><span class="pg-chevron">&#9660;</span><span class="pg-title">${esc(p.shortName)}</span><span class="pg-code">${esc(p.code)}</span><div class="pg-stats"><div class="pg-stat"><b>${fmtN(tot.actualHrs)}h / ${fmtN(tot.allocHrs)}h</b><span>Actual/Alloc</span></div><div class="pg-stat"><b>${fmtC(tot.allocBudget)}</b><span>Allocated</span></div><div class="pg-stat"><b>${pts.length}</b><span>Tasks</span></div></div></div><div class="project-group-body"><div class="tbl-wrap"><table><thead><tr><th></th><th>Task</th><th>Assignee</th><th class="num">Alloc</th><th class="num">Actual</th><th class="num">Alloc AED</th><th class="num">Actual AED</th><th>Due</th><th>Status</th><th>Priority</th><th>Actual/Alloc</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div></div>`;
+    return `<div class="project-group ${collapsed?'collapsed':''}" data-pid="${p.id}"><div class="project-group-header"><span class="pg-chevron">&#9660;</span><span class="pg-title">${esc(p.shortName)}</span><span class="pg-code">${esc(p.code)}</span><div class="pg-stats"><div class="pg-stat"><b>${fmtN(tot.actualHrs)}h / ${fmtN(tot.allocHrs)}h</b><span>Actual/Alloc</span></div><div class="pg-stat"><b>${fmtC(tot.allocBudget)}</b><span>Allocated</span></div><div class="pg-stat"><b>${pts.length}</b><span>Tasks</span></div></div></div><div class="project-group-body"><div class="tbl-wrap"><table><colgroup><col style="width:3%"><col style="width:25%"><col style="width:11%"><col style="width:4%"><col style="width:4%"><col style="width:7%"><col style="width:7%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:7%"><col style="width:8%"></colgroup><thead><tr><th></th><th>Task</th><th>Assignee</th><th class="num">Alloc</th><th class="num">Actual</th><th class="num">Alloc AED</th><th class="num">Actual AED</th><th>Due</th><th>Status</th><th>Priority</th><th>Actual/Alloc</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div></div>`;
   }).filter(Boolean).join('');
   const internalTasks=tasks.filter(t=>!isProjectTask(t)).sort((a,b)=>(a.dueDate||'').localeCompare(b.dueDate||''));
   const internalGroup=internalTasks.length ? (() => {
@@ -1297,7 +1409,7 @@ function renderTasks(){
     const actualHrs=internalTasks.reduce((s,t)=>s+taskActualHours(t),0);
     const allocBudget=internalTasks.reduce((s,t)=>s+taskBudget(t,'allocatedHours'),0);
     const collapsed=state.collapsed.has('__internal__');
-    return `<div class="project-group ${collapsed?'collapsed':''}" data-pid="__internal__"><div class="project-group-header"><span class="pg-chevron">&#9660;</span><span class="pg-title">Internal / Leave</span><span class="pg-code">N/A</span><div class="pg-stats"><div class="pg-stat"><b>${fmtN(actualHrs)}h / ${fmtN(allocHrs)}h</b><span>Actual/Alloc</span></div><div class="pg-stat"><b>${fmtC(allocBudget)}</b><span>Allocated</span></div><div class="pg-stat"><b>${internalTasks.length}</b><span>Tasks</span></div></div></div><div class="project-group-body"><div class="tbl-wrap"><table><thead><tr><th></th><th>Task</th><th>Assignee</th><th class="num">Alloc</th><th class="num">Actual</th><th class="num">Alloc AED</th><th class="num">Actual AED</th><th>Due</th><th>Status</th><th>Priority</th><th>Actual/Alloc</th><th></th></tr></thead><tbody>${internalTasks.map(renderRow).join('')}</tbody></table></div></div></div>`;
+    return `<div class="project-group ${collapsed?'collapsed':''}" data-pid="__internal__"><div class="project-group-header"><span class="pg-chevron">&#9660;</span><span class="pg-title">Internal / Leave</span><span class="pg-code">N/A</span><div class="pg-stats"><div class="pg-stat"><b>${fmtN(actualHrs)}h / ${fmtN(allocHrs)}h</b><span>Actual/Alloc</span></div><div class="pg-stat"><b>${fmtC(allocBudget)}</b><span>Allocated</span></div><div class="pg-stat"><b>${internalTasks.length}</b><span>Tasks</span></div></div></div><div class="project-group-body"><div class="tbl-wrap"><table><colgroup><col style="width:3%"><col style="width:25%"><col style="width:11%"><col style="width:4%"><col style="width:4%"><col style="width:7%"><col style="width:7%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:7%"><col style="width:8%"></colgroup><thead><tr><th></th><th>Task</th><th>Assignee</th><th class="num">Alloc</th><th class="num">Actual</th><th class="num">Alloc AED</th><th class="num">Actual AED</th><th>Due</th><th>Status</th><th>Priority</th><th>Actual/Alloc</th><th></th></tr></thead><tbody>${internalTasks.map(renderRow).join('')}</tbody></table></div></div></div>`;
   })() : '';
   const groups=projectGroups+internalGroup;
   return `<h1 class="view-title">Tasks</h1><p class="view-sub">Grouped by project. Click header to collapse.</p>
@@ -1842,6 +1954,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   loadUIState();
   render();
   updateDirtyIndicator();
+  ensureLinkedFileHandle();
 });
 </script>
 </body>
