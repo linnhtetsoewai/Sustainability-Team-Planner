@@ -194,6 +194,22 @@ td.actions{white-space:nowrap;text-align:right}
 .pg-stat b{display:block;font-size:14px;font-weight:700}
 .pg-stat span{opacity:0.85}
 .project-group.collapsed .project-group-body{display:none}
+.project-toggle{width:24px;height:24px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;background:rgba(76,139,107,0.14);color:var(--accent);font-size:12px;line-height:1;flex:0 0 auto;transition:transform .15s, background .15s, color .15s, box-shadow .15s}
+.project-toggle:hover{background:rgba(76,139,107,0.24);color:var(--dark);box-shadow:0 0 0 1px rgba(76,139,107,0.22) inset}
+.project-toggle.expanded{transform:rotate(90deg)}
+.project-stage-row td{background:#f8fbf8;border-bottom:1px solid var(--border);padding:10px 12px 16px}
+.project-stage-panel{margin:4px 0 4px 34px;padding:14px 14px 12px;border:1px solid var(--border);border-radius:8px;background:#fff}
+.project-stage-panel .tbl-wrap{overflow-x:auto}
+.project-stage-panel table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:12px}
+.project-stage-panel th{font-size:10px;padding:9px 10px}
+.project-stage-panel td{padding:8px 10px;vertical-align:top}
+.project-stage-panel th,.project-stage-panel td{overflow:hidden;text-overflow:ellipsis}
+.project-stage-panel td:last-child,.project-stage-panel th:last-child{white-space:nowrap}
+.milestone-card .tbl-wrap{margin-top:0}
+.milestone-note{font-size:11px;color:var(--muted);margin-bottom:12px}
+.milestone-stage{display:flex;flex-direction:column;gap:2px}
+.milestone-stage b{font-size:13px;color:var(--dark)}
+.milestone-stage span{font-size:11px;color:var(--muted)}
 .modal-overlay{position:fixed;inset:0;background:rgba(20,30,25,0.55);display:none;align-items:flex-start;justify-content:center;z-index:1000;padding:60px 20px 20px;overflow-y:auto}
 .modal-overlay.active{display:flex}
 .modal{background:#fff;border-radius:10px;padding:24px;max-width:640px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.2)}
@@ -277,7 +293,7 @@ const DB_KEY = 'ghd_planner_db';
 const uid = () => Math.random().toString(36).slice(2,10);
 const todayISO = () => new Date().toISOString().slice(0,10);
 
-let state = {db:null, currentView:'dashboard', filters:{}, collapsed:new Set(), taskExpanded:new Set(), dirty:false, source:'seed', ganttDayWidth:48, ganttScroll:{top:0,left:0}};
+let state = {db:null, currentView:'dashboard', filters:{}, collapsed:new Set(), taskExpanded:new Set(), projectExpanded:new Set(), dirty:false, source:'seed', ganttDayWidth:48, ganttScroll:{top:0,left:0}};
 let ganttDrag = null;
 let fileHandle = null;
 let lastFileModified = null;
@@ -296,6 +312,27 @@ function defaultDB(){
     {id:p2,code:'12698765',name:'The Canopies (Wussom Bay Residences)',shortName:'The Canopies',client:'Wussom Bay Developments',pm:'N. AlHussain',sustainabilityLead:t1,startDate:'2026-02-01',endDate:'2026-10-30',allocatedHours:480,allocatedBudget:168000,status:'In Progress',notes:'Focus on outdoor thermal comfort & Estidama PCRS'},
     {id:p3,code:'12687994',name:'BAG Masterplan',shortName:'BAG',client:'Modon',pm:'J. Pardesi',sustainabilityLead:t2,startDate:'2026-03-01',endDate:'2027-02-28',allocatedHours:800,allocatedBudget:280000,status:'In Progress',notes:'Estidama + Fitwel evidence coordination'},
     {id:p4,code:'12676543',name:'NoMA Sustainability Advisory',shortName:'NoMA',client:'NoMA Holdings',pm:'M.T. Jawed',sustainabilityLead:t1,startDate:'2026-05-01',endDate:'2026-09-30',allocatedHours:240,allocatedBudget:84000,status:'Not Started',notes:'Advisory + LEED pre-assessment'}
+  ];
+  const milestones=[
+    {id:uid(),projectId:p1,stageName:'Pre Concept Validation',submissionLabel:'100%',kickoffDate:'2026-01-25',submissionDate:'2026-01-24',status:'Approved',ownerId:t1,notes:'Initial sustainability sign-off'},
+    {id:uid(),projectId:p1,stageName:'Concept Design',submissionLabel:'50%',kickoffDate:'2026-03-05',submissionDate:'2026-03-06',status:'Submitted',ownerId:t1,notes:'Concept package review'},
+    {id:uid(),projectId:p1,stageName:'Concept Design',submissionLabel:'100%',kickoffDate:'2026-03-20',submissionDate:'',status:'Planned',ownerId:t1,notes:'Final concept submission'},
+    {id:uid(),projectId:p1,stageName:'Schematic Design',submissionLabel:'50%',kickoffDate:'2026-05-10',submissionDate:'',status:'Planned',ownerId:t1,notes:'Half-stage issue'},
+    {id:uid(),projectId:p1,stageName:'Schematic Design',submissionLabel:'100%',kickoffDate:'2026-06-05',submissionDate:'',status:'Planned',ownerId:t1,notes:'Full schematic issue'},
+    {id:uid(),projectId:p1,stageName:'Detailed Design',submissionLabel:'100%',kickoffDate:'2026-09-15',submissionDate:'',status:'Planned',ownerId:t1,notes:'Detailed design submission'},
+    {id:uid(),projectId:p1,stageName:'Construction Stage',submissionLabel:'100%',kickoffDate:'2026-12-01',submissionDate:'',status:'Planned',ownerId:t1,notes:'Construction phase close-out'},
+    {id:uid(),projectId:p2,stageName:'Pre Concept Validation',submissionLabel:'100%',kickoffDate:'2026-02-15',submissionDate:'2026-02-14',status:'Approved',ownerId:t1,notes:'Brief confirmed'},
+    {id:uid(),projectId:p2,stageName:'Concept Design',submissionLabel:'50%',kickoffDate:'2026-03-20',submissionDate:'',status:'Planned',ownerId:t1,notes:'Thermal comfort baseline'},
+    {id:uid(),projectId:p2,stageName:'Concept Design',submissionLabel:'100%',kickoffDate:'2026-04-05',submissionDate:'',status:'Planned',ownerId:t1,notes:'Concept issue'},
+    {id:uid(),projectId:p2,stageName:'Schematic Design',submissionLabel:'50%',kickoffDate:'2026-05-15',submissionDate:'',status:'Planned',ownerId:t1,notes:'Envelope and shading review'},
+    {id:uid(),projectId:p2,stageName:'Schematic Design',submissionLabel:'100%',kickoffDate:'2026-06-20',submissionDate:'',status:'Planned',ownerId:t1,notes:'SD issue'},
+    {id:uid(),projectId:p3,stageName:'Concept Design',submissionLabel:'100%',kickoffDate:'2026-03-25',submissionDate:'2026-03-24',status:'Approved',ownerId:t2,notes:'Concept agreed'},
+    {id:uid(),projectId:p3,stageName:'Schematic Design',submissionLabel:'50%',kickoffDate:'2026-06-18',submissionDate:'',status:'Planned',ownerId:t2,notes:'Evidence pack preparation'},
+    {id:uid(),projectId:p3,stageName:'Schematic Design',submissionLabel:'100%',kickoffDate:'2026-08-01',submissionDate:'',status:'Planned',ownerId:t2,notes:'SD submission'},
+    {id:uid(),projectId:p3,stageName:'Detailed Design',submissionLabel:'100%',kickoffDate:'2026-11-15',submissionDate:'',status:'Planned',ownerId:t2,notes:'DD submission'},
+    {id:uid(),projectId:p4,stageName:'Concept Design',submissionLabel:'50%',kickoffDate:'2026-06-05',submissionDate:'',status:'Planned',ownerId:t1,notes:'Workshop follow-up'},
+    {id:uid(),projectId:p4,stageName:'Concept Design',submissionLabel:'100%',kickoffDate:'2026-06-25',submissionDate:'',status:'Planned',ownerId:t1,notes:'Client issue'},
+    {id:uid(),projectId:p4,stageName:'Schematic Design',submissionLabel:'100%',kickoffDate:'2026-08-10',submissionDate:'',status:'Planned',ownerId:t1,notes:'Advisory package'}
   ];
   const T=(pi,n,ai,ah,acth,sd,dd,st,pr,nt,tp='project')=>({id:uid(),projectId:pi,taskType:tp,name:n,assigneeId:ai,allocatedHours:ah,actualHours:acth,startDate:sd,dueDate:dd,status:st,priority:pr,notes:nt});
   const tasks=[
@@ -334,7 +371,7 @@ function defaultDB(){
     {id:uid(),weekEnding:'2026-06-19',personId:t2,projectId:p3,taskId:tasks[11].id,hoursLogged:8,billable:'Y',notes:'Fitwel client call'},
     {id:uid(),weekEnding:'2026-06-26',personId:t1,projectId:p1,taskId:tasks[4].id,hoursLogged:6,billable:'Y',notes:'Draft exec summary'}
   ];
-  return {settings:{blendedRate:350,currency:'AED',weeksInPeriod:4},team,projects,tasks,timesheet,notes};
+  return {settings:{blendedRate:350,currency:'AED',weeksInPeriod:4},team,projects,milestones,tasks,timesheet,notes};
 }
 
 function defaultHourlyRateForMember(member={}){
@@ -353,6 +390,19 @@ function normalizeDB(db){
     m.hourlyRate = +m.hourlyRate || defaultHourlyRateForMember(m);
   });
   db.projects = Array.isArray(db.projects) ? db.projects : [];
+  db.milestones = Array.isArray(db.milestones) ? db.milestones : [];
+  db.milestones.forEach(m => {
+    m.projectId = m.projectId || '';
+    m.stageName = m.stageName || '';
+    m.submissionLabel = m.submissionLabel || '';
+    m.kickoffDate = m.kickoffDate || m.plannedDate || '';
+    m.submissionDate = m.submissionDate || m.actualDate || '';
+    m.status = m.status || 'Planned';
+    m.ownerId = m.ownerId || '';
+    m.notes = m.notes || '';
+    delete m.plannedDate;
+    delete m.actualDate;
+  });
   db.tasks = Array.isArray(db.tasks) ? db.tasks : [];
   db.tasks.forEach(t => {
     t.taskType = t.taskType || (t.projectId ? 'project' : 'internal');
@@ -390,6 +440,33 @@ function saveDB(){
   updateDirtyIndicator();
 }
 
+function saveUIState(){
+  try {
+    localStorage.setItem('ghd_planner_ui_state', JSON.stringify({
+      currentView: state.currentView,
+      filters: state.filters,
+      collapsed: [...state.collapsed],
+      taskExpanded: [...state.taskExpanded],
+      projectExpanded: [...state.projectExpanded],
+    }));
+  } catch(e) {}
+}
+
+function loadUIState(){
+  try {
+    const raw = localStorage.getItem('ghd_planner_ui_state');
+    if (!raw) return;
+    const ui = JSON.parse(raw);
+    if (ui && typeof ui === 'object') {
+      if (ui.currentView) state.currentView = ui.currentView;
+      if (ui.filters && typeof ui.filters === 'object') state.filters = {...state.filters, ...ui.filters};
+      if (Array.isArray(ui.collapsed)) state.collapsed = new Set(ui.collapsed);
+      if (Array.isArray(ui.taskExpanded)) state.taskExpanded = new Set(ui.taskExpanded);
+      if (Array.isArray(ui.projectExpanded)) state.projectExpanded = new Set(ui.projectExpanded);
+    }
+  } catch(e) {}
+}
+
 function updateDirtyIndicator(){
   const dot = document.getElementById('dirtyDot');
   if (dot) dot.style.display = state.dirty ? 'inline' : 'none';
@@ -404,35 +481,22 @@ function updateDirtyIndicator(){
 
 async function saveToFile(){
   const jsContent = '// Sustainability Team Planner - auto-generated database file\n// Last saved: ' + new Date().toISOString() + '\n// Do not edit manually unless you know what you are doing.\nwindow.__DB__ = ' + JSON.stringify(state.db, null, 2) + ';\n';
-  if (fileHandle) {
-    try {
-      const perm = await fileHandle.queryPermission({mode:'readwrite'});
-      if (perm !== 'granted') {
-        const req = await fileHandle.requestPermission({mode:'readwrite'});
-        if (req !== 'granted') { toast('Write permission denied', true); return; }
-      }
-      const writable = await fileHandle.createWritable();
-      await writable.write(jsContent);
-      await writable.close();
-      const file = await fileHandle.getFile();
-      lastFileModified = file.lastModified;
-      state.dirty = false;
-      updateDirtyIndicator();
-      toast('Saved to ' + fileHandle.name);
-      return;
-    } catch(e) {
-      toast('Direct save failed, downloading: ' + e.message, true);
-    }
+  try {
+    const res = await fetch('http://127.0.0.1:43123/save', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({content: jsContent}),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) throw new Error(data.error || 'Save bridge failed');
+    state.dirty = false;
+    updateDirtyIndicator();
+    toast('Saved to src/database.js');
+    return;
+  } catch (e) {
+    toast('Save failed: ' + e.message, true);
+    return;
   }
-  const blob = new Blob([jsContent], {type:'text/javascript'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'database.js';
-  a.click();
-  URL.revokeObjectURL(url);
-  state.dirty = false;
-  updateDirtyIndicator();
-  toast('database.js downloaded - replace file in src/');
 }
 
 async function linkDatabaseFile(){
@@ -561,7 +625,7 @@ function taskProgress(actual, alloc){
   return `<div class="task-progress"><div class="task-progress-text"><span>${fmtN(a)} / ${fmtN(l)}</span><span>${fmtP(pct)}</span></div><div class="task-progress-track"><div class="task-progress-fill" style="width:${(pct*100).toFixed(1)}%"></div></div></div>`;
 }
 function statusBadge(s){
-  const map={'Completed':'badge-grey','In Progress':'badge-blue','Not Started':'badge-amber','On Hold':'badge-amber','Blocked':'badge-red','Open':'badge-blue','Closed':'badge-grey'};
+  const map={'Completed':'badge-grey','In Progress':'badge-blue','Not Started':'badge-amber','On Hold':'badge-amber','Blocked':'badge-red','Open':'badge-blue','Closed':'badge-grey','Planned':'badge-blue','Submitted':'badge-amber','Approved':'badge-green','Overdue':'badge-red'};
   return `<span class="badge ${map[s]||'badge-grey'}">${esc(s||'—')}</span>`;
 }
 function priorityBadge(p){
@@ -571,9 +635,17 @@ function priorityBadge(p){
 const projectById=id=>state.db.projects.find(p=>p.id===id);
 const personById=id=>state.db.team.find(t=>t.id===id);
 const taskById=id=>state.db.tasks.find(t=>t.id===id);
+const milestoneById=id=>state.db.milestones.find(m=>m.id===id);
 const isProjectTask=t=>String(t?.taskType||'project')==='project' && !!t?.projectId;
 const taskLabel=t=>t?.taskType==='leave' ? 'Leave' : (t?.taskType==='internal' || !t?.projectId ? 'Internal' : 'Project');
 const tasksForProject=pid=>state.db.tasks.filter(t=>t.projectId===pid && isProjectTask(t));
+const milestonesForProject=pid=>state.db.milestones.filter(m=>m.projectId===pid).sort((a,b)=>(a.kickoffDate||'').localeCompare(b.kickoffDate||'')||(a.submissionDate||'').localeCompare(b.submissionDate||'')||(a.stageName||'').localeCompare(b.stageName||'')||(a.submissionLabel||'').localeCompare(b.submissionLabel||''));
+function milestoneTotals(pid){
+  const ms=milestonesForProject(pid);
+  const completed=ms.filter(m=>['Submitted','Approved','Completed'].includes(m.status)).length;
+  const next=ms.find(m=>!['Submitted','Approved','Completed'].includes(m.status)) || null;
+  return {count:ms.length,completed,next};
+}
 function projectTotals(pid){
   const ts=tasksForProject(pid);
   const allocHrs=ts.reduce((s,t)=>s+(+t.allocatedHours||0),0);
@@ -624,10 +696,11 @@ function toast(msg,error=false){
 // RENDER
 // =====================================================
 function render(){
+  saveUIState();
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.view===state.currentView));
   const el=document.getElementById('app-content');
   switch(state.currentView){
-    case 'dashboard': el.innerHTML=renderDashboard(); break;
+    case 'dashboard': el.innerHTML=renderDashboardV2(); break;
     case 'projects': el.innerHTML=renderProjects(); break;
     case 'tasks': el.innerHTML=renderTasks(); wireTaskCollapse(); break;
     case 'team': el.innerHTML=renderTeam(); break;
@@ -1025,7 +1098,7 @@ function renderUtilizationChart(config){
     return `<g>
       ${allocatedLine}
       ${actualLine}
-      <text x="${Math.min(labelX, chartWidth - 12)}" y="${labelY - 6}" fill="${row.color}" font-size="11" font-weight="700">${esc(row.member.name)}</text>
+      <text x="${Math.min(labelX, chartWidth - 12)}" y="${labelY - 6}" fill="${row.color}" font-size="11" font-weight="700">${esc(row.member.shortName || row.member.name || '')}</text>
     </g>`;
   }).join('');
   return `<div class="card" style="margin-bottom:20px">
@@ -1036,7 +1109,7 @@ function renderUtilizationChart(config){
           <div class="util-chart-note">${esc(note)}</div>
         </div>
         <div class="util-legend">
-          ${includeMemberLegend ? data.rows.map(r => `<div class="util-legend-item"><span class="util-legend-swatch" style="background:${r.color}"></span><span>${esc(r.member.name)}</span></div>`).join('') : ''}
+          ${includeMemberLegend ? data.rows.map(r => `<div class="util-legend-item"><span class="util-legend-swatch" style="background:${r.color}"></span><span>${esc(r.member.shortName || r.member.name || '')}</span></div>`).join('') : ''}
           <div class="util-legend-item" style="color:#4C8B6B"><span class="util-legend-line"></span><span>Actual utilization</span></div>
           <div class="util-legend-item" style="color:#4C8B6B"><span class="util-legend-line dashed"></span><span>Allocated utilization</span></div>
         </div>
@@ -1104,7 +1177,7 @@ function renderDashboard(){
     return `<tr><td>${esc(t.dueDate)} ${overdue?'<span class="badge badge-red">Overdue</span>':''}</td><td>${esc(p?.shortName||'—')}</td><td>${esc(t.name)}</td><td>${esc(m?.name||'—')}</td><td>${statusBadge(t.status)}</td></tr>`;
   }).join('')||`<tr><td colspan="5" class="empty">No upcoming tasks</td></tr>`;
   const overdueNotes=db.notes.filter(n=>isOverdue(n.followUpDate,n.status)).length;
-  return `<h1 class="view-title">Dashboard</h1><p class="view-sub">Live view of your team's sustainability workload.</p>
+  return `<h1 class="view-title">Dashboard</h1>
   <div class="kpi-grid">
     <div class="kpi"><div class="kpi-label">Projects</div><div class="kpi-value">${totalProjects}</div></div>
     <div class="kpi"><div class="kpi-label">Tasks</div><div class="kpi-value">${totalTasks}</div></div>
@@ -1130,17 +1203,62 @@ function renderDashboard(){
   <div class="card"><h2>Upcoming Deadlines (Top 5)</h2><div class="tbl-wrap"><table><thead><tr><th>Due</th><th>Project</th><th>Task</th><th>Assignee</th><th>Status</th></tr></thead><tbody>${upRows}</tbody></table></div></div>`;
 }
 
+function renderDashboardV2(){
+  const db=state.db;
+  const totalProjects=db.projects.length;
+  const totalTasks=db.tasks.length;
+  const upcomingSubmissions=db.milestones
+    .filter(m=>m.submissionDate && !['Submitted','Approved','Completed'].includes(m.status))
+    .sort((a,b)=>(a.submissionDate||'').localeCompare(b.submissionDate||'')||(a.kickoffDate||'').localeCompare(b.kickoffDate||'')||(a.stageName||'').localeCompare(b.stageName||''))
+    .slice(0,2);
+  const submissionCards=upcomingSubmissions.map(m=>{
+    const p=projectById(m.projectId);
+    const owner=personById(m.ownerId);
+    const overdue=m.submissionDate < todayISO();
+    return `<div class="kpi"><div class="kpi-label" style="font-size:22px;line-height:1.05;font-weight:800;color:var(--accent)">${esc(p?.shortName||'Project')}</div><div class="kpi-value" style="font-size:14px;line-height:1.05;color:var(--dark);margin-top:2px">${esc(m.submissionLabel||'')} ${esc(m.stageName||'')}</div><div style="font-size:12px;color:var(--charcoal);margin-top:6px">${esc(m.submissionDate)} ${overdue?'<span class="badge badge-red">Overdue</span>':''}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">${esc(owner?.name||'Unassigned')}</div></div>`;
+  }).join('')||`<div class="kpi"><div class="kpi-label">Upcoming Submissions</div><div class="kpi-value" style="font-size:22px">None</div><div style="font-size:12px;color:var(--muted);margin-top:6px">No pending submissions found.</div></div>`;
+  return `<h1 class="view-title">Dashboard</h1>
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Projects</div><div class="kpi-value">${totalProjects}</div></div>
+    <div class="kpi"><div class="kpi-label">Tasks</div><div class="kpi-value">${totalTasks}</div></div>
+    ${submissionCards}
+  </div>
+  ${renderWeeklyAverageChart()}
+  ${renderUtilizationChart({
+    title:'Weekly Utilization by Team Member',
+    note:'Solid line shows actual hours logged. Dashed line shows allocated hours spread across each task timeline.',
+    includeMemberLegend:true,
+    data:getWeeklyUtilizationChartData()
+  })}
+  ${renderUtilizationChart({
+    title:'Weekly Utilization by Project',
+    note:'Solid line shows actual hours logged. Dashed line shows allocated hours spread across each project timeline.',
+    includeMemberLegend:true,
+    data:getWeeklyProjectUtilizationChartData()
+  })}
+  <div class="card"><h2>Upcoming Submissions</h2><div class="tbl-wrap"><table><thead><tr><th>Submission</th><th>Project</th><th>Stage</th><th>Kick-off</th><th>Owner</th><th>Status</th></tr></thead><tbody>${upcomingSubmissions.map(m=>{const p=projectById(m.projectId);const owner=personById(m.ownerId);const overdue=m.submissionDate<todayISO();return `<tr><td>${esc(m.submissionDate)} ${overdue?'<span class="badge badge-red">Overdue</span>':''}</td><td>${esc(p?.shortName||'—')}</td><td>${esc(m.stageName||'—')} <span class="badge badge-grey" style="margin-left:6px">${esc(m.submissionLabel||'')}</span></td><td>${esc(m.kickoffDate||'—')}</td><td>${esc(owner?.name||'—')}</td><td>${statusBadge(m.status)}</td></tr>`;}).join('')||`<tr><td colspan="6" class="empty">No upcoming submissions</td></tr>`}</tbody></table></div></div>`;
+}
+
 function renderProjects(){
   const q=(state.filters.projSearch||'').toLowerCase();
   const list=state.db.projects.filter(p=>!q||(p.name+p.code+p.shortName+p.client).toLowerCase().includes(q));
   const rows=list.map(p=>{
     const t=projectTotals(p.id); const pctH=t.allocHrs?t.actualHrs/t.allocHrs:0;
     const lead=personById(p.sustainabilityLead);
-    return `<tr><td><b>${esc(p.code)}</b></td><td><b>${esc(p.shortName)}</b><div style="font-size:11px;color:var(--muted)">${esc(p.name)}</div></td><td>${esc(p.client)}</td><td>${esc(p.pm)}</td><td>${esc(lead?.name||'—')}</td><td style="font-size:11px">${esc(p.startDate)}<br>${esc(p.endDate)}</td><td class="num">${fmtN(t.allocHrs)}</td><td class="num">${fmtN(t.actualHrs)}</td><td class="num">${fmtC(t.allocBudget)}</td><td>${badgePct(pctH)}</td><td>${statusBadge(p.status)}</td><td class="actions"><button class="btn-icon" onclick="openProjectModal('${p.id}')">Edit</button><button class="btn-icon danger" onclick="deleteProject('${p.id}')">Delete</button></td></tr>`;
-  }).join('')||`<tr><td colspan="12" class="empty">No projects.</td></tr>`;
+    const ms=milestoneTotals(p.id);
+    const nextLine=ms.next ? `${esc(ms.next.stageName)} ${esc(ms.next.submissionLabel)}${ms.next.kickoffDate?` • ${esc(ms.next.kickoffDate)}`:''}` : 'No stages';
+    const expanded=state.projectExpanded.has(p.id);
+    const stageRows=milestonesForProject(p.id).map(m=>{
+      const owner=personById(m.ownerId);
+      const overdue=(m.submissionDate && !['Submitted','Approved','Completed'].includes(m.status) && m.submissionDate<todayISO());
+      return `<tr><td><div class="milestone-stage"><b>${esc(m.stageName)}</b><span>${esc(m.submissionLabel||'')}</span></div></td><td>${esc(m.kickoffDate||'—')}</td><td>${esc(m.submissionDate||'—')} ${overdue?'<span class="badge badge-red">Due</span>':''}</td><td>${statusBadge(m.status)}</td><td>${esc(owner?.name||'—')}</td><td style="font-size:12px">${esc(m.notes||'')}</td><td class="actions"><button class="btn-icon" onclick="openMilestoneModal('${m.id}')">Edit</button><button class="btn-icon danger" onclick="deleteMilestone('${m.id}')">Delete</button></td></tr>`;
+    }).join('');
+    const detail=expanded ? `<tr class="project-stage-row"><td colspan="13"><div class="project-stage-panel"><div class="milestone-note">Kick-off and submission dates for this project are shown here.</div><div class="tbl-wrap"><table><colgroup><col style="width:22%"><col style="width:12%"><col style="width:12%"><col style="width:10%"><col style="width:14%"><col style="width:22%"><col style="width:8%"></colgroup><thead><tr><th>Stage</th><th>Kick-off</th><th>Submission</th><th>Status</th><th>Owner</th><th>Notes</th><th></th></tr></thead><tbody>${stageRows||`<tr><td colspan="7" class="empty">No stages for this project yet.</td></tr>`}</tbody></table></div></div></td></tr>` : '';
+    return `<tr><td><button class="project-toggle ${expanded?'expanded':''}" onclick="toggleProjectStages('${p.id}', event)">&#9654;</button> <b>${esc(p.code)}</b></td><td><b>${esc(p.shortName)}</b><div style="font-size:11px;color:var(--muted)">${esc(p.name)}</div></td><td>${esc(p.client)}</td><td>${esc(p.pm)}</td><td>${esc(lead?.name||'—')}</td><td style="font-size:11px">${esc(p.startDate)}<br>${esc(p.endDate)}</td><td class="num">${fmtN(t.allocHrs)}</td><td class="num">${fmtN(t.actualHrs)}</td><td class="num">${fmtC(t.allocBudget)}</td><td>${badgePct(pctH)}</td><td>${statusBadge(p.status)}</td><td style="font-size:11px">${ms.count ? `<b>${ms.completed}/${ms.count}</b><br><span style="color:var(--muted)">${nextLine}</span>` : '<span style="color:var(--muted)">No milestones</span>'}</td><td class="actions"><button class="btn-icon" onclick="openProjectModal('${p.id}')">Edit</button><button class="btn-icon" onclick="openMilestoneModal(null,{projectId:'${p.id}'})">+ Stage</button><button class="btn-icon danger" onclick="deleteProject('${p.id}')">Delete</button></td></tr>${detail}`;
+  }).join('')||`<tr><td colspan="13" class="empty">No projects.</td></tr>`;
   return `<h1 class="view-title">Projects</h1><p class="view-sub">Master list. Tasks, Team and Dashboard update automatically.</p>
-  <div class="toolbar"><input type="text" placeholder="Search…" value="${esc(state.filters.projSearch||'')}" oninput="state.filters.projSearch=this.value;render()"><span class="spacer"></span><button class="btn btn-primary" onclick="openProjectModal()">+ Add Project</button></div>
-  <div class="card" style="padding:0"><div class="tbl-wrap"><table><thead><tr><th>Code</th><th>Short / Name</th><th>Client</th><th>PM</th><th>Lead</th><th>Dates</th><th class="num">Alloc Hrs</th><th class="num">Actual Hrs</th><th class="num">Alloc Budget</th><th>Actual / Alloc</th><th>Status</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  <div class="toolbar"><input type="text" placeholder="Search…" value="${esc(state.filters.projSearch||'')}" oninput="state.filters.projSearch=this.value;render()"><span class="spacer"></span><button class="btn btn-secondary" onclick="openMilestoneModal()">+ Stage Submission</button><button class="btn btn-primary" onclick="openProjectModal()">+ Add Project</button></div>
+  <div class="card" style="padding:0"><div class="tbl-wrap"><table><thead><tr><th>Code</th><th>Short / Name</th><th>Client</th><th>PM</th><th>Lead</th><th>Dates</th><th class="num">Alloc Hrs</th><th class="num">Actual Hrs</th><th class="num">Alloc Budget</th><th>Actual / Alloc</th><th>Status</th><th>Stages</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
 }
 
 function renderTasks(){
@@ -1199,6 +1317,11 @@ function wireTaskCollapse(){
 function toggleTaskDetails(taskId, event){
   if(event) event.stopPropagation();
   if(state.taskExpanded.has(taskId)) state.taskExpanded.delete(taskId); else state.taskExpanded.add(taskId);
+  render();
+}
+function toggleProjectStages(projectId, event){
+  if(event) event.stopPropagation();
+  if(state.projectExpanded.has(projectId)) state.projectExpanded.delete(projectId); else state.projectExpanded.add(projectId);
   render();
 }
 function renderTeam(){
@@ -1480,8 +1603,37 @@ function deleteProject(id){
   if(!confirm(`Delete project "${p.shortName}" and all its tasks & task log entries?`)) return;
   state.db.tasks=state.db.tasks.filter(t=>t.projectId!==id);
   state.db.timesheet=state.db.timesheet.filter(x=>x.projectId!==id);
+  state.db.milestones=state.db.milestones.filter(m=>m.projectId!==id);
   state.db.projects=state.db.projects.filter(x=>x.id!==id);
   saveDB();render();toast('Project deleted');
+}
+
+function openMilestoneModal(id, defaults={}){
+  const firstProject=state.db.projects[0]?.id||'';
+  const m=id?milestoneById(id):{projectId:defaults.projectId||firstProject,stageName:'',submissionLabel:'100%',kickoffDate:'',submissionDate:'',status:'Planned',ownerId:state.db.projects.find(p=>p.id===defaults.projectId)?.sustainabilityLead||state.db.team[0]?.id||'',notes:''};
+  const projOpts=state.db.projects.map(p=>`<option value="${p.id}" ${m.projectId===p.id?'selected':''}>${esc(p.shortName)} &mdash; ${esc(p.code)}</option>`).join('');
+  const ownerOpts=['<option value="">—</option>'].concat(state.db.team.map(t=>`<option value="${t.id}" ${m.ownerId===t.id?'selected':''}>${esc(t.name)}</option>`)).join('');
+  const stOpts=['Planned','Submitted','Approved','Completed','On Hold','Overdue'].map(s=>`<option value="${s}" ${m.status===s?'selected':''}>${s}</option>`).join('');
+  const labelOpts=['50%','100%'].map(s=>`<option value="${s}" ${m.submissionLabel===s?'selected':''}>${s}</option>`).join('');
+  openModal(`<h3>${id?'Edit':'Add'} Stage Submission</h3><form onsubmit="saveMilestone(event,'${id||''}');return false">
+    <div class="form-row"><div class="form-group"><label>Project *</label><select required name="projectId">${projOpts}</select></div><div class="form-group"><label>Owner</label><select name="ownerId">${ownerOpts}</select></div></div>
+    <div class="form-row"><div class="form-group"><label>Stage Name *</label><input required name="stageName" value="${esc(m.stageName)}" placeholder="Schematic Design"></div><div class="form-group"><label>Submission %</label><select name="submissionLabel">${labelOpts}</select></div></div>
+    <div class="form-row"><div class="form-group"><label>Kick-off Date</label><input type="date" name="kickoffDate" value="${esc(m.kickoffDate)}"></div><div class="form-group"><label>Submission Date</label><input type="date" name="submissionDate" value="${esc(m.submissionDate)}"></div></div>
+    <div class="form-row"><div class="form-group"><label>Status</label><select name="status">${stOpts}</select></div><div class="form-group"><label>&nbsp;</label><input type="text" value="Sorted by Kick-off Date" readonly></div></div>
+    <div class="form-group"><label>Notes</label><textarea name="notes">${esc(m.notes)}</textarea></div>
+    <div class="modal-actions"><button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button><button type="submit" class="btn btn-primary">Save</button></div></form>`);
+}
+function saveMilestone(e,id){
+  e.preventDefault(); const f=e.target,g=n=>f.elements[n].value;
+  const data={projectId:g('projectId'),stageName:g('stageName'),submissionLabel:g('submissionLabel'),kickoffDate:g('kickoffDate'),submissionDate:g('submissionDate'),status:g('status'),ownerId:g('ownerId'),notes:g('notes')};
+  if(id){Object.assign(milestoneById(id),data);toast('Stage updated');}else{state.db.milestones.push({id:uid(),...data});toast('Stage added');}
+  saveDB();closeModal();render();
+}
+function deleteMilestone(id){
+  const m=milestoneById(id);
+  if(!confirm(`Delete stage submission "${m.stageName} ${m.submissionLabel}"?`)) return;
+  state.db.milestones=state.db.milestones.filter(x=>x.id!==id);
+  saveDB();render();toast('Stage deleted');
 }
 
 // TASK CRUD
@@ -1645,6 +1797,9 @@ function exportExcel(){
   const projSheet=[['Code','Short Name','Full Name','Client','PM','Lead','Start','End','Alloc Hrs','Actual Hrs','Alloc Budget','Actual Budget','% Used','Status','Notes']];
   db.projects.forEach(p=>{const t=projectTotals(p.id);const lead=personById(p.sustainabilityLead);projSheet.push([p.code,p.shortName,p.name,p.client,p.pm,lead?.name||'',p.startDate,p.endDate,t.allocHrs,t.actualHrs,t.allocBudget,t.actualBudget,t.allocHrs?(t.actualHrs/t.allocHrs):0,p.status,p.notes||'']);});
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(projSheet),'Projects');
+  const mileSheet=[['Project Code','Project','Stage','Submission %','Kick-off Date','Submission Date','Status','Owner','Notes']];
+  db.milestones.slice().sort((a,b)=>(a.kickoffDate||'').localeCompare(b.kickoffDate||'')||(a.submissionDate||'').localeCompare(b.submissionDate||'')||(a.stageName||'').localeCompare(b.stageName||'')||(a.submissionLabel||'').localeCompare(b.submissionLabel||'')).forEach(m=>{const p=projectById(m.projectId),o=personById(m.ownerId);mileSheet.push([p?.code||'',p?.shortName||'',m.stageName,m.submissionLabel,m.kickoffDate,m.submissionDate,m.status,o?.name||'',m.notes||'']);});
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(mileSheet),'Milestones');
   const taskSheet=[['Project Code','Project','Task','Assignee','Alloc Hrs','Actual Hrs','Alloc Budget','Actual Budget','Start','Due','Status','Priority','% Used','Notes']];
   db.tasks.forEach((t)=>{const p=projectById(t.projectId),m=personById(t.assigneeId);const a=+t.allocatedHours||0,ac=taskActualHours(t);taskSheet.push([p?.code||'',p?.shortName||'',t.name,m?.name||'',a,ac,taskBudget(t,'allocatedHours'),taskBudget(t,'actualHours'),t.startDate,t.dueDate,t.status,t.priority,a?ac/a:0,t.notes||'']);});
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(taskSheet),'Tasks');
@@ -1684,6 +1839,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('modal-overlay').addEventListener('click',e=>{e.stopPropagation();});
   document.addEventListener('keydown',e=>{if(e.key==='Escape' && document.getElementById('modal-overlay').classList.contains('active')) e.preventDefault();});
   document.getElementById('hamburgerBtn').addEventListener('click',()=>{document.getElementById('sidebar').classList.toggle('open');});
+  loadUIState();
   render();
   updateDirtyIndicator();
 });
