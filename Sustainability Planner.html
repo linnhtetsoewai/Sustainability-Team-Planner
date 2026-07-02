@@ -43,6 +43,32 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .kpi{background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.06);border-left:4px solid var(--accent);display:flex;flex-direction:column;gap:6px}
 .kpi-label{font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);font-weight:600}
 .kpi-value{font-size:32px;font-weight:700;color:var(--dark);line-height:1.1}
+.util-chart-shell{display:flex;flex-direction:column;gap:12px}
+.util-chart-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap;margin-bottom:4px}
+.util-chart-note{color:var(--muted);font-size:12px}
+.util-legend{display:flex;flex-wrap:wrap;gap:10px 14px}
+.util-legend-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--charcoal);font-weight:600;white-space:nowrap}
+.util-legend-swatch{width:12px;height:12px;border-radius:999px;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.35)}
+.util-chart-wrap{position:relative;border:1px solid var(--border);border-radius:10px;background:linear-gradient(180deg,#fff 0%,#fbfcfb 100%);overflow:hidden}
+.util-chart-grid{display:grid;grid-template-columns:220px minmax(0,1fr);min-width:0}
+.util-chart-left{border-right:1px solid var(--border);background:#fff}
+.util-chart-right{overflow-x:auto;overflow-y:hidden;min-width:0;background:#fff}
+.util-left-head,.util-week-head-wrap{background:var(--dark);color:#fff}
+.util-left-head{height:38px;display:flex;align-items:center;padding:0 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px}
+.util-left-row{height:56px;display:flex;align-items:center;padding:0 14px;border-top:1px solid var(--border);gap:10px}
+.util-left-row b{display:block;font-size:13px;color:var(--charcoal)}
+.util-left-row span{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+.util-week-head-wrap{display:flex;align-items:stretch;height:38px;min-width:max-content}
+.util-week-head-cell{flex:0 0 var(--util-week-width,56px);min-width:var(--util-week-width,56px);display:flex;align-items:center;justify-content:center;border-right:1px solid rgba(255,255,255,0.12);font-size:11px;font-weight:700;letter-spacing:0.2px;white-space:nowrap}
+.util-chart-svg{display:block;min-width:max-content}
+.util-grid-line{stroke:rgba(31,78,60,0.12);stroke-width:1}
+.util-series-line{fill:none;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
+.util-series-line.alloc{stroke-dasharray:6 5;opacity:0.85}
+.util-series-point{stroke:#fff;stroke-width:2;cursor:pointer}
+.util-series-point:hover{r:6}
+.util-tooltip{position:absolute;z-index:5;display:none;pointer-events:none;min-width:160px;max-width:240px;padding:10px 12px;border-radius:8px;background:rgba(31,78,60,0.96);color:#fff;box-shadow:0 8px 24px rgba(0,0,0,0.18);font-size:12px;line-height:1.45}
+.util-tooltip b{display:block;font-size:13px;margin-bottom:2px}
+.util-tooltip .muted{opacity:0.85}
 .tbl-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border)}
 table{width:100%;border-collapse:collapse;background:#fff;font-size:13px}
 th{background:var(--dark);color:#fff;padding:11px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.4px;font-weight:600;white-space:nowrap}
@@ -545,6 +571,22 @@ function personTotals(id){
   return {allocHrs,actualHrs};
 }
 function isOverdue(d,st){if(!d)return false;if(st==='Closed'||st==='Completed')return false;return d<todayISO();}
+function showUtilTooltip(evt, el){
+  const tip = document.getElementById('utilChartTooltip');
+  const wrap = el?.closest('.util-chart-wrap');
+  if (!tip || !wrap || !el) return;
+  tip.innerHTML = `<b>${esc(el.dataset.person||'')}</b><div>${esc(el.dataset.week||'')}</div><div class="muted">Actual: ${esc(el.dataset.actualHours||'0')}h (${esc(el.dataset.actualUtil||'0.0%')})</div><div class="muted">Allocated: ${esc(el.dataset.allocHours||'0')}h (${esc(el.dataset.allocUtil||'0.0%')})</div>`;
+  const rect = wrap.getBoundingClientRect();
+  const x = Math.min(Math.max((evt?.clientX || rect.left) - rect.left + 14, 12), rect.width - 180);
+  const y = Math.min(Math.max((evt?.clientY || rect.top) - rect.top + 14, 12), rect.height - 96);
+  tip.style.left = `${x}px`;
+  tip.style.top = `${y}px`;
+  tip.style.display = 'block';
+}
+function hideUtilTooltip(){
+  const tip = document.getElementById('utilChartTooltip');
+  if (tip) tip.style.display = 'none';
+}
 function toast(msg,error=false){
   const el=document.createElement('div');
   el.className='toast'+(error?' error':'');
@@ -669,6 +711,165 @@ function syncGanttScroll(){
   if(headInner) headInner.style.transform=`translateX(${-rightBody.scrollLeft}px)`;
 }
 
+function fmtShortDate(value){
+  const d = parseGanttDate(value);
+  if (!d) return String(value || '');
+  return d.toLocaleDateString('en-US', {month:'short', day:'2-digit'});
+}
+
+function weekEndFriday(date){
+  const d = new Date(date);
+  d.setHours(0,0,0,0);
+  const delta = (5 - d.getDay() + 7) % 7;
+  d.setDate(d.getDate() + delta);
+  return d;
+}
+
+function weekStartSaturday(weekEnd){
+  const d = new Date(weekEnd);
+  d.setHours(0,0,0,0);
+  d.setDate(d.getDate() - 6);
+  return d;
+}
+
+function addDaysSafe(date, days){
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+function diffDaysInclusive(a, b){
+  const start = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+  const end = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+  return Math.max(1, Math.floor((end - start) / 86400000) + 1);
+}
+
+function getWeeklyUtilizationChartData(){
+  const team = state.db.team.slice();
+  const taskDates = state.db.tasks.flatMap(t => [parseGanttDate(t.startDate), parseGanttDate(t.dueDate)]).filter(Boolean);
+  const sheetDates = state.db.timesheet.map(x => parseGanttDate(x.weekEnding)).filter(Boolean);
+  const allDates = [...taskDates, ...sheetDates];
+  if (!allDates.length) return {weeks:[], rows:[]};
+  const minDate = new Date(Math.min(...allDates.map(d => d.getTime())));
+  const maxDate = new Date(Math.max(...allDates.map(d => d.getTime())));
+  const startWeekEnd = weekEndFriday(minDate);
+  const endWeekEnd = weekEndFriday(maxDate);
+  const weeks = [];
+  for (let d = new Date(startWeekEnd); d <= endWeekEnd; d = addDaysSafe(d, 7)) weeks.push(new Date(d));
+  const actualTotals = new Map();
+  state.db.timesheet.forEach(x => {
+    if (!x.weekEnding) return;
+    const d = parseGanttDate(x.weekEnding);
+    if (!d) return;
+    const key = ganttIsoDate(d);
+    actualTotals.set(`${x.personId || '__unassigned__'}__${key}`, (actualTotals.get(`${x.personId || '__unassigned__'}__${key}`) || 0) + (+x.hoursLogged || 0));
+  });
+  const rows = team.map((m, idx) => {
+    const capacity = +m.weeklyCapacity || 40;
+    const actual = [];
+    const allocated = [];
+    weeks.forEach(weekEnd => {
+      const key = ganttIsoDate(weekEnd);
+      const actualHours = actualTotals.get(`${m.id}__${key}`) || 0;
+      actual.push({week:key, hours:actualHours, util:capacity ? (actualHours / capacity) * 100 : 0});
+      const weekStart = weekStartSaturday(weekEnd);
+      let allocHours = 0;
+      state.db.tasks.filter(t => t.assigneeId === m.id).forEach(t => {
+        const start = parseGanttDate(t.startDate);
+        const end = parseGanttDate(t.dueDate);
+        if (!start || !end) return;
+        const taskDays = diffDaysInclusive(start, end);
+        const overlapStart = new Date(Math.max(start.getTime(), weekStart.getTime()));
+        const overlapEnd = new Date(Math.min(end.getTime(), weekEnd.getTime()));
+        if (overlapEnd < overlapStart) return;
+        const overlapDays = diffDaysInclusive(overlapStart, overlapEnd);
+        allocHours += (+t.allocatedHours || 0) * (overlapDays / taskDays);
+      });
+      allocated.push({week:key, hours:allocHours, util:capacity ? (allocHours / capacity) * 100 : 0});
+    });
+    return {member:m, color:['#1F4E3C','#4C8B6B','#6D9F72','#3C7D5B'][idx % 4], actual, allocated};
+  });
+  return {weeks, rows};
+}
+
+function renderUtilizationChart(){
+  const data = getWeeklyUtilizationChartData();
+  if (!data.weeks.length) {
+    return `<div class="card empty" style="margin-bottom:0">No timesheet data yet to chart.</div>`;
+  }
+  const weekWidth = 56;
+  const leftWidth = 220;
+  const headerH = 38;
+  const rowH = 56;
+  const chartWidth = leftWidth + (data.weeks.length * weekWidth);
+  const chartHeight = headerH + (data.rows.length * rowH);
+  const yTicks = [0, 25, 50, 75, 100];
+  const xPos = i => leftWidth + (i * weekWidth) + (weekWidth / 2);
+  const yPos = pct => headerH + rowH - 10 - (Math.max(0, Math.min(100, pct)) / 100) * (rowH - 18);
+  const headerCells = data.weeks.map(week => `<div class="util-week-head-cell" style="--util-week-width:${weekWidth}px">${esc(fmtShortDate(ganttIsoDate(week)))}</div>`).join('');
+  const rows = data.rows.map((row, rIdx) => {
+    const top = headerH + (rIdx * rowH);
+    const rowMid = top + (rowH / 2);
+    const yGrid = yTicks.map(p => {
+      const y = top + rowH - 10 - ((p / 100) * (rowH - 18));
+      return `<line class="util-grid-line" x1="${leftWidth}" y1="${y}" x2="${chartWidth}" y2="${y}"></line>`;
+    }).join('');
+    const xGrid = data.weeks.map((_, i) => {
+      const x = leftWidth + (i * weekWidth);
+      return `<line class="util-grid-line" x1="${x}" y1="${top}" x2="${x}" y2="${top + rowH}"></line>`;
+    }).join('');
+    const allocPts = row.allocated.map((v, i) => `${xPos(i).toFixed(1)},${yPos(v.util).toFixed(1)}`).join(' ');
+    const actPts = row.actual.map((v, i) => `${xPos(i).toFixed(1)},${yPos(v.util).toFixed(1)}`).join(' ');
+    const dots = row.actual.map((v, i) => {
+      const x = xPos(i);
+      const y = yPos(v.util);
+      return `<circle class="util-series-point" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.2" fill="${row.color}"
+        data-person="${esc(row.member.name)}" data-week="${esc(fmtShortDate(v.week))}"
+        data-actual-hours="${fmtN(v.hours)}" data-actual-util="${fmtP(v.util / 100)}"
+        data-alloc-hours="${fmtN(row.allocated[i]?.hours || 0)}" data-alloc-util="${fmtP((row.allocated[i]?.util || 0) / 100)}"
+        onmouseenter="showUtilTooltip(event,this)" onmousemove="showUtilTooltip(event,this)" onmouseleave="hideUtilTooltip()"></circle>`;
+    }).join('');
+    return `<g transform="translate(0,${top})">
+      ${yGrid}
+      ${xGrid}
+      <text x="14" y="${rowMid - 2}" fill="var(--charcoal)" font-size="13" font-weight="700">${esc(row.member.name)}</text>
+      <text x="14" y="${rowMid + 13}" fill="var(--muted)" font-size="11">${esc(row.member.role || '')}</text>
+      <polyline class="util-series-line alloc" points="${allocPts}" stroke="${row.color}"></polyline>
+      <polyline class="util-series-line" points="${actPts}" stroke="${row.color}"></polyline>
+      ${dots}
+    </g>`;
+  }).join('');
+  return `<div class="card" style="margin-bottom:20px">
+    <div class="util-chart-shell">
+      <div class="util-chart-top">
+        <div>
+          <h2 style="margin-bottom:6px">Weekly Utilization by Team Member</h2>
+          <div class="util-chart-note">Solid line shows actual hours logged. Dotted line shows allocated hours spread across each task timeline.</div>
+        </div>
+        <div class="util-legend">
+          <div class="util-legend-item"><span class="util-legend-swatch" style="background:#4C8B6B"></span><span>Actual utilization</span></div>
+          <div class="util-legend-item"><span class="util-legend-swatch" style="background:transparent;border-bottom:2px dashed #4C8B6B;border-radius:0;box-shadow:none;height:0"></span><span>Allocated utilization</span></div>
+        </div>
+      </div>
+      <div class="util-chart-wrap">
+        <div class="util-tooltip" id="utilChartTooltip"></div>
+        <div class="util-chart-grid">
+          <div class="util-chart-left">
+            <div class="util-left-head">Member</div>
+            ${data.rows.map(r => `<div class="util-left-row"><div><b>${esc(r.member.name)}</b><span>${esc(r.member.role || '')}</span></div></div>`).join('')}
+          </div>
+          <div class="util-chart-right">
+            <div class="util-week-head-wrap">${headerCells}</div>
+            <svg class="util-chart-svg" width="${chartWidth}" height="${chartHeight}">
+              ${rows}
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
 function renderDashboard(){
   const db=state.db;
   const totalProjects=db.projects.length;
@@ -705,6 +906,7 @@ function renderDashboard(){
     <div class="kpi"><div class="kpi-label">Actual Budget</div><div class="kpi-value" style="font-size:24px">${fmtC(totalActualBudget)}</div></div>
     <div class="kpi" style="border-left-color:${overdueNotes?'var(--red)':'var(--accent)'}"><div class="kpi-label">Overdue Follow-ups</div><div class="kpi-value" style="color:${overdueNotes?'var(--red)':'var(--dark)'}">${overdueNotes}</div></div>
   </div>
+  ${renderUtilizationChart()}
   <div class="card"><h2>Utilization by Team Member</h2><div class="tbl-wrap"><table><thead><tr><th>Name</th><th class="num">Capacity (hrs)</th><th class="num">Allocated</th><th class="num">Actual</th><th>Utilization</th></tr></thead><tbody>${teamRows}</tbody></table></div></div>
   <div class="card"><h2>Utilization by Project</h2><div class="tbl-wrap"><table><thead><tr><th>Project</th><th class="num">Alloc Hrs</th><th class="num">Actual Hrs</th><th class="num">Alloc Budget</th><th class="num">Actual Budget</th><th>% Hrs</th><th>% Budget</th></tr></thead><tbody>${projRows}</tbody></table></div></div>
   <div class="card"><h2>Upcoming Deadlines (Top 5)</h2><div class="tbl-wrap"><table><thead><tr><th>Due</th><th>Project</th><th>Task</th><th>Assignee</th><th>Status</th></tr></thead><tbody>${upRows}</tbody></table></div></div>`;
