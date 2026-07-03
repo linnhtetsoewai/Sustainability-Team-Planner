@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fitwel Scorecard</title>
+<style>
+  body{font-family:Arial,sans-serif;margin:0;background:#f7f4fb;color:#2f2340}
+  .wrap{max-width:980px;margin:0 auto;padding:40px 20px}
+  .card{background:#fff;border:1px solid #e0d7ec;border-radius:12px;padding:24px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+  .muted{color:#6e6580}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Fitwel Scorecard</h1>
+      <p class="muted">This scorecard shell is ready. We can wire the Fitwel catalog into <code>src/database.js</code> next.</p>
+      <p id="ctx" class="muted"></p>
+    </div>
+  </div>
+  <script>
+    const p = new URLSearchParams(location.search);
+    document.getElementById('ctx').textContent = `projectId=${p.get('projectId') || ''} certId=${p.get('certId') || ''}`;
+  </script>
+</body>
+</html>

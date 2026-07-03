@@ -266,6 +266,12 @@ td.actions{white-space:nowrap;text-align:right}
 .project-cert-pill.leed{background:#e8f1fb;color:#2a4e70;border-color:#cfe0f5}
 .project-cert-pill.fitwel{background:#f4ecfb;color:#6f4f95;border-color:#e2d3f6}
 .project-cert-pill.well{background:#f9efe4;color:#8a6100;border-color:#efddbb}
+.project-cert-pill-link{cursor:pointer;border:none;font:inherit}
+.project-cert-pill-link:hover{filter:brightness(0.98);box-shadow:0 1px 4px rgba(0,0,0,0.08)}
+.project-cert-pill-link.estidama:hover,.cert-card-link.estidama:hover{border-color:#2f6f30}
+.project-cert-pill-link.leed:hover,.cert-card-link.leed:hover{border-color:#2a4e70}
+.project-cert-pill-link.fitwel:hover,.cert-card-link.fitwel:hover{border-color:#6f4f95}
+.project-cert-pill-link.well:hover,.cert-card-link.well:hover{border-color:#8a6100}
 .project-cert-pill .cert-target{font-weight:600;opacity:0.9}
 .project-cert-muted{font-size:11px;color:var(--muted);margin-top:6px}
 .cert-panel{margin-top:16px;padding:14px;border:1px solid var(--border);border-radius:10px;background:linear-gradient(180deg,#fbfdfb 0%,#f6faf7 100%)}
@@ -284,6 +290,8 @@ td.actions{white-space:nowrap;text-align:right}
 .cert-card:hover{border-color:var(--accent);box-shadow:0 4px 10px rgba(0,0,0,0.07);transform:translateY(-1px)}
 .cert-card.disabled{opacity:0.5;cursor:default;transform:none;box-shadow:none}
 .cert-card.selected{cursor:default;flex:1 1 100%;width:100%;min-width:0}
+.cert-card-link{cursor:pointer}
+.cert-card-link:hover{border-color:var(--accent);box-shadow:0 4px 10px rgba(0,0,0,0.07);transform:translateY(-1px)}
 .cert-card-label{font-size:13px;font-weight:700;color:var(--dark)}
 .cert-card-sub{font-size:11px;color:var(--muted)}
 .cert-card .btn-danger{padding:6px 10px;font-size:11px;align-self:flex-start;margin-top:2px}
@@ -368,9 +376,6 @@ textarea{resize:vertical;min-height:60px}
 
 <div class="toast-container" id="toasts"></div>
 
-<!-- Load shared database from src/. If not found, falls back to localStorage or seed. -->
-<script src="src/database.js" onerror="console.log('src/database.js not found — using localStorage or seed')"></script>
-
 <script>
 // =====================================================
 // DATA LAYER
@@ -379,7 +384,7 @@ const DB_KEY = 'ghd_planner_db';
 const FILE_HANDLE_DB = 'ghd_planner_file_handle';
 const FILE_HANDLE_STORE = 'handles';
 const FILE_HANDLE_KEY = 'database-js';
-const SAVE_FILE_PATH = 'C:\\Users\\linnh\\Documents\\AAA\\Sustainability Planner\\src\\';
+const SAVE_FILE_PATH = 'C:\\Users\\linnh\\Documents\\AAA\\Sustainability Planner\\src\\database.js';
 const uid = () => Math.random().toString(36).slice(2,10);
 const todayISO = () => new Date().toISOString().slice(0,10);
 
@@ -389,6 +394,7 @@ let fileHandle = null;
 let lastFileModified = null;
 let pollTimer = null;
 let pendingSaveLinkResolve = null;
+let databaseReady = false;
 const CERTIFICATION_OPTIONS = [
   {value:'estidama', label:'Estidama'},
   {value:'leed', label:'LEED'},
@@ -428,6 +434,27 @@ function projectCertificationSummary(project){
   }).join(' | ');
 }
 
+function scorecardPathForStandard(standard){
+  const map = {
+    estidama: 'src/scorecard-estidama.html',
+    leed: 'src/scorecard-leed.html',
+    fitwel: 'src/scorecard-fitwel.html',
+    well: 'src/scorecard-well.html',
+  };
+  return map[standard] || '';
+}
+
+function openCertificationScorecard(projectId, certId, standard){
+  const path = scorecardPathForStandard(standard);
+  if (!path) return;
+  const url = new URL(path, window.location.href);
+  if (projectId) url.searchParams.set('projectId', projectId);
+  if (certId) url.searchParams.set('certId', certId);
+  if (standard) url.searchParams.set('standard', standard);
+  closeModal();
+  window.location.href = url.toString();
+}
+
 function projectCertificationPills(project){
   const certs = normalizeProjectCertifications(project?.certifications);
   if (!certs.length) return '<div class="project-cert-muted">No certifications added</div>';
@@ -435,7 +462,10 @@ function projectCertificationPills(project){
     const cls = (cert.standard || 'cert').toLowerCase();
     const lead = personById(cert.leadId);
     const title = [cert.label, cert.target, cert.status, lead?.name].filter(Boolean).join(' • ');
-    return `<span class="project-cert-pill ${esc(cls)}" title="${esc(title)}">${esc(cert.label)}${cert.target ? ` <span class="cert-target">${esc(cert.target)}</span>` : ''}</span>`;
+    const onclick = ` onclick="openCertificationScorecard('${esc(project?.id || '')}','${esc(cert.id)}','${esc(cert.standard || '')}')"`; 
+    const role = ' role="button" tabindex="0"';
+    const display = esc(certificationLabel(cert.standard) || cert.label || cert.standard || '');
+    return `<span class="project-cert-pill project-cert-pill-link ${esc(cls)}" title="${esc(title)}"${onclick}${role}>${display}</span>`;
   }).join('');
 }
 
@@ -533,7 +563,15 @@ function projectCertificationSummary(project){
 function projectCertificationPills(project){
   const certs = normalizeProjectCertifications(project?.certifications);
   if (!certs.length) return '<div class="project-cert-muted">No certifications added</div>';
-  return certs.map(cert => `<span class="project-cert-pill ${(cert.standard || 'cert').toLowerCase()}" title="${esc(cert.label)}">${esc(cert.label)}</span>`).join('');
+  return certs.map(cert => {
+    const cls = (cert.standard || 'cert').toLowerCase();
+    const lead = personById(cert.leadId);
+    const title = [cert.label, cert.target, cert.status, lead?.name].filter(Boolean).join(' • ');
+    const onclick = ` onclick="openCertificationScorecard('${esc(project?.id || '')}','${esc(cert.id)}','${esc(cert.standard || '')}')"`; 
+    const role = ' role="button" tabindex="0"';
+    const display = esc(certificationLabel(cert.standard) || cert.standard || cert.label || '');
+    return `<span class="project-cert-pill project-cert-pill-link ${esc(cls)}" title="${esc(title)}"${onclick}${role}>${display}</span>`;
+  }).join('');
 }
 
 function getProjectCertificationForm(){
@@ -555,14 +593,21 @@ function renderCertificationPalette(project){
   }).join('');
 }
 
-function renderSelectedCertificationCards(certs){
+function getProjectCertificationProjectId(){
+  const form = getProjectCertificationForm();
+  return form?.dataset?.projectId || '';
+}
+
+function renderSelectedCertificationCards(certs, projectId = ''){
   const rows = normalizeProjectCertifications(certs);
   if (!rows.length) return `<div class="cert-empty">Drop certification cards here</div>`;
   return rows.map(cert => {
     const opt = CERTIFICATION_OPTIONS.find(x => x.value === cert.standard);
-    return `<div class="cert-card selected" data-cert-row data-cert-id="${esc(cert.id)}" data-cert-standard="${esc(cert.standard)}">
+    const launch = ` onclick="openCertificationScorecard('${esc(projectId)}','${esc(cert.id)}','${esc(cert.standard || '')}')"`; 
+    const role = ' role="button" tabindex="0"';
+    return `<div class="cert-card selected cert-card-link ${(cert.standard || 'cert').toLowerCase()}" data-cert-row data-cert-id="${esc(cert.id)}" data-cert-standard="${esc(cert.standard)}"${launch}${role}>
       <div class="cert-card-label">${esc((opt?.label || cert.label || '').toUpperCase())}</div>
-      <button type="button" class="btn btn-danger" onclick="removeProjectCertificationRow(this)">Remove</button>
+      <button type="button" class="btn btn-danger" onclick="event.stopPropagation();removeProjectCertificationRow(this)">Remove</button>
     </div>`;
   }).join('');
 }
@@ -604,7 +649,7 @@ function addCertificationFromCard(standard){
   if ([...root.querySelectorAll('[data-cert-standard]')].some(el => el.dataset.certStandard === standard)) return;
   const opt = CERTIFICATION_OPTIONS.find(x => x.value === standard);
   if (!opt) return;
-  const cardHtml = renderSelectedCertificationCards([{id: uid(), standard, label: opt.label}]);
+  const cardHtml = renderSelectedCertificationCards([{id: uid(), standard, label: opt.label}], getProjectCertificationProjectId());
   if (root.querySelector('.cert-empty')) root.innerHTML = cardHtml;
   else root.insertAdjacentHTML('beforeend', cardHtml);
   syncCertificationPalette();
@@ -772,25 +817,25 @@ function normalizeDB(db){
   return db;
 }
 
-function loadDB(){
-  if (typeof window.__DB__ !== 'undefined' && window.__DB__ && window.__DB__.projects) {
-    console.log('Loaded database from src/database.js');
-    state.source = 'file';
-    return normalizeDB(JSON.parse(JSON.stringify(window.__DB__)));
-  }
-  try {
-    const raw = localStorage.getItem(DB_KEY);
-    if (raw) {
-      console.log('Loaded from localStorage');
-      state.source = 'localStorage';
-      return normalizeDB(JSON.parse(raw));
-    }
-  } catch(e){}
-  console.log('Using default seed data');
-  state.source = 'seed';
-  const d = normalizeDB(defaultDB());
-  localStorage.setItem(DB_KEY, JSON.stringify(d));
-  return d;
+function parseDatabaseText(text){
+  const match = text.match(/window\.__DB__\s*=\s*(\{[\s\S]*\})\s*;?\s*$/);
+  if (!match) throw new Error('Could not parse window.__DB__ from file');
+  return normalizeDB(JSON.parse(match[1]));
+}
+
+async function loadDatabaseFromHandle(handle){
+  const file = await handle.getFile();
+  const text = await file.text();
+  const data = parseDatabaseText(text);
+  state.db = data;
+  state.source = 'file';
+  fileHandle = handle;
+  lastFileModified = file.lastModified;
+  databaseReady = true;
+  await storeFileHandle(handle);
+  updateDirtyIndicator();
+  startFilePolling();
+  return data;
 }
 
 function saveDB(){
@@ -876,7 +921,7 @@ function updateDirtyIndicator(){
   const status = document.getElementById('fileStatus');
   if (status) {
     if (fileHandle) status.innerHTML = 'Linked: ' + fileHandle.name + (state.dirty ? ' (unsaved)' : '');
-    else if (state.source === 'localStorage') status.innerHTML = 'localStorage only';
+    else if (!databaseReady) status.innerHTML = 'Pick database.js to begin';
     else status.innerHTML = '';
   }
 }
@@ -930,6 +975,32 @@ async function copyPathAndPickFile(){
   resolveSaveLink(handle);
 }
 
+function showStartupDatabasePrompt(){
+  openModal(`<h3>Pick database.js</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:12px">The planner stays blank until you pick the shared <code>database.js</code> file. Copy the path below if needed, then choose the file.</p>
+    <div style="padding:12px;border:1px solid var(--border);border-radius:8px;background:#f8fbf8;font-size:12px;word-break:break-all;user-select:text">${esc(SAVE_FILE_PATH)}</div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-secondary" onclick="copyStartupDatabasePath()">Copy Path</button>
+      <button type="button" class="btn btn-primary" onclick="pickStartupDatabaseFile()">Pick database.js</button>
+    </div>`);
+}
+
+async function copyStartupDatabasePath(){
+  try {
+    await navigator.clipboard.writeText(SAVE_FILE_PATH);
+    toast('Path copied');
+  } catch (e) {
+    toast('Copy failed: ' + e.message, true);
+  }
+}
+
+async function pickStartupDatabaseFile(){
+  const handle = await linkDatabaseFile(true);
+  if (!handle) return;
+  closeModal();
+  render();
+}
+
 async function saveToFile(){
   const jsContent = '// Sustainability Team Planner - auto-generated database file\n// Last saved: ' + new Date().toISOString() + '\n// Do not edit manually unless you know what you are doing.\nwindow.__DB__ = ' + JSON.stringify(state.db, null, 2) + ';\n';
   try {
@@ -964,13 +1035,8 @@ async function linkDatabaseFile(silent = false){
     });
     const perm = await handle.requestPermission({mode:'readwrite'});
     if (perm !== 'granted') { if (!silent) toast('Permission denied', true); return null; }
-    fileHandle = handle;
-    const file = await handle.getFile();
-    lastFileModified = file.lastModified;
-    await storeFileHandle(handle);
-    updateDirtyIndicator();
+    await loadDatabaseFromHandle(handle);
     if (!silent) toast('Linked to ' + handle.name);
-    startFilePolling();
     return handle;
   } catch(e) {
     if (e.name !== 'AbortError' && !silent) toast('Link failed: ' + e.message, true);
@@ -979,16 +1045,13 @@ async function linkDatabaseFile(silent = false){
 }
 
 async function reloadFromFile(){
-  if (state.dirty && !confirm('You have unsaved changes. Reload from src/database.js anyway?')) return;
+  if (state.dirty && !confirm('You have unsaved changes. Reload from database.js anyway?')) return;
   if (await ensureLinkedFileHandle()) {
     try {
       const file = await fileHandle.getFile();
       const text = await file.text();
-      const match = text.match(/window\.__DB__\s*=\s*(\{[\s\S]*\})\s*;?\s*$/);
-      if (!match) throw new Error('Could not parse window.__DB__ from file');
-      const data = JSON.parse(match[1]);
+      const data = parseDatabaseText(text);
       state.db = data;
-      localStorage.setItem(DB_KEY, JSON.stringify(data));
       lastFileModified = file.lastModified;
       state.dirty = false;
       state.source = 'file';
@@ -1000,7 +1063,7 @@ async function reloadFromFile(){
       toast('Reload failed: ' + e.message, true); return;
     }
   }
-  if (confirm('No linked file found yet. Pick src/database.js now?')) {
+  if (confirm('No linked file found yet. Pick database.js now?')) {
     await linkDatabaseFile();
   }
 }
@@ -1024,7 +1087,7 @@ function showUpdateBanner(){
   const b = document.createElement('div');
   b.id = 'updateBanner';
   b.style.cssText = 'position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#E8B84A;color:#2B2B2B;padding:10px 18px;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,0.2);z-index:1500;font-size:13px;font-weight:600;display:flex;align-items:center;gap:12px';
-  b.innerHTML = 'A teammate updated src/database.js. <button class="btn btn-primary btn-sm" onclick="reloadFromFile();this.parentElement.remove()">Reload now</button> <button class="btn-icon" onclick="this.parentElement.remove()" style="color:#2B2B2B">✕</button>';
+  b.innerHTML = 'A teammate updated database.js. <button class="btn btn-primary btn-sm" onclick="reloadFromFile();this.parentElement.remove()">Reload now</button> <button class="btn-icon" onclick="this.parentElement.remove()" style="color:#2B2B2B">✕</button>';
   document.body.appendChild(b);
 }
 
@@ -1916,13 +1979,13 @@ function renderProjects(){
     const stageRows=milestonesForProject(p.id).map(m=>{
       const owner=personById(m.ownerId);
       const overdue=(m.submissionDate && !['Submitted','Approved','Completed'].includes(m.status) && m.submissionDate<todayISO());
-      return `<tr><td><div class="milestone-stage"><b>${esc(m.stageName)}</b><span>${esc(m.submissionLabel||'')}</span></div></td><td>${esc(m.kickoffDate||'â€”')}</td><td>${esc(m.submissionDate||'â€”')} ${overdue?'<span class="badge badge-red">Due</span>':''}</td><td>${statusBadge(m.status)}</td><td>${esc(owner?.name||'â€”')}</td><td style="font-size:12px">${esc(m.notes||'')}</td><td class="actions"><button class="btn-icon" onclick="openMilestoneModal('${m.id}')">Edit</button><button class="btn-icon danger" onclick="deleteMilestone('${m.id}')">Delete</button></td></tr>`;
+      return `<tr><td><div class="milestone-stage"><b>${esc(m.stageName)}</b><span>${esc(m.submissionLabel||'')}</span></div></td><td>${esc(m.kickoffDate||'&mdash;')}</td><td>${esc(m.submissionDate||'&mdash;')} ${overdue?'<span class="badge badge-red">Due</span>':''}</td><td>${statusBadge(m.status)}</td><td>${esc(owner?.name||'&mdash;')}</td><td style="font-size:12px">${esc(m.notes||'')}</td><td class="actions"><button class="btn-icon" onclick="openMilestoneModal('${m.id}')">Edit</button><button class="btn-icon danger" onclick="deleteMilestone('${m.id}')">Delete</button></td></tr>`;
     }).join('');
     const detail=expanded ? `<tr class="project-stage-row"><td colspan="13"><div class="project-stage-panel"><div class="milestone-note">Kick-off and submission dates for this project are shown here.</div><div class="tbl-wrap"><table><colgroup><col style="width:22%"><col style="width:12%"><col style="width:12%"><col style="width:10%"><col style="width:14%"><col style="width:22%"><col style="width:8%"></colgroup><thead><tr><th>Stage</th><th>Kick-off</th><th>Submission</th><th>Status</th><th>Owner</th><th>Notes</th><th></th></tr></thead><tbody>${stageRows||`<tr><td colspan="7" class="empty">No stages for this project yet.</td></tr>`}</tbody></table></div></div></td></tr>` : '';
-    return `<tr><td><button class="project-toggle ${expanded?'expanded':''}" onclick="toggleProjectStages('${p.id}', event)">&#9654;</button> <b>${esc(p.code)}</b></td><td><b>${esc(p.shortName)}</b><div style="font-size:11px;color:var(--muted)">${esc(p.name)}</div><div class="project-cert-list">${certsHtml}</div></td><td>${esc(p.client)}</td><td>${esc(p.pm)}</td><td>${esc(lead?.name||'â€”')}</td><td style="font-size:11px">${esc(p.startDate)}<br>${esc(p.endDate)}</td><td class="num">${fmtN(t.allocHrs)}</td><td class="num">${fmtN(t.actualHrs)}</td><td class="num">${fmtC(t.allocBudget)}</td><td>${badgePct(pctH)}</td><td>${statusBadge(p.status)}</td><td style="font-size:11px">${ms.count ? `<b>${ms.completed}/${ms.count}</b><br><span style="color:var(--muted)">${nextLine}</span>` : '<span style="color:var(--muted)">No milestones</span>'}</td><td class="actions"><button class="btn-icon" onclick="openProjectModal('${p.id}')">Edit</button><button class="btn-icon" onclick="openMilestoneModal(null,{projectId:'${p.id}'})">+ Stage</button><button class="btn-icon danger" onclick="deleteProject('${p.id}')">Delete</button></td></tr>${detail}`;
+    return `<tr><td><button class="project-toggle ${expanded?'expanded':''}" onclick="toggleProjectStages('${p.id}', event)">&#9654;</button> <b>${esc(p.code)}</b></td><td><b>${esc(p.shortName)}</b><div style="font-size:11px;color:var(--muted)">${esc(p.name)}</div><div class="project-cert-list">${certsHtml}</div></td><td>${esc(p.client)}</td><td>${esc(p.pm)}</td><td>${esc(lead?.name||'&mdash;')}</td><td style="font-size:11px">${esc(p.startDate)}<br>${esc(p.endDate)}</td><td class="num">${fmtN(t.allocHrs)}</td><td class="num">${fmtN(t.actualHrs)}</td><td class="num">${fmtC(t.allocBudget)}</td><td>${badgePct(pctH)}</td><td>${statusBadge(p.status)}</td><td style="font-size:11px">${ms.count ? `<b>${ms.completed}/${ms.count}</b><br><span style="color:var(--muted)">${nextLine}</span>` : '<span style="color:var(--muted)">No milestones</span>'}</td><td class="actions"><button class="btn-icon" onclick="openProjectModal('${p.id}')">Edit</button><button class="btn-icon" onclick="openMilestoneModal(null,{projectId:'${p.id}'})">+ Stage</button><button class="btn-icon danger" onclick="deleteProject('${p.id}')">Delete</button></td></tr>${detail}`;
   }).join('')||`<tr><td colspan="13" class="empty">No projects.</td></tr>`;
   return `<h1 class="view-title">Projects</h1><p class="view-sub">Master list. Tasks, Team and Dashboard update automatically.</p>
-  <div class="toolbar"><input type="text" placeholder="Searchâ€¦" value="${esc(state.filters.projSearch||'')}" oninput="state.filters.projSearch=this.value;render()"><span class="spacer"></span><button class="btn btn-secondary" onclick="openMilestoneModal()">+ Stage Submission</button><button class="btn btn-primary" onclick="openProjectModal()">+ Add Project</button></div>
+  <div class="toolbar"><input type="text" placeholder="Search..." value="${esc(state.filters.projSearch||'')}" oninput="state.filters.projSearch=this.value;render()"><span class="spacer"></span><button class="btn btn-secondary" onclick="openMilestoneModal()">+ Stage Submission</button><button class="btn btn-primary" onclick="openProjectModal()">+ Add Project</button></div>
   <div class="card" style="padding:0"><div class="tbl-wrap"><table><thead><tr><th>Code</th><th>Short / Name</th><th>Client</th><th>PM</th><th>Lead</th><th>Dates</th><th class="num">Alloc Hrs</th><th class="num">Actual Hrs</th><th class="num">Alloc Budget</th><th>Actual / Alloc</th><th>Status</th><th>Stages</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
 }
 
@@ -2267,7 +2330,7 @@ function openProjectModal(id){
         </div>
       </div>
       <div class="cert-workspace">
-        <div class="cert-dropzone" id="project-certifications-root" ondragover="allowCertificationDrop(event)" ondrop="handleCertificationDrop(event)">${renderSelectedCertificationCards(p.certifications)}</div>
+        <div class="cert-dropzone" id="project-certifications-root" data-project-id="${esc(p.id || '')}" ondragover="allowCertificationDrop(event)" ondrop="handleCertificationDrop(event)">${renderSelectedCertificationCards(p.certifications, p.id || '')}</div>
         <div class="cert-hint">Drop the applicable cards into the project. Remove any certification later with the button on the card.</div>
         <div class="cert-palette-wrap">
           <div class="cert-palette-title">Available certifications</div>
@@ -2587,7 +2650,6 @@ function importJSON(evt){
 
 // EVENT WIRING
 document.addEventListener('DOMContentLoaded',()=>{
-  state.db=loadDB();
   document.querySelectorAll('.nav-item').forEach(item=>{
     item.addEventListener('click',()=>{state.currentView=item.dataset.view;document.getElementById('sidebar').classList.remove('open');render();});
   });
@@ -2595,9 +2657,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.addEventListener('keydown',e=>{if(e.key==='Escape' && document.getElementById('modal-overlay').classList.contains('active')) e.preventDefault();});
   document.getElementById('hamburgerBtn').addEventListener('click',()=>{document.getElementById('sidebar').classList.toggle('open');});
   loadUIState();
-  render();
   updateDirtyIndicator();
-  ensureLinkedFileHandle();
+  showStartupDatabasePrompt();
 });
 </script>
 </body>
