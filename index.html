@@ -933,11 +933,7 @@ async function ensureLinkedFileHandle(){
   try {
     const stored = await loadStoredFileHandle();
     if (stored) {
-      fileHandle = stored;
-      const file = await stored.getFile();
-      lastFileModified = file.lastModified;
-      updateDirtyIndicator();
-      startFilePolling();
+      await loadDatabaseFromHandle(stored);
       return fileHandle;
     }
   } catch (e) {}
@@ -2659,8 +2655,15 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.addEventListener('keydown',e=>{if(e.key==='Escape' && document.getElementById('modal-overlay').classList.contains('active')) e.preventDefault();});
   document.getElementById('hamburgerBtn').addEventListener('click',()=>{document.getElementById('sidebar').classList.toggle('open');});
   loadUIState();
-  updateDirtyIndicator();
-  showStartupDatabasePrompt();
+  (async () => {
+    const linked = await ensureLinkedFileHandle();
+    updateDirtyIndicator();
+    if (linked && state.db) {
+      render();
+      return;
+    }
+    showStartupDatabasePrompt();
+  })();
 });
 </script>
 </body>

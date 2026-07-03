@@ -316,6 +316,7 @@ let lastFileModified = null;
 let pollTimer = null;
 let pendingSaveResolve = null;
 let databaseReady = false;
+let scorecardDirty = false;
 let ESTIDAMA = {};
 const SECTION_COLORS = {
   IDP: '#2c6fad', NS: '#1f7a5f', LBo: '#b07d00', LBi: '#7c3f7c',
@@ -455,6 +456,15 @@ function getRating(pts) {
 }
 
 function nk(code, stage) { return code + '|' + stage; }
+
+function renderKeepScroll(renderFn){
+  const x = window.scrollX;
+  const y = window.scrollY;
+  renderFn();
+  requestAnimationFrame(() => {
+    window.scrollTo(x, y);
+  });
+}
 
 // ----------------------------------------------------------------
 // RENDER SETUP
@@ -844,20 +854,36 @@ function renderStageEndSummary() {
 // FULL RENDERS
 // ----------------------------------------------------------------
 function renderSetup() {
-  renderProjectSelect();
-  renderSetupSummary();
-  renderPointsPileChart();
-  renderSetupSectionTabs();
-  renderSetupCredits();
+  renderKeepScroll(() => {
+    renderProjectSelect();
+    renderSetupSummary();
+    renderPointsPileChart();
+    renderSetupSectionTabs();
+    renderSetupCredits();
+  });
 }
 function renderStageView() {
-  document.querySelectorAll('.stage-tab').forEach(t => t.classList.toggle('active', t.dataset.stage === S.stage));
-  const pn = document.getElementById('proj-short-name');
-  document.getElementById('stage-view-title').textContent = (pn&&pn.value ? pn.value + ' - ' : '') + 'Stage Checklist';
-  document.getElementById('stage-view-sub').textContent = 'Tracking ' + ALL_CREDITS.filter(c => c.req || (c.uiType==='checkbox'?getCreditPoints(c.code)>0:S.selected[c.code])).length + ' selected credits';
-  renderStageSummaryCards();
-  renderStageCredits();
-  renderStageEndSummary();
+  renderKeepScroll(() => {
+    document.querySelectorAll('.stage-tab').forEach(t => t.classList.toggle('active', t.dataset.stage === S.stage));
+    const pn = document.getElementById('proj-short-name');
+    document.getElementById('stage-view-title').textContent = (pn&&pn.value ? pn.value + ' - ' : '') + 'Stage Checklist';
+    document.getElementById('stage-view-sub').textContent = 'Tracking ' + ALL_CREDITS.filter(c => c.req || (c.uiType==='checkbox'?getCreditPoints(c.code)>0:S.selected[c.code])).length + ' selected credits';
+    renderStageSummaryCards();
+    renderStageCredits();
+    renderStageEndSummary();
+  });
+}
+
+function refreshScorecardPanels(){
+  if (S.view === 'setup') {
+    renderSetupSummary();
+    renderPointsPileChart();
+    renderSetupSectionTabs();
+  } else {
+    renderStageSummaryCards();
+    renderStageCredits();
+    renderStageEndSummary();
+  }
 }
 
 // ----------------------------------------------------------------
@@ -865,14 +891,14 @@ function renderStageView() {
 // ----------------------------------------------------------------
 function toggleSec(key) {
   S.secOpen[key] = !S.secOpen[key];
-  if (S.view === 'setup') renderSetup(); else renderStageView();
+  refreshScorecardPanels();
   saveState();
 }
 
 function toggleCredit(code, checked) {
   S.selected[code] = checked;
   if (!checked) S.creditPoints[code] = 0;
-  renderSetup();
+  refreshScorecardPanels();
   saveState();
 }
 
@@ -891,13 +917,13 @@ function setCreditPoints(code, value) {
     S.dropdownChoice[code] = null;
     S.creditPoints[code] = 0;
   }
-  renderSetup();
+  refreshScorecardPanels();
   saveState();
 }
 
 function toggleOption(code, idx, checked) {
   S.optionChecked[code + '|' + idx] = checked;
-  renderSetup();
+  refreshScorecardPanels();
   saveState();
 }
 
@@ -920,9 +946,9 @@ function goToStage() {
   saveState();
 }
 
-async function goToPlanner() {
-  await saveDatabaseFile(true);
-  window.location.href = '../index.html';
+function goToPlanner() {
+  void saveDatabaseFile(true).catch(() => {});
+  window.location.assign(new URL('../index.html', window.location.href).href);
 }
 
 function goToSetup() {
@@ -1026,8 +1052,9 @@ async function saveDatabaseFile(silent = false){
     await writable.close();
     const file = await fileHandle.getFile();
     lastFileModified = file.lastModified;
+    scorecardDirty = false;
     const ind = document.getElementById('save-indicator');
-    if (ind) { ind.style.display='inline'; clearTimeout(ind._t); ind._t=setTimeout(()=>ind.style.display='none', 1500); }
+    if (ind) { ind.textContent = 'Saved'; ind.style.display='inline'; clearTimeout(ind._t); ind._t=setTimeout(()=>ind.style.display='none', 1500); }
     return true;
   } catch (e) {
     if (!silent) alert('Save failed: ' + e.message);
@@ -1035,10 +1062,10 @@ async function saveDatabaseFile(silent = false){
   }
 }
 
-let saveDebounce = null;
 function saveState(silent = true) {
-  if (saveDebounce) clearTimeout(saveDebounce);
-  saveDebounce = setTimeout(() => { saveDatabaseFile(silent); }, 180);
+  scorecardDirty = true;
+  const ind = document.getElementById('save-indicator');
+  if (ind) { ind.textContent = 'Unsaved'; ind.style.display='inline'; }
 }
 
 async function loadDatabaseFromHandle(handle){
