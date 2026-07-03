@@ -53,7 +53,36 @@ window.__DB__ = {
       "allocatedHours": 620,
       "allocatedBudget": 279000,
       "status": "In Progress",
-      "notes": "Estidama PBRS + LEED + Fitwel certification"
+      "notes": "Estidama PBRS + LEED + Fitwel certification",
+      "certifications": [
+        {
+          "id": "c_ta13_estidama",
+          "standard": "estidama",
+          "label": "Estidama PBRS",
+          "target": "2 Pearl",
+          "status": "Pursuing",
+          "leadId": "t_mrunmai",
+          "notes": ""
+        },
+        {
+          "id": "c_ta13_leed",
+          "standard": "leed",
+          "label": "LEED BD+C",
+          "target": "Gold",
+          "status": "Pursuing",
+          "leadId": "t_areesha",
+          "notes": ""
+        },
+        {
+          "id": "c_ta13_fitwel",
+          "standard": "fitwel",
+          "label": "Fitwel",
+          "target": "2 Star",
+          "status": "Planned",
+          "leadId": "t_areesha",
+          "notes": ""
+        }
+      ]
     },
     {
       "id": "p_canopies",
@@ -68,7 +97,18 @@ window.__DB__ = {
       "allocatedHours": 480,
       "allocatedBudget": 168000,
       "status": "In Progress",
-      "notes": "Focus on outdoor thermal comfort & Estidama PCRS"
+      "notes": "Focus on outdoor thermal comfort & Estidama PCRS",
+      "certifications": [
+        {
+          "id": "c_canopies_estidama",
+          "standard": "estidama",
+          "label": "Estidama PCRS",
+          "target": "1 Pearl",
+          "status": "Pursuing",
+          "leadId": "t_mrunmai",
+          "notes": ""
+        }
+      ]
     },
     {
       "id": "p_bag",
@@ -83,7 +123,27 @@ window.__DB__ = {
       "allocatedHours": 800,
       "allocatedBudget": 360000,
       "status": "In Progress",
-      "notes": "Estidama + Fitwel evidence coordination"
+      "notes": "Estidama + Fitwel evidence coordination",
+      "certifications": [
+        {
+          "id": "c_bag_estidama",
+          "standard": "estidama",
+          "label": "Estidama PBRS",
+          "target": "3 Pearl",
+          "status": "Pursuing",
+          "leadId": "t_mrunmai",
+          "notes": ""
+        },
+        {
+          "id": "c_bag_fitwel",
+          "standard": "fitwel",
+          "label": "Fitwel",
+          "target": "3 Star",
+          "status": "Pursuing",
+          "leadId": "t_mrunmai",
+          "notes": ""
+        }
+      ]
     },
     {
       "id": "p_noma",
@@ -98,7 +158,18 @@ window.__DB__ = {
       "allocatedHours": 240,
       "allocatedBudget": 108000,
       "status": "Not Started",
-      "notes": "Advisory + LEED pre-assessment"
+      "notes": "Advisory + LEED pre-assessment",
+      "certifications": [
+        {
+          "id": "c_noma_leed",
+          "standard": "leed",
+          "label": "LEED BD+C",
+          "target": "Silver",
+          "status": "Planned",
+          "leadId": "t_mrunmai",
+          "notes": ""
+        }
+      ]
     }
   ],
   "milestones": [

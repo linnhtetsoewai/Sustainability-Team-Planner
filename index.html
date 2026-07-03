@@ -260,6 +260,37 @@ td.actions{white-space:nowrap;text-align:right}
 .project-stage-panel td{padding:8px 10px;vertical-align:top}
 .project-stage-panel th,.project-stage-panel td{overflow:hidden;text-overflow:ellipsis}
 .project-stage-panel td:last-child,.project-stage-panel th:last-child{white-space:nowrap}
+.project-cert-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.project-cert-pill{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:700;line-height:1.2;border:1px solid transparent;white-space:nowrap}
+.project-cert-pill.estidama{background:#ecf5ef;color:#2f6f30;border-color:#cfe4d4}
+.project-cert-pill.leed{background:#e8f1fb;color:#2a4e70;border-color:#cfe0f5}
+.project-cert-pill.fitwel{background:#f4ecfb;color:#6f4f95;border-color:#e2d3f6}
+.project-cert-pill.well{background:#f9efe4;color:#8a6100;border-color:#efddbb}
+.project-cert-pill .cert-target{font-weight:600;opacity:0.9}
+.project-cert-muted{font-size:11px;color:var(--muted);margin-top:6px}
+.cert-panel{margin-top:16px;padding:14px;border:1px solid var(--border);border-radius:10px;background:linear-gradient(180deg,#fbfdfb 0%,#f6faf7 100%)}
+.cert-panel-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:12px}
+.cert-panel-title{font-size:13px;font-weight:700;color:var(--dark);text-transform:uppercase;letter-spacing:0.2px}
+.cert-panel-note{font-size:11px;color:var(--muted);line-height:1.5;max-width:560px;margin-top:4px}
+.cert-workspace{display:flex;flex-direction:column;gap:12px}
+.cert-dropzone{border:1px dashed var(--border);border-radius:10px;background:#fff;padding:12px;min-height:90px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;transition:border-color .15s, background .15s, box-shadow .15s}
+.cert-dropzone.dragover{border-color:var(--accent);background:#f4faf6;box-shadow:0 0 0 2px rgba(76,139,107,0.09) inset}
+.cert-empty{padding:12px;border:1px dashed var(--border);border-radius:8px;background:#fff;color:var(--muted);font-size:12px;line-height:1.5;flex:1 1 100%}
+.cert-palette-wrap{display:flex;flex-direction:column;gap:8px}
+.cert-palette-title{font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--warm-500)}
+.cert-palette{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.cert-card{border:1px solid var(--border);border-radius:10px;background:#fff;padding:12px;display:flex;flex-direction:column;gap:4px;box-shadow:0 1px 4px rgba(0,0,0,0.04);cursor:grab;user-select:none}
+.cert-card:active{cursor:grabbing}
+.cert-card:hover{border-color:var(--accent);box-shadow:0 4px 10px rgba(0,0,0,0.07);transform:translateY(-1px)}
+.cert-card.disabled{opacity:0.5;cursor:default;transform:none;box-shadow:none}
+.cert-card.selected{cursor:default;flex:1 1 100%;width:100%;min-width:0}
+.cert-card-label{font-size:13px;font-weight:700;color:var(--dark)}
+.cert-card-sub{font-size:11px;color:var(--muted)}
+.cert-card .btn-danger{padding:6px 10px;font-size:11px;align-self:flex-start;margin-top:2px}
+.cert-hint{font-size:10px;color:var(--muted);margin-top:2px}
+@media (max-width: 1100px){
+  .cert-palette{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
 .milestone-card .tbl-wrap{margin-top:0}
 .milestone-note{font-size:11px;color:var(--muted);margin-bottom:12px}
 .milestone-stage{display:flex;flex-direction:column;gap:2px}
@@ -358,6 +389,257 @@ let fileHandle = null;
 let lastFileModified = null;
 let pollTimer = null;
 let pendingSaveLinkResolve = null;
+const CERTIFICATION_OPTIONS = [
+  {value:'estidama', label:'Estidama'},
+  {value:'leed', label:'LEED'},
+  {value:'fitwel', label:'Fitwel'},
+  {value:'well', label:'WELL'},
+];
+const CERTIFICATION_STATUS_OPTIONS = ['Planned','Pursuing','Submitted','Certified','On Hold'];
+
+function certificationLabel(standard){
+  const found = CERTIFICATION_OPTIONS.find(x => x.value === standard);
+  return found ? found.label : '';
+}
+
+function normalizeProjectCertification(cert){
+  const standard = cert?.standard || '';
+  const label = (cert?.label || cert?.name || certificationLabel(standard)).trim() || certificationLabel(standard);
+  return {
+    id: cert?.id || uid(),
+    standard,
+    label,
+    target: cert?.target || '',
+    status: cert?.status || 'Pursuing',
+    leadId: cert?.leadId || '',
+    notes: cert?.notes || '',
+  };
+}
+
+function normalizeProjectCertifications(list){
+  return Array.isArray(list) ? list.map(normalizeProjectCertification) : [];
+}
+
+function projectCertificationSummary(project){
+  const certs = normalizeProjectCertifications(project?.certifications);
+  return certs.map(cert => {
+    const target = cert.target ? ` · ${cert.target}` : '';
+    return `${cert.label}${target}`;
+  }).join(' | ');
+}
+
+function projectCertificationPills(project){
+  const certs = normalizeProjectCertifications(project?.certifications);
+  if (!certs.length) return '<div class="project-cert-muted">No certifications added</div>';
+  return certs.map(cert => {
+    const cls = (cert.standard || 'cert').toLowerCase();
+    const lead = personById(cert.leadId);
+    const title = [cert.label, cert.target, cert.status, lead?.name].filter(Boolean).join(' • ');
+    return `<span class="project-cert-pill ${esc(cls)}" title="${esc(title)}">${esc(cert.label)}${cert.target ? ` <span class="cert-target">${esc(cert.target)}</span>` : ''}</span>`;
+  }).join('');
+}
+
+function renderProjectCertificationRows(certs, teamMembers){
+  const rows = Array.isArray(certs) ? certs : [];
+  const teamOpts = ['<option value="">—</option>'].concat((teamMembers || []).map(m => `<option value="${m.id}">${esc(m.name)}</option>`)).join('');
+  const statusOpts = CERTIFICATION_STATUS_OPTIONS.map(s => `<option value="${s}">${s}</option>`).join('');
+  const standardOpts = ['<option value="">Choose...</option>'].concat(CERTIFICATION_OPTIONS.map(opt => `<option value="${opt.value}">${opt.label}</option>`)).join('');
+  if (!rows.length) {
+    return `<div class="cert-empty">No certifications added yet. Add one row for each standard the project is pursuing.</div>`;
+  }
+  return rows.map(cert => {
+    const isBlank = !(cert?.standard || cert?.label || cert?.target || cert?.status || cert?.leadId);
+    const row = isBlank ? {id: cert?.id || uid(), standard:'', label:'', target:'', status:'Pursuing', leadId:'', notes:''} : normalizeProjectCertification(cert);
+    return `<div class="cert-row" data-cert-row data-cert-id="${esc(row.id)}">
+      <select data-cert-field="standard">${standardOpts.replace(`value="${esc(row.standard)}"`, `value="${esc(row.standard)}" selected`)}</select>
+      <input data-cert-field="label" value="${esc(row.label)}" placeholder="Certification label">
+      <input data-cert-field="target" value="${esc(row.target)}" placeholder="Target">
+      <select data-cert-field="status">${statusOpts.replace(`value="${esc(row.status)}"`, `value="${esc(row.status)}" selected`)}</select>
+      <select data-cert-field="leadId">${teamOpts.replace(`value="${esc(row.leadId)}"`, `value="${esc(row.leadId)}" selected`)}</select>
+      <button type="button" class="btn-icon danger cert-remove" title="Remove certification" onclick="removeProjectCertificationRow(this)">×</button>
+    </div>`;
+  }).join('');
+}
+
+function getProjectCertificationForm(){
+  return document.querySelector('#modal-content form');
+}
+
+function getProjectCertificationRoot(){
+  return document.getElementById('project-certifications-root');
+}
+
+function addProjectCertificationRow(initial = {}){
+  const root = getProjectCertificationRoot();
+  if (!root) return;
+  const form = getProjectCertificationForm();
+  const teamMembers = state.db?.team || [];
+  const html = renderProjectCertificationRows([{id: initial.id || uid(), standard: initial.standard || '', label: initial.label || '', target: initial.target || '', status: initial.status || 'Pursuing', leadId: initial.leadId || '', notes: initial.notes || ''}], teamMembers);
+  if (root.querySelector('.cert-empty')) {
+    root.innerHTML = html;
+  } else {
+    root.insertAdjacentHTML('beforeend', html);
+  }
+  if (form) form.dataset.certificationsTouched = '1';
+}
+
+function removeProjectCertificationRow(btn){
+  const row = btn?.closest('[data-cert-row]');
+  if (!row) return;
+  const root = row.parentElement;
+  row.remove();
+  if (root && !root.querySelector('[data-cert-row]')) {
+    root.innerHTML = '<div class="cert-empty">No certifications added yet. Add one row for each standard the project is pursuing.</div>';
+  }
+  const form = getProjectCertificationForm();
+  if (form) form.dataset.certificationsTouched = '1';
+}
+
+function collectProjectCertifications(form){
+  const rows = [...form.querySelectorAll('[data-cert-row]')];
+  return rows.map(row => {
+    const get = field => row.querySelector(`[data-cert-field="${field}"]`)?.value?.trim() || '';
+    if (!(get('standard') || get('label') || get('target') || get('leadId') || get('notes'))) return null;
+    const standard = get('standard') || '';
+    const label = get('label') || certificationLabel(standard);
+    return normalizeProjectCertification({
+      id: row.dataset.certId || uid(),
+      standard,
+      label,
+      target: get('target'),
+      status: get('status') || 'Pursuing',
+      leadId: get('leadId'),
+      notes: '',
+    });
+  }).filter(Boolean);
+}
+
+// Certification UI v2: drag cards into the project.
+function normalizeProjectCertification(cert){
+  const standard = cert?.standard || '';
+  const label = (cert?.label || cert?.name || certificationLabel(standard)).trim() || certificationLabel(standard);
+  return { id: cert?.id || uid(), standard, label };
+}
+
+function normalizeProjectCertifications(list){
+  return Array.isArray(list) ? list.map(normalizeProjectCertification) : [];
+}
+
+function projectCertificationSummary(project){
+  const certs = normalizeProjectCertifications(project?.certifications);
+  return certs.map(cert => cert.label).join(' | ');
+}
+
+function projectCertificationPills(project){
+  const certs = normalizeProjectCertifications(project?.certifications);
+  if (!certs.length) return '<div class="project-cert-muted">No certifications added</div>';
+  return certs.map(cert => `<span class="project-cert-pill ${(cert.standard || 'cert').toLowerCase()}" title="${esc(cert.label)}">${esc(cert.label)}</span>`).join('');
+}
+
+function getProjectCertificationForm(){
+  return document.querySelector('#modal-content form');
+}
+
+function getProjectCertificationRoot(){
+  return document.getElementById('project-certifications-root');
+}
+
+function renderCertificationPalette(project){
+  const selected = new Set(normalizeProjectCertifications(project?.certifications).map(c => c.standard));
+  return CERTIFICATION_OPTIONS.map(opt => {
+    const disabled = selected.has(opt.value);
+    return `<div class="cert-card${disabled ? ' disabled' : ''}" draggable="${disabled ? 'false' : 'true'}" data-cert-standard="${esc(opt.value)}" ondragstart="dragCertificationCard(event)" onclick="addCertificationFromCard('${opt.value}')">
+      <div class="cert-card-label">${esc(opt.label)}</div>
+      <div class="cert-card-sub">${disabled ? 'Already added' : 'Drag into project'}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderSelectedCertificationCards(certs){
+  const rows = normalizeProjectCertifications(certs);
+  if (!rows.length) return `<div class="cert-empty">Drop certification cards here</div>`;
+  return rows.map(cert => {
+    const opt = CERTIFICATION_OPTIONS.find(x => x.value === cert.standard);
+    return `<div class="cert-card selected" data-cert-row data-cert-id="${esc(cert.id)}" data-cert-standard="${esc(cert.standard)}">
+      <div class="cert-card-label">${esc((opt?.label || cert.label || '').toUpperCase())}</div>
+      <button type="button" class="btn btn-danger" onclick="removeProjectCertificationRow(this)">Remove</button>
+    </div>`;
+  }).join('');
+}
+
+function getSelectedCertificationStandards(){
+  const root = getProjectCertificationRoot();
+  if (!root) return new Set();
+  return new Set([...root.querySelectorAll('[data-cert-row]')].map(el => el.dataset.certStandard).filter(Boolean));
+}
+
+function syncCertificationPalette(){
+  const palette = document.getElementById('project-certification-palette');
+  if (!palette) return;
+  const selected = getSelectedCertificationStandards();
+  palette.innerHTML = CERTIFICATION_OPTIONS.map(opt => {
+    const disabled = selected.has(opt.value);
+    return `<div class="cert-card${disabled ? ' disabled' : ''}" draggable="${disabled ? 'false' : 'true'}" data-cert-standard="${esc(opt.value)}" ondragstart="dragCertificationCard(event)" onclick="addCertificationFromCard('${opt.value}')">
+      <div class="cert-card-label">${esc(opt.label)}</div>
+      <div class="cert-card-sub">${disabled ? 'Already added' : 'Drag into project'}</div>
+    </div>`;
+  }).join('');
+}
+
+function dragCertificationCard(evt){
+  const standard = evt.currentTarget?.dataset?.certStandard;
+  if (!standard) return;
+  evt.dataTransfer.effectAllowed = 'copy';
+  evt.dataTransfer.setData('text/plain', standard);
+}
+
+function allowCertificationDrop(evt){
+  evt.preventDefault();
+  evt.dataTransfer.dropEffect = 'copy';
+}
+
+function addCertificationFromCard(standard){
+  const root = getProjectCertificationRoot();
+  if (!root) return;
+  if ([...root.querySelectorAll('[data-cert-standard]')].some(el => el.dataset.certStandard === standard)) return;
+  const opt = CERTIFICATION_OPTIONS.find(x => x.value === standard);
+  if (!opt) return;
+  const cardHtml = renderSelectedCertificationCards([{id: uid(), standard, label: opt.label}]);
+  if (root.querySelector('.cert-empty')) root.innerHTML = cardHtml;
+  else root.insertAdjacentHTML('beforeend', cardHtml);
+  syncCertificationPalette();
+  const form = getProjectCertificationForm();
+  if (form) form.dataset.certificationsTouched = '1';
+}
+
+function handleCertificationDrop(evt){
+  evt.preventDefault();
+  const standard = evt.dataTransfer.getData('text/plain');
+  if (standard) addCertificationFromCard(standard);
+}
+
+function removeProjectCertificationRow(btn){
+  const card = btn?.closest('[data-cert-row]');
+  if (!card) return;
+  const root = card.parentElement;
+  card.remove();
+  if (root && !root.querySelector('[data-cert-row]')) {
+    root.innerHTML = '<div class="cert-empty">Drop certification cards here</div>';
+  }
+  syncCertificationPalette();
+  const form = getProjectCertificationForm();
+  if (form) form.dataset.certificationsTouched = '1';
+}
+
+function collectProjectCertifications(form){
+  const rows = [...form.querySelectorAll('[data-cert-row]')];
+  return rows.map(row => {
+    const standard = row.dataset.certStandard || '';
+    if (!standard) return null;
+    const opt = CERTIFICATION_OPTIONS.find(x => x.value === standard);
+    return normalizeProjectCertification({ id: row.dataset.certId || uid(), standard, label: opt?.label || certificationLabel(standard) });
+  }).filter(Boolean);
+}
 
 function defaultDB(){
   const t1=uid(),t2=uid(),t3=uid();
@@ -368,10 +650,21 @@ function defaultDB(){
     {id:t3,name:'Linn Htet Soe Wai',role:'Computational Designer / Sustainability',email:'linn.htetsoewai@ghd.com',weeklyCapacity:40,hourlyRate:300,skills:'Rhino/GH; ClimateStudio; CFD; UTCI; ENVI-met',notes:'Simulation & computational tasks'}
   ];
   const projects=[
-    {id:p1,code:'12654321',name:'TA13 Development',shortName:'TA13',client:'Aldar Properties',pm:'J. Pardesi',sustainabilityLead:t1,startDate:'2026-01-15',endDate:'2026-12-20',allocatedHours:620,allocatedBudget:216000,status:'In Progress',notes:'Estidama PBRS + LEED dual certification'},
-    {id:p2,code:'12698765',name:'The Canopies (Wussom Bay Residences)',shortName:'The Canopies',client:'Wussom Bay Developments',pm:'N. AlHussain',sustainabilityLead:t1,startDate:'2026-02-01',endDate:'2026-10-30',allocatedHours:480,allocatedBudget:168000,status:'In Progress',notes:'Focus on outdoor thermal comfort & Estidama PCRS'},
-    {id:p3,code:'12687994',name:'BAG Masterplan',shortName:'BAG',client:'Modon',pm:'J. Pardesi',sustainabilityLead:t2,startDate:'2026-03-01',endDate:'2027-02-28',allocatedHours:800,allocatedBudget:280000,status:'In Progress',notes:'Estidama + Fitwel evidence coordination'},
-    {id:p4,code:'12676543',name:'NoMA Sustainability Advisory',shortName:'NoMA',client:'NoMA Holdings',pm:'M.T. Jawed',sustainabilityLead:t1,startDate:'2026-05-01',endDate:'2026-09-30',allocatedHours:240,allocatedBudget:84000,status:'Not Started',notes:'Advisory + LEED pre-assessment'}
+    {id:p1,code:'12654321',name:'TA13 Development',shortName:'TA13',client:'Aldar Properties',pm:'J. Pardesi',sustainabilityLead:t1,startDate:'2026-01-15',endDate:'2026-12-20',allocatedHours:620,allocatedBudget:216000,status:'In Progress',notes:'Estidama PBRS + LEED dual certification',certifications:[
+      {id:uid(),standard:'estidama',label:'Estidama PBRS',target:'2 Pearl',status:'Pursuing',leadId:t1,notes:''},
+      {id:uid(),standard:'leed',label:'LEED BD+C',target:'Gold',status:'Pursuing',leadId:t2,notes:''},
+      {id:uid(),standard:'fitwel',label:'Fitwel',target:'2 Star',status:'Planned',leadId:t2,notes:''},
+    ]},
+    {id:p2,code:'12698765',name:'The Canopies (Wussom Bay Residences)',shortName:'The Canopies',client:'Wussom Bay Developments',pm:'N. AlHussain',sustainabilityLead:t1,startDate:'2026-02-01',endDate:'2026-10-30',allocatedHours:480,allocatedBudget:168000,status:'In Progress',notes:'Focus on outdoor thermal comfort & Estidama PCRS',certifications:[
+      {id:uid(),standard:'estidama',label:'Estidama PCRS',target:'1 Pearl',status:'Pursuing',leadId:t1,notes:''},
+    ]},
+    {id:p3,code:'12687994',name:'BAG Masterplan',shortName:'BAG',client:'Modon',pm:'J. Pardesi',sustainabilityLead:t2,startDate:'2026-03-01',endDate:'2027-02-28',allocatedHours:800,allocatedBudget:280000,status:'In Progress',notes:'Estidama + Fitwel evidence coordination',certifications:[
+      {id:uid(),standard:'estidama',label:'Estidama PBRS',target:'3 Pearl',status:'Pursuing',leadId:t2,notes:''},
+      {id:uid(),standard:'fitwel',label:'Fitwel',target:'3 Star',status:'Pursuing',leadId:t2,notes:''},
+    ]},
+    {id:p4,code:'12676543',name:'NoMA Sustainability Advisory',shortName:'NoMA',client:'NoMA Holdings',pm:'M.T. Jawed',sustainabilityLead:t1,startDate:'2026-05-01',endDate:'2026-09-30',allocatedHours:240,allocatedBudget:84000,status:'Not Started',notes:'Advisory + LEED pre-assessment',certifications:[
+      {id:uid(),standard:'leed',label:'LEED BD+C',target:'Silver',status:'Planned',leadId:t1,notes:''},
+    ]}
   ];
   const milestones=[
     {id:uid(),projectId:p1,stageName:'Pre Concept Validation',submissionLabel:'100%',kickoffDate:'2026-01-25',submissionDate:'2026-01-24',status:'Approved',ownerId:t1,notes:'Initial sustainability sign-off'},
@@ -450,6 +743,9 @@ function normalizeDB(db){
     m.hourlyRate = +m.hourlyRate || defaultHourlyRateForMember(m);
   });
   db.projects = Array.isArray(db.projects) ? db.projects : [];
+  db.projects.forEach(p => {
+    p.certifications = normalizeProjectCertifications(p.certifications);
+  });
   db.milestones = Array.isArray(db.milestones) ? db.milestones : [];
   db.milestones.forEach(m => {
     m.projectId = m.projectId || '';
@@ -1604,6 +1900,32 @@ function renderProjects(){
   <div class="card" style="padding:0"><div class="tbl-wrap"><table><thead><tr><th>Code</th><th>Short / Name</th><th>Client</th><th>PM</th><th>Lead</th><th>Dates</th><th class="num">Alloc Hrs</th><th class="num">Actual Hrs</th><th class="num">Alloc Budget</th><th>Actual / Alloc</th><th>Status</th><th>Stages</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
 }
 
+function renderProjects(){
+  const q=(state.filters.projSearch||'').toLowerCase();
+  const list=state.db.projects.filter(p=>{
+    if(!q) return true;
+    return (p.name+p.code+p.shortName+p.client+projectCertificationSummary(p)).toLowerCase().includes(q);
+  });
+  const rows=list.map(p=>{
+    const t=projectTotals(p.id); const pctH=t.allocHrs?t.actualHrs/t.allocHrs:0;
+    const lead=personById(p.sustainabilityLead);
+    const ms=milestoneTotals(p.id);
+    const nextLine=ms.next ? `${esc(ms.next.stageName)} ${esc(ms.next.submissionLabel)}${ms.next.kickoffDate?` • ${esc(ms.next.kickoffDate)}`:''}` : 'No stages';
+    const expanded=state.projectExpanded.has(p.id);
+    const certsHtml=projectCertificationPills(p);
+    const stageRows=milestonesForProject(p.id).map(m=>{
+      const owner=personById(m.ownerId);
+      const overdue=(m.submissionDate && !['Submitted','Approved','Completed'].includes(m.status) && m.submissionDate<todayISO());
+      return `<tr><td><div class="milestone-stage"><b>${esc(m.stageName)}</b><span>${esc(m.submissionLabel||'')}</span></div></td><td>${esc(m.kickoffDate||'â€”')}</td><td>${esc(m.submissionDate||'â€”')} ${overdue?'<span class="badge badge-red">Due</span>':''}</td><td>${statusBadge(m.status)}</td><td>${esc(owner?.name||'â€”')}</td><td style="font-size:12px">${esc(m.notes||'')}</td><td class="actions"><button class="btn-icon" onclick="openMilestoneModal('${m.id}')">Edit</button><button class="btn-icon danger" onclick="deleteMilestone('${m.id}')">Delete</button></td></tr>`;
+    }).join('');
+    const detail=expanded ? `<tr class="project-stage-row"><td colspan="13"><div class="project-stage-panel"><div class="milestone-note">Kick-off and submission dates for this project are shown here.</div><div class="tbl-wrap"><table><colgroup><col style="width:22%"><col style="width:12%"><col style="width:12%"><col style="width:10%"><col style="width:14%"><col style="width:22%"><col style="width:8%"></colgroup><thead><tr><th>Stage</th><th>Kick-off</th><th>Submission</th><th>Status</th><th>Owner</th><th>Notes</th><th></th></tr></thead><tbody>${stageRows||`<tr><td colspan="7" class="empty">No stages for this project yet.</td></tr>`}</tbody></table></div></div></td></tr>` : '';
+    return `<tr><td><button class="project-toggle ${expanded?'expanded':''}" onclick="toggleProjectStages('${p.id}', event)">&#9654;</button> <b>${esc(p.code)}</b></td><td><b>${esc(p.shortName)}</b><div style="font-size:11px;color:var(--muted)">${esc(p.name)}</div><div class="project-cert-list">${certsHtml}</div></td><td>${esc(p.client)}</td><td>${esc(p.pm)}</td><td>${esc(lead?.name||'â€”')}</td><td style="font-size:11px">${esc(p.startDate)}<br>${esc(p.endDate)}</td><td class="num">${fmtN(t.allocHrs)}</td><td class="num">${fmtN(t.actualHrs)}</td><td class="num">${fmtC(t.allocBudget)}</td><td>${badgePct(pctH)}</td><td>${statusBadge(p.status)}</td><td style="font-size:11px">${ms.count ? `<b>${ms.completed}/${ms.count}</b><br><span style="color:var(--muted)">${nextLine}</span>` : '<span style="color:var(--muted)">No milestones</span>'}</td><td class="actions"><button class="btn-icon" onclick="openProjectModal('${p.id}')">Edit</button><button class="btn-icon" onclick="openMilestoneModal(null,{projectId:'${p.id}'})">+ Stage</button><button class="btn-icon danger" onclick="deleteProject('${p.id}')">Delete</button></td></tr>${detail}`;
+  }).join('')||`<tr><td colspan="13" class="empty">No projects.</td></tr>`;
+  return `<h1 class="view-title">Projects</h1><p class="view-sub">Master list. Tasks, Team and Dashboard update automatically.</p>
+  <div class="toolbar"><input type="text" placeholder="Searchâ€¦" value="${esc(state.filters.projSearch||'')}" oninput="state.filters.projSearch=this.value;render()"><span class="spacer"></span><button class="btn btn-secondary" onclick="openMilestoneModal()">+ Stage Submission</button><button class="btn btn-primary" onclick="openProjectModal()">+ Add Project</button></div>
+  <div class="card" style="padding:0"><div class="tbl-wrap"><table><thead><tr><th>Code</th><th>Short / Name</th><th>Client</th><th>PM</th><th>Lead</th><th>Dates</th><th class="num">Alloc Hrs</th><th class="num">Actual Hrs</th><th class="num">Alloc Budget</th><th>Actual / Alloc</th><th>Status</th><th>Stages</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+}
+
 function renderTasks(){
   const f=state.filters;
   let tasks=state.db.tasks.slice();
@@ -1926,7 +2248,7 @@ function closeModal(){document.getElementById('modal-overlay').classList.remove(
 
 // PROJECT CRUD
 function openProjectModal(id){
-  const p=id?projectById(id):{code:'',name:'',shortName:'',client:'',pm:'',sustainabilityLead:'',startDate:'',endDate:'',allocatedHours:0,status:'Not Started',notes:''};
+  const p=id?projectById(id):{code:'',name:'',shortName:'',client:'',pm:'',sustainabilityLead:'',startDate:'',endDate:'',allocatedHours:0,status:'Not Started',notes:'',certifications:[]};
   const leadOpts=state.db.team.map(m=>`<option value="${m.id}" ${p.sustainabilityLead===m.id?'selected':''}>${esc(m.name)}</option>`).join('');
   const stOpts=['Not Started','In Progress','On Hold','Completed'].map(s=>`<option value="${s}" ${p.status===s?'selected':''}>${s}</option>`).join('');
   openModal(`<h3>${id?'Edit':'Add'} Project</h3><form onsubmit="saveProject(event,'${id||''}');return false">
@@ -1937,11 +2259,27 @@ function openProjectModal(id){
     <div class="form-row"><div class="form-group"><label>Start Date</label><input type="date" name="startDate" value="${esc(p.startDate)}"></div><div class="form-group"><label>End Date</label><input type="date" name="endDate" value="${esc(p.endDate)}"></div></div>
     <div class="form-row"><div class="form-group"><label>Allocated Hours</label><input type="number" name="allocatedHours" value="${p.allocatedHours||0}" min="0"></div><div class="form-group"><label>Status</label><select name="status">${stOpts}</select></div></div>
     <div class="form-group"><label>Notes</label><textarea name="notes">${esc(p.notes)}</textarea></div>
+    <div class="cert-panel">
+      <div class="cert-panel-head">
+        <div>
+          <div class="cert-panel-title">Certifications</div>
+          <div class="cert-panel-note">Add one row per certification. The scorecard will handle targets, credits, and status later, so keep this list limited to the certifications themselves.</div>
+        </div>
+      </div>
+      <div class="cert-workspace">
+        <div class="cert-dropzone" id="project-certifications-root" ondragover="allowCertificationDrop(event)" ondrop="handleCertificationDrop(event)">${renderSelectedCertificationCards(p.certifications)}</div>
+        <div class="cert-hint">Drop the applicable cards into the project. Remove any certification later with the button on the card.</div>
+        <div class="cert-palette-wrap">
+          <div class="cert-palette-title">Available certifications</div>
+          <div class="cert-palette" id="project-certification-palette">${renderCertificationPalette(p)}</div>
+        </div>
+      </div>
+    </div>
     <div class="modal-actions"><button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button><button type="submit" class="btn btn-primary">Save</button></div></form>`);
 }
 function saveProject(e,id){
   e.preventDefault(); const f=e.target,g=n=>f.elements[n].value;
-  const data={code:g('code'),name:g('name'),shortName:g('shortName'),client:g('client'),pm:g('pm'),sustainabilityLead:g('sustainabilityLead'),startDate:g('startDate'),endDate:g('endDate'),allocatedHours:+g('allocatedHours')||0,status:g('status'),notes:g('notes'),allocatedBudget:(+g('allocatedHours')||0)*(personRate(g('sustainabilityLead'))||rate())};
+  const data={code:g('code'),name:g('name'),shortName:g('shortName'),client:g('client'),pm:g('pm'),sustainabilityLead:g('sustainabilityLead'),startDate:g('startDate'),endDate:g('endDate'),allocatedHours:+g('allocatedHours')||0,status:g('status'),notes:g('notes'),certifications:collectProjectCertifications(f),allocatedBudget:(+g('allocatedHours')||0)*(personRate(g('sustainabilityLead'))||rate())};
   if(id){Object.assign(projectById(id),data);toast('Project updated');}else{state.db.projects.push({id:uid(),...data});toast('Project added');}
   saveDB();closeModal();render();
 }
@@ -2211,8 +2549,8 @@ function resetToSeed(){
 // EXPORT / IMPORT
 function exportExcel(){
   const db=state.db; const wb=XLSX.utils.book_new();
-  const projSheet=[['Code','Short Name','Full Name','Client','PM','Lead','Start','End','Alloc Hrs','Actual Hrs','Alloc Budget','Actual Budget','% Used','Status','Notes']];
-  db.projects.forEach(p=>{const t=projectTotals(p.id);const lead=personById(p.sustainabilityLead);projSheet.push([p.code,p.shortName,p.name,p.client,p.pm,lead?.name||'',p.startDate,p.endDate,t.allocHrs,t.actualHrs,t.allocBudget,t.actualBudget,t.allocHrs?(t.actualHrs/t.allocHrs):0,p.status,p.notes||'']);});
+  const projSheet=[['Code','Short Name','Full Name','Client','PM','Lead','Certifications','Start','End','Alloc Hrs','Actual Hrs','Alloc Budget','Actual Budget','% Used','Status','Notes']];
+  db.projects.forEach(p=>{const t=projectTotals(p.id);const lead=personById(p.sustainabilityLead);projSheet.push([p.code,p.shortName,p.name,p.client,p.pm,lead?.name||'',projectCertificationSummary(p),p.startDate,p.endDate,t.allocHrs,t.actualHrs,t.allocBudget,t.actualBudget,t.allocHrs?(t.actualHrs/t.allocHrs):0,p.status,p.notes||'']);});
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(projSheet),'Projects');
   const mileSheet=[['Project Code','Project','Stage','Submission %','Kick-off Date','Submission Date','Status','Owner','Notes']];
   db.milestones.slice().sort((a,b)=>(a.kickoffDate||'').localeCompare(b.kickoffDate||'')||(a.submissionDate||'').localeCompare(b.submissionDate||'')||(a.stageName||'').localeCompare(b.stageName||'')||(a.submissionLabel||'').localeCompare(b.submissionLabel||'')).forEach(m=>{const p=projectById(m.projectId),o=personById(m.ownerId);mileSheet.push([p?.code||'',p?.shortName||'',m.stageName,m.submissionLabel,m.kickoffDate,m.submissionDate,m.status,o?.name||'',m.notes||'']);});
