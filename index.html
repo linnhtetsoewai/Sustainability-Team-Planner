@@ -818,9 +818,11 @@ function normalizeDB(db){
 }
 
 function parseDatabaseText(text){
-  const match = text.match(/window\.__DB__\s*=\s*(\{[\s\S]*\})\s*;?\s*$/);
-  if (!match) throw new Error('Could not parse window.__DB__ from file');
-  return normalizeDB(JSON.parse(match[1]));
+  const sandbox = {window: null};
+  sandbox.window = sandbox;
+  const result = new Function('window', `${text}\nreturn window.__DB__;`)(sandbox);
+  if (!result || typeof result !== 'object') throw new Error('Could not load window.__DB__ from file');
+  return normalizeDB(JSON.parse(JSON.stringify(result)));
 }
 
 async function loadDatabaseFromHandle(handle){
