@@ -1571,10 +1571,10 @@ function ganttTaskHourEditorsHtml(task, taskStart, dayWidth){
     const offsetDays = Math.max(0, ganttDayDiff(taskStart, d || taskStart));
     const left = offsetDays * dayWidth;
     const alloc = roundTaskHours(allocMap.get(date) || 0);
-    const actual = roundTaskHours(actualMap.get(date) || 0);
+    const actual = String(task?.taskType || '') === 'allocation' ? 0 : roundTaskHours(actualMap.get(date) || 0);
     return `<div class="gantt-bar-hour-cell" style="left:${left}px;width:${dayWidth}px">
       <input class="gantt-hour-input alloc" data-gantt-hour-input="1" data-task-id="${esc(task.id)}" data-date="${esc(date)}" data-kind="alloc" value="${alloc > 0 ? esc(alloc) : ''}" placeholder="0" inputmode="decimal" aria-label="Allocated hours on ${esc(taskAllocationDateLabel(date))}">
-      <input class="gantt-hour-input actual" data-gantt-hour-input="1" data-task-id="${esc(task.id)}" data-date="${esc(date)}" data-kind="actual" value="${actual > 0 ? esc(actual) : '0'}" placeholder="0" inputmode="decimal" aria-label="Actual hours on ${esc(taskAllocationDateLabel(date))}">
+      ${String(task?.taskType || '') === 'allocation' ? '' : `<input class="gantt-hour-input actual" data-gantt-hour-input="1" data-task-id="${esc(task.id)}" data-date="${esc(date)}" data-kind="actual" value="${actual > 0 ? esc(actual) : '0'}" placeholder="0" inputmode="decimal" aria-label="Actual hours on ${esc(taskAllocationDateLabel(date))}">`}
     </div>`;
   }).join('');
 }
@@ -2094,14 +2094,14 @@ function renderTasks(){
   const stOpts=['','Not Started','In Progress','Blocked','Completed'].map(s=>`<option value="${s}" ${f.taskStatus===s?'selected':''}>${s||'All statuses'}</option>`).join('');
   const renderRow = t => {
     const m=personById(t.assigneeId);
-    const alloc=+t.allocatedHours||0, actual=taskActualHours(t);
-    const pct=alloc?actual/alloc:0;
+    const alloc=+t.allocatedHours||0, actual=String(t.taskType||'')==='allocation' ? 0 : taskActualHours(t);
+    const pct=alloc && String(t.taskType||'')!=='allocation' ? actual/alloc : 0;
     const overdue=isOverdue(t.dueDate,t.status);
     const expanded=state.taskExpanded.has(t.id);
     const logs=taskLogSummary(t.id);
     const typeTag = t.taskType && t.taskType !== 'project' ? `<span class="badge badge-grey" style="margin-left:8px">${esc(taskTypeLabel(t))}</span>` : '';
     const detail=expanded?`<tr class="task-detail-row"><td colspan="12"><div class="task-detail-panel"><div class="task-detail-head"><span>Task Log breakdown</span><span>${fmtN(logs.reduce((s,x)=>s+(+x.hours||0),0))}h logged</span></div>${logs.length?`<div class="task-log-list">${logs.map(x=>`<div class="task-log-item"><div><b>${esc(x.name)}</b><div class="task-log-meta">${x.entries} entry${x.entries===1?'':'ies'}</div></div><div class="task-log-hours">${fmtN(x.hours)}h</div><div class="task-log-hours">${fmtC(x.budget)}</div></div>`).join('')}</div>`:`<div class="task-log-empty">No task log entries yet for this task.</div>`}</div></td></tr>`:'';
-    return `<tr><td><button class="task-toggle ${expanded?'expanded':''}" onclick="toggleTaskDetails('${t.id}', event)">&#9662;</button></td><td><div class="task-toggle-wrap"><div class="task-name"><div>${esc(t.name)}${typeTag}</div><div style="font-size:11px;color:var(--muted)">${esc(t.notes||'')}</div></div></div></td><td>${esc(m?.name||'—')}</td><td class="num">${fmtN(alloc)}</td><td class="num">${fmtN(actual)}</td><td class="num">${fmtC(taskBudget(t,'allocatedHours'))}</td><td class="num">${fmtC(taskBudget(t,'actualHours'))}</td><td>${esc(t.dueDate||'—')} ${overdue?'<span class="badge badge-red">!</span>':''}</td><td>${statusBadge(t.status)}</td><td>${priorityBadge(t.priority)}</td><td>${taskProgress(actual, alloc)}</td><td class="actions"><button class="btn-icon" onclick="openTaskModal('${t.id}')">Edit</button><button class="btn-icon danger" onclick="deleteTask('${t.id}')">Delete</button></td></tr>${detail}`;
+    return `<tr><td><button class="task-toggle ${expanded?'expanded':''}" onclick="toggleTaskDetails('${t.id}', event)">&#9662;</button></td><td><div class="task-toggle-wrap"><div class="task-name"><div>${esc(t.name)}${typeTag}</div><div style="font-size:11px;color:var(--muted)">${esc(t.notes||'')}</div></div></div></td><td>${esc(m?.name||'—')}</td><td class="num">${fmtN(alloc)}</td><td class="num">${String(t.taskType||'')==='allocation' ? '—' : fmtN(actual)}</td><td class="num">${fmtC(taskBudget(t,'allocatedHours'))}</td><td class="num">${String(t.taskType||'')==='allocation' ? '—' : fmtC(taskBudget(t,'actualHours'))}</td><td>${esc(t.dueDate||'—')} ${overdue?'<span class="badge badge-red">!</span>':''}</td><td>${statusBadge(t.status)}</td><td>${priorityBadge(t.priority)}</td><td>${String(t.taskType||'')==='allocation' ? '—' : taskProgress(actual, alloc)}</td><td class="actions"><button class="btn-icon" onclick="openTaskModal('${t.id}')">Edit</button><button class="btn-icon danger" onclick="deleteTask('${t.id}')">Delete</button></td></tr>${detail}`;
   };
   const projectGroups=state.db.projects.map(p=>{
     const pts=tasks.filter(t=>t.projectId===p.id && isProjectTask(t)).sort((a,b)=>(a.dueDate||'').localeCompare(b.dueDate||''));
@@ -2500,6 +2500,7 @@ function deleteMilestone(id){
 function openTaskModal(id, defaults={}){
   const base={taskType:'project',projectId:state.db.projects[0]?.id||'',name:'',assigneeId:state.db.team[0]?.id||'',allocatedHours:0,startDate:'',dueDate:'',status:'Not Started',priority:'Medium',notes:'',dailyAllocations:[]};
   const t=id?taskById(id):Object.assign({}, base, defaults);
+  const isAllocation = String(t.taskType || 'project') === 'allocation';
   const projOpts=['<option value="">— No project / internal —</option>'].concat(state.db.projects.map(p=>`<option value="${p.id}" ${t.projectId===p.id?'selected':''}>${esc(p.shortName)} &mdash; ${esc(p.code)}</option>`)).join('');
   const asgOpts=state.db.team.map(m=>`<option value="${m.id}" ${t.assigneeId===m.id?'selected':''}>${esc(m.name)}</option>`).join('');
   const stOpts=['Not Started','In Progress','Blocked','Completed'].map(s=>`<option value="${s}" ${t.status===s?'selected':''}>${s}</option>`).join('');
@@ -2510,7 +2511,7 @@ function openTaskModal(id, defaults={}){
     <div class="form-row"><div class="form-group"><label>Task Type *</label><select required name="taskType">${typeOpts}</select></div><div class="form-group"><label>Project</label><select name="projectId">${projOpts}</select></div></div>
     <div class="form-row"><div class="form-group"><label>Assignee *</label><select required name="assigneeId">${asgOpts}</select></div><div class="form-group"><label>Status</label><select name="status">${stOpts}</select></div></div>
     <div class="form-group"><label>Task Name *</label><input required name="name" value="${esc(t.name)}"></div>
-    <div class="form-row"><div class="form-group"><label>Allocated Hours</label><input type="number" name="allocatedHours" value="${t.allocatedHours||0}" min="0" step="0.01"></div><div class="form-group"><label>Actual Hours</label><input type="text" value="${fmtN(actual)} (from Task Log / Timeline)" readonly></div></div>
+    <div class="form-row"><div class="form-group"><label>Allocated Hours</label><input type="number" name="allocatedHours" value="${t.allocatedHours||0}" min="0" step="0.01"></div><div class="form-group"><label>Actual Hours</label>${isAllocation ? '<input type="text" value="Not used for allocations" readonly>' : `<input type="text" value="${fmtN(actual)} (from Task Log / Timeline)" readonly>`}</div></div>
     <div class="form-row"><div class="form-group"><label>Start Date</label><input type="date" name="startDate" value="${esc(t.startDate)}"></div><div class="form-group"><label>Due Date</label><input type="date" name="dueDate" value="${esc(t.dueDate)}"></div></div>
     <div class="form-row"><div class="form-group"><label>Priority</label><select name="priority">${prOpts}</select></div><div class="form-group"><label>Project Note</label><input type="text" value="Use Internal or Leave when no project applies" readonly></div></div>
     <div class="form-group"><label>Notes</label><textarea name="notes">${esc(t.notes)}</textarea></div>
@@ -2615,7 +2616,7 @@ function saveTask(e,id){
     toast('Select a project for this task.', true);
     return;
   }
-  const data={taskType,projectId,name,assigneeId:g('assigneeId'),allocatedHours,actualHours:taskActualHours(taskId),startDate,dueDate,status:g('status'),priority:g('priority'),notes:g('notes'),dailyAllocations};
+  const data={taskType,projectId,name,assigneeId:g('assigneeId'),allocatedHours,actualHours:taskType==='allocation'?0:taskActualHours(taskId),startDate,dueDate,status:g('status'),priority:g('priority'),notes:g('notes'),dailyAllocations};
   if(id){Object.assign(taskById(id),data);toast('Task updated');}else{state.db.tasks.push({id:taskId,...data});toast('Task added');}
   saveDB();closeModal();render();
 }
@@ -2658,7 +2659,7 @@ function openTimesheetModal(id){
   const ts=id?state.db.timesheet.find(x=>x.id===id):{dayDate:todayISO(),weekEnding:ganttIsoDate(weekEndFriday(parseGanttDate(todayISO()))),personId:state.db.team[0]?.id||'',projectId:state.db.projects[0]?.id||'',taskId:'',hoursLogged:0,billable:'Y',notes:''};
   const projOpts=['<option value="">— Internal / no project —</option>'].concat(state.db.projects.map(p=>`<option value="${p.id}" ${ts.projectId===p.id?'selected':''}>${esc(p.shortName)}</option>`)).join('');
   const perOpts=state.db.team.map(m=>`<option value="${m.id}" ${ts.personId===m.id?'selected':''}>${esc(m.name)}</option>`).join('');
-  const taskOpts=state.db.tasks.slice().sort((a,b)=>((a.taskType||'project')+(a.name||'')).localeCompare((b.taskType||'project')+(b.name||''))).map(t=>{
+  const taskOpts=state.db.tasks.slice().sort((a,b)=>((a.taskType||'project')+(a.name||'')).localeCompare((b.taskType||'project')+(b.name||''))).filter(t=>String(t.taskType||'')!=='allocation').map(t=>{
     const proj=projectById(t.projectId);
     const label=`${taskTypeLabel(t)} - ${t.name}${proj?.shortName ? ` - ${proj.shortName}` : ''}`;
     return `<option value="${t.id}" ${ts.taskId===t.id?'selected':''}>${esc(label)}</option>`;
@@ -2675,7 +2676,7 @@ function openTimesheetModal(id){
 function updateTaskOptions(sel){
   if(!sel) return;
   const pid=sel.value;
-  const opts=['<option value="">&mdash;</option>'].concat(state.db.tasks.filter(t=>!pid || t.projectId===pid || !isProjectTask(t)).map(t=>{
+  const opts=['<option value="">&mdash;</option>'].concat(state.db.tasks.filter(t=>String(t.taskType||'')!=='allocation' && (!pid || t.projectId===pid || !isProjectTask(t))).map(t=>{
     const proj=projectById(t.projectId);
     const label=`${taskTypeLabel(t)} - ${t.name}${proj?.shortName ? ` - ${proj.shortName}` : ''}`;
     return `<option value="${t.id}">${esc(label)}</option>`;
@@ -2696,7 +2697,7 @@ function saveTimesheet(e,id){
     const oldTask = taskById(previous.taskId);
     if (oldTask) oldTask.actualHours = taskActualHours(oldTask.id);
   }
-  if (task) task.actualHours = taskActualHours(task.id);
+  if (task && String(task.taskType || '') !== 'allocation') task.actualHours = taskActualHours(task.id);
   saveDB();closeModal();render();
 }
 function deleteTimesheet(id){
@@ -2704,7 +2705,7 @@ function deleteTimesheet(id){
   const entry = state.db.timesheet.find(x=>x.id===id);
   state.db.timesheet=state.db.timesheet.filter(x=>x.id!==id);
   const task = entry?.taskId ? taskById(entry.taskId) : null;
-  if (task) task.actualHours = taskActualHours(task.id);
+  if (task && String(task.taskType || '') !== 'allocation') task.actualHours = taskActualHours(task.id);
   saveDB();render();toast('Entry deleted');
 }
 
@@ -2768,7 +2769,7 @@ function exportExcel(){
   db.milestones.slice().sort((a,b)=>(a.kickoffDate||'').localeCompare(b.kickoffDate||'')||(a.submissionDate||'').localeCompare(b.submissionDate||'')||(a.stageName||'').localeCompare(b.stageName||'')||(a.submissionLabel||'').localeCompare(b.submissionLabel||'')).forEach(m=>{const p=projectById(m.projectId),o=personById(m.ownerId);mileSheet.push([p?.code||'',p?.shortName||'',m.stageName,m.submissionLabel,m.kickoffDate,m.submissionDate,m.status,o?.name||'',m.notes||'']);});
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(mileSheet),'Milestones');
   const taskSheet=[['Project Code','Project','Task','Assignee','Alloc Hrs','Actual Hrs','Alloc Budget','Actual Budget','Start','Due','Status','Priority','% Used','Notes']];
-  db.tasks.forEach((t)=>{const p=projectById(t.projectId),m=personById(t.assigneeId);const a=+t.allocatedHours||0,ac=taskActualHours(t);taskSheet.push([p?.code||'',p?.shortName||'',t.name,m?.name||'',a,ac,taskBudget(t,'allocatedHours'),taskBudget(t,'actualHours'),t.startDate,t.dueDate,t.status,t.priority,a?ac/a:0,t.notes||'']);});
+  db.tasks.forEach((t)=>{const p=projectById(t.projectId),m=personById(t.assigneeId);const a=+t.allocatedHours||0,ac=String(t.taskType||'')==='allocation'?0:taskActualHours(t);taskSheet.push([p?.code||'',p?.shortName||'',t.name,m?.name||'',a,ac,taskBudget(t,'allocatedHours'),String(t.taskType||'')==='allocation'?'':taskBudget(t,'actualHours'),t.startDate,t.dueDate,t.status,t.priority,a?ac/a:0,t.notes||'']);});
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(taskSheet),'Tasks');
   const teamSheet=[['Name','Role','Email','Hourly Rate','Weekly Cap','Period Cap','Alloc','Actual','Skills','Notes']];
   db.team.forEach(m=>{const tot=personTotals(m.id);teamSheet.push([m.name,m.role,m.email,personRate(m.id),m.weeklyCapacity,(m.weeklyCapacity||40)*db.settings.weeksInPeriod,tot.allocHrs,tot.actualHrs,m.skills||'',m.notes||'']);});
