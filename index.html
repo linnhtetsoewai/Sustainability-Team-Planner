@@ -1372,8 +1372,15 @@ const projectById=id=>state.db.projects.find(p=>p.id===id);
 const personById=id=>state.db.team.find(t=>t.id===id);
 const taskById=id=>state.db.tasks.find(t=>t.id===id);
 const milestoneById=id=>state.db.milestones.find(m=>m.id===id);
-const isProjectTask=t=>String(t?.taskType||'project')==='project' && !!t?.projectId;
-const taskLabel=t=>t?.taskType==='leave' ? 'Leave' : (t?.taskType==='internal' || !t?.projectId ? 'Internal' : 'Project');
+const taskTypeLabel = t => {
+  const type = String(t?.taskType || 'project');
+  if (type === 'leave') return 'Leave';
+  if (type === 'allocation') return 'Allocation';
+  if (type === 'internal' || !t?.projectId) return 'Internal';
+  return 'Project';
+};
+const isProjectTask=t=>!!t?.projectId && String(t?.taskType||'project')!=='internal' && String(t?.taskType||'project')!=='leave';
+const taskLabel=t=>taskTypeLabel(t);
 const tasksForProject=pid=>state.db.tasks.filter(t=>t.projectId===pid && isProjectTask(t));
 const milestonesForProject=pid=>state.db.milestones.filter(m=>m.projectId===pid).sort((a,b)=>(a.kickoffDate||'').localeCompare(b.kickoffDate||'')||(a.submissionDate||'').localeCompare(b.submissionDate||'')||(a.stageName||'').localeCompare(b.stageName||'')||(a.submissionLabel||'').localeCompare(b.submissionLabel||''));
 function milestoneTotals(pid){
@@ -2092,7 +2099,7 @@ function renderTasks(){
     const overdue=isOverdue(t.dueDate,t.status);
     const expanded=state.taskExpanded.has(t.id);
     const logs=taskLogSummary(t.id);
-    const typeTag = t.taskType && t.taskType !== 'project' ? `<span class="badge badge-grey" style="margin-left:8px">${esc(t.taskType==='leave'?'Leave':'Internal')}</span>` : '';
+    const typeTag = t.taskType && t.taskType !== 'project' ? `<span class="badge badge-grey" style="margin-left:8px">${esc(taskTypeLabel(t))}</span>` : '';
     const detail=expanded?`<tr class="task-detail-row"><td colspan="12"><div class="task-detail-panel"><div class="task-detail-head"><span>Task Log breakdown</span><span>${fmtN(logs.reduce((s,x)=>s+(+x.hours||0),0))}h logged</span></div>${logs.length?`<div class="task-log-list">${logs.map(x=>`<div class="task-log-item"><div><b>${esc(x.name)}</b><div class="task-log-meta">${x.entries} entry${x.entries===1?'':'ies'}</div></div><div class="task-log-hours">${fmtN(x.hours)}h</div><div class="task-log-hours">${fmtC(x.budget)}</div></div>`).join('')}</div>`:`<div class="task-log-empty">No task log entries yet for this task.</div>`}</div></td></tr>`:'';
     return `<tr><td><button class="task-toggle ${expanded?'expanded':''}" onclick="toggleTaskDetails('${t.id}', event)">&#9662;</button></td><td><div class="task-toggle-wrap"><div class="task-name"><div>${esc(t.name)}${typeTag}</div><div style="font-size:11px;color:var(--muted)">${esc(t.notes||'')}</div></div></div></td><td>${esc(m?.name||'—')}</td><td class="num">${fmtN(alloc)}</td><td class="num">${fmtN(actual)}</td><td class="num">${fmtC(taskBudget(t,'allocatedHours'))}</td><td class="num">${fmtC(taskBudget(t,'actualHours'))}</td><td>${esc(t.dueDate||'—')} ${overdue?'<span class="badge badge-red">!</span>':''}</td><td>${statusBadge(t.status)}</td><td>${priorityBadge(t.priority)}</td><td>${taskProgress(actual, alloc)}</td><td class="actions"><button class="btn-icon" onclick="openTaskModal('${t.id}')">Edit</button><button class="btn-icon danger" onclick="deleteTask('${t.id}')">Delete</button></td></tr>${detail}`;
   };
@@ -2251,6 +2258,7 @@ function renderGantt(){
         <select onchange="state.filters.ganttProject=this.value;render()">${ganttProjectOpts}</select>
         <span class="spacer"></span>
         <button class="btn btn-primary btn-sm" type="button" onclick="openTaskModal(null,{startDate:'${ganttIsoDate(start)}',dueDate:'${ganttIsoDate(ganttAddDays(start,5))}'})">+ Add Task</button>
+        <button class="btn btn-secondary btn-sm" type="button" onclick="openAllocationModal()">+ Allocate</button>
         <div class="gantt-zoom-controls">
           <button class="btn btn-secondary btn-sm" type="button" onclick="zoomGantt(-8)" title="Zoom out">-</button>
           <button class="btn btn-secondary btn-sm" type="button" onclick="zoomGantt(8)" title="Zoom in">+</button>
@@ -2496,7 +2504,7 @@ function openTaskModal(id, defaults={}){
   const asgOpts=state.db.team.map(m=>`<option value="${m.id}" ${t.assigneeId===m.id?'selected':''}>${esc(m.name)}</option>`).join('');
   const stOpts=['Not Started','In Progress','Blocked','Completed'].map(s=>`<option value="${s}" ${t.status===s?'selected':''}>${s}</option>`).join('');
   const prOpts=['High','Medium','Low'].map(s=>`<option value="${s}" ${t.priority===s?'selected':''}>${s}</option>`).join('');
-  const typeOpts=[['project','Project task'],['internal','Internal work'],['leave','Leave']].map(([v,l])=>`<option value="${v}" ${String(t.taskType||'project')===v?'selected':''}>${l}</option>`).join('');
+  const typeOpts=[['project','Project task'],['allocation','Allocation'],['internal','Internal work'],['leave','Leave']].map(([v,l])=>`<option value="${v}" ${String(t.taskType||'project')===v?'selected':''}>${l}</option>`).join('');
   const actual=taskActualHours(t);
   openModal(`<h3>${id?'Edit':'Add'} Task</h3><form onsubmit="saveTask(event,'${id||''}');return false">
     <div class="form-row"><div class="form-group"><label>Task Type *</label><select required name="taskType">${typeOpts}</select></div><div class="form-group"><label>Project</label><select name="projectId">${projOpts}</select></div></div>
@@ -2509,6 +2517,21 @@ function openTaskModal(id, defaults={}){
     <div id="task-allocation-root"></div>
     <div class="modal-actions"><button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button><button type="submit" class="btn btn-primary">Save</button></div></form>`);
   setTimeout(() => wireTaskAllocationBuilder(document.querySelector('#modal-content form'), t), 0);
+}
+function openAllocationModal(){
+  const ganttProject = state.filters.ganttProject || state.db.projects[0]?.id || '';
+  const ganttAssignee = state.filters.ganttAsg || state.db.team[0]?.id || '';
+  const start = parseGanttDate(todayISO()) || new Date();
+  const due = ganttAddDays(start, 5);
+  openTaskModal(null, {
+    taskType: 'allocation',
+    projectId: ganttProject,
+    assigneeId: ganttAssignee,
+    name: 'Planned Allocation',
+    status: 'Not Started',
+    startDate: ganttIsoDate(start),
+    dueDate: ganttIsoDate(due),
+  });
 }
 function wireTaskAllocationBuilder(form, task){
   if (!form) return;
@@ -2578,11 +2601,21 @@ function saveTask(e,id){
   const allocInputs = captureTaskAllocationInputs(f);
   const dailyAllocations = taskWorkdayRange(startDate, dueDate).map(date => ({date, hours: roundTaskHours(allocInputs.get(date) || 0)}));
   const allocationTotal = roundTaskHours(dailyAllocations.reduce((sum, entry) => sum + roundTaskHours(entry.hours), 0));
+  const projectId = (taskType === 'internal' || taskType === 'leave') ? '' : (g('projectId') || '');
   if (startDate && dueDate && allocatedHours > 0 && Math.abs(allocationTotal - allocatedHours) >= 0.01) {
     toast('Daily allocation must match the allocated hours.', true);
     return;
   }
-  const data={taskType,projectId:taskType==='project'?(g('projectId')||''):'',name:g('name'),assigneeId:g('assigneeId'),allocatedHours,actualHours:taskActualHours(taskId),startDate,dueDate,status:g('status'),priority:g('priority'),notes:g('notes'),dailyAllocations};
+  const name = String(g('name') || '').trim() || (taskType === 'allocation' ? 'Planned Allocation' : '');
+  if (!name) {
+    toast('Task name is required.', true);
+    return;
+  }
+  if ((taskType === 'project' || taskType === 'allocation') && !projectId) {
+    toast('Select a project for this task.', true);
+    return;
+  }
+  const data={taskType,projectId,name,assigneeId:g('assigneeId'),allocatedHours,actualHours:taskActualHours(taskId),startDate,dueDate,status:g('status'),priority:g('priority'),notes:g('notes'),dailyAllocations};
   if(id){Object.assign(taskById(id),data);toast('Task updated');}else{state.db.tasks.push({id:taskId,...data});toast('Task added');}
   saveDB();closeModal();render();
 }
@@ -2627,7 +2660,7 @@ function openTimesheetModal(id){
   const perOpts=state.db.team.map(m=>`<option value="${m.id}" ${ts.personId===m.id?'selected':''}>${esc(m.name)}</option>`).join('');
   const taskOpts=state.db.tasks.slice().sort((a,b)=>((a.taskType||'project')+(a.name||'')).localeCompare((b.taskType||'project')+(b.name||''))).map(t=>{
     const proj=projectById(t.projectId);
-    const label=t.taskType==='leave' ? `Leave — ${t.name}` : `${t.name} — ${proj?.shortName||'Internal'}`;
+    const label=`${taskTypeLabel(t)} - ${t.name}${proj?.shortName ? ` - ${proj.shortName}` : ''}`;
     return `<option value="${t.id}" ${ts.taskId===t.id?'selected':''}>${esc(label)}</option>`;
   }).join('');
   openModal(`<h3>${id?'Edit':'Log'} Hours</h3><form onsubmit="saveTimesheet(event,'${id||''}');return false">
@@ -2644,7 +2677,7 @@ function updateTaskOptions(sel){
   const pid=sel.value;
   const opts=['<option value="">&mdash;</option>'].concat(state.db.tasks.filter(t=>!pid || t.projectId===pid || !isProjectTask(t)).map(t=>{
     const proj=projectById(t.projectId);
-    const label=t.taskType==='leave' ? `Leave — ${t.name}` : `${t.name} — ${proj?.shortName||'Internal'}`;
+    const label=`${taskTypeLabel(t)} - ${t.name}${proj?.shortName ? ` - ${proj.shortName}` : ''}`;
     return `<option value="${t.id}">${esc(label)}</option>`;
   })).join('');
   const target=document.getElementById('tsTaskSelect');
