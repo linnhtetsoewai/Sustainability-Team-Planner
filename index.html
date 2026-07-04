@@ -171,7 +171,7 @@ td.actions{white-space:nowrap;text-align:right}
 .gantt-toolbar select{padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:#fff;font-family:inherit;min-width:160px}
 .gantt-toolbar select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(76,139,107,0.15)}
 .gantt-zoom-controls{display:flex;gap:8px;align-items:center}
-.gantt-shell{display:grid;grid-template-columns:640px minmax(0,1fr);border-top:1px solid var(--border);max-width:100%;height:calc(100vh - 220px);min-height:420px;overflow:hidden}
+.gantt-shell{display:grid;grid-template-columns:560px minmax(0,1fr);border-top:1px solid var(--border);max-width:100%;height:calc(100vh - 220px);min-height:420px;overflow:hidden}
 .gantt-pane{min-width:0;scrollbar-gutter:stable both-edges}
 .gantt-left-pane{overflow-x:hidden;scrollbar-width:none;-ms-overflow-style:none;border-right:1px solid var(--border);background:#fff}
 .gantt-left-pane::-webkit-scrollbar{display:none}
@@ -180,12 +180,12 @@ td.actions{white-space:nowrap;text-align:right}
 .gantt-right-head-inner{will-change:transform}
 .gantt-right-body{min-height:0;overflow:auto;background:#fff}
 .gantt-table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}
-.gantt-left-table{width:640px}
+.gantt-left-table{width:560px}
 .gantt-right-table{min-width:max-content;width:max-content}
 .gantt-table thead th{position:sticky;top:0;z-index:20;background:var(--dark);color:#fff;height:44px}
 .gantt-left{background:#fff}
-.gantt-task-name{width:320px}
-.gantt-assignee{width:180px}
+.gantt-task-name{width:300px}
+.gantt-assignee{width:120px}
 .gantt-project{width:140px}
 .gantt-task-stack{display:flex;flex-direction:column;gap:2px;min-width:0}
 .gantt-task-stack b,.gantt-task-stack span,.gantt-assignee,.gantt-project{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -194,8 +194,9 @@ td.actions{white-space:nowrap;text-align:right}
 .gantt-left-table thead .gantt-task-name,
 .gantt-left-table thead .gantt-assignee,
 .gantt-left-table thead .gantt-project{background:var(--dark);color:#fff}
+.gantt-left-table tbody td,.gantt-right-table tbody td{padding-top:0;padding-bottom:0;height:45px}
 .gantt-scale-cell{padding:0;border-bottom:1px solid var(--border)}
-.gantt-timeline-lane{position:relative;width:calc(var(--gantt-days,1) * var(--gantt-day-width,48px));min-height:48px}
+.gantt-timeline-lane{position:relative;width:calc(var(--gantt-days,1) * var(--gantt-day-width,48px));height:100%;min-height:45px}
 .gantt-axis{display:flex;flex-direction:column;width:max-content;min-width:100%}
 .gantt-month-row{display:flex;align-items:stretch;width:max-content;height:18px;background:var(--dark)}
 .gantt-day-row{display:flex;align-items:stretch;width:max-content;height:30px;background:var(--dark)}
@@ -209,12 +210,12 @@ td.actions{white-space:nowrap;text-align:right}
 .gantt-day-label.compact .date-num{display:none}
 .gantt-left-table thead th,.gantt-right-table thead th{background:var(--dark);color:#fff}
 .gantt-right-body .gantt-scale-cell{padding:0;border-bottom:1px solid var(--border)}
-.gantt-row-lane{position:relative;height:48px;min-width:max-content}
+.gantt-row-lane{position:relative;height:100%;min-height:45px;min-width:max-content}
 .gantt-grid-row{position:absolute;inset:0;display:flex;pointer-events:none}
 .gantt-grid-cell{flex:0 0 var(--gantt-day-width,48px);min-width:var(--gantt-day-width,48px);border-left:1px solid rgba(0,0,0,0.05);background:linear-gradient(to bottom, transparent 0, transparent 50%, rgba(0,0,0,0.02) 50%, rgba(0,0,0,0.02) 100%)}
 .gantt-grid-cell.weekend{background:#fafaf7}
 .gantt-grid-cell.today{background:rgba(46,117,182,0.06)}
-.gantt-bar{position:absolute;top:14px;height:30px;border-radius:8px;background:#4C8B6B;color:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.14);cursor:grab;user-select:none;display:flex;align-items:center;justify-content:flex-start;padding:0 10px;gap:8px;overflow:hidden;z-index:2}
+.gantt-bar{position:absolute;top:50%;height:calc((100% - 8px) * 0.9);transform:translateY(-50%);border-radius:8px;background:#4C8B6B;color:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.14);cursor:grab;user-select:none;display:block;padding:0;overflow:hidden;z-index:2}
 .gantt-bar,.gantt-resize-handle{touch-action:none}
 .gantt-bar.dragging:not(.resizing-left):not(.resizing-right){cursor:grabbing;opacity:0.92;box-shadow:0 6px 18px rgba(0,0,0,0.22)}
 .gantt-bar.resizing-left,.gantt-bar.resizing-right{cursor:ew-resize;opacity:0.96;box-shadow:0 6px 18px rgba(0,0,0,0.18)}
@@ -229,15 +230,20 @@ td.actions{white-space:nowrap;text-align:right}
   0%,100%{box-shadow:0 0 0 2px rgba(255,255,255,0.96), 0 0 0 4px rgba(224,102,102,0.40), 0 0 16px rgba(224,102,102,0.68), 0 0 30px rgba(232,184,74,0.45)}
   50%{box-shadow:0 0 0 2px rgba(255,255,255,0.96), 0 0 0 6px rgba(224,102,102,0.58), 0 0 24px rgba(224,102,102,0.92), 0 0 42px rgba(232,184,74,0.70)}
 }
-.gantt-bar-main{display:flex;flex-direction:column;min-width:0;flex:1 1 auto}
-.gantt-bar-main b{font-size:12px;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.gantt-bar-main span{font-size:10px;opacity:0.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.gantt-bar-meta{font-size:10px;white-space:nowrap;font-variant-numeric:tabular-nums;opacity:0.95}
+.gantt-bar-hours-layer{position:absolute;inset:0;z-index:2}
+.gantt-bar-hour-cell{position:absolute;top:50%;transform:translateY(-50%);height:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;pointer-events:auto;box-sizing:border-box}
+.gantt-hour-input{width:100%;height:12px;border:0;background:transparent;font-size:11px;line-height:1;text-align:center;font-variant-numeric:tabular-nums;font-weight:700;padding:0;margin:0;outline:none;appearance:textfield;-moz-appearance:textfield}
+.gantt-hour-input::-webkit-outer-spin-button,.gantt-hour-input::-webkit-inner-spin-button{appearance:none;margin:0}
+.gantt-hour-input.alloc{background:transparent !important;color:#143f2a !important;-webkit-text-fill-color:#143f2a !important;opacity:1;text-shadow:none}
+.gantt-hour-input.actual{background:transparent !important;color:#fff !important;-webkit-text-fill-color:#fff !important;opacity:1;text-shadow:0 1px 1px rgba(0,0,0,0.35)}
+.gantt-hour-input::placeholder{color:rgba(255,255,255,0.65)}
+.gantt-hour-input.alloc:focus{background:rgba(255,255,255,0.10);border-radius:4px}
+.gantt-hour-input.actual:focus{background:rgba(255,255,255,0.08);border-radius:4px}
 .gantt-resize-handle{position:absolute;top:0;bottom:0;width:18px;cursor:ew-resize;z-index:5;pointer-events:auto;background:rgba(255,255,255,0.01)}
 .gantt-resize-handle.left{left:-6px}
 .gantt-resize-handle.right{right:-6px}
 .gantt-today-line{position:absolute;top:0;bottom:0;width:2px;background:#ff2d55;opacity:0.85;pointer-events:none;z-index:3}
-.gantt-left-table tbody tr,.gantt-right-table tbody tr{height:58px}
+.gantt-left-table tbody tr,.gantt-right-table tbody tr{height:45px}
 .gantt-empty{padding:28px 20px;text-align:center;color:var(--muted)}
 .project-group{background:#fff;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:16px;overflow:hidden}
 .project-group-header{background:linear-gradient(90deg,var(--dark),var(--accent));color:#fff;padding:14px 18px;display:flex;align-items:center;gap:14px;cursor:pointer;user-select:none}
@@ -813,6 +819,13 @@ function normalizeDB(db){
     t.dailyAllocations = normalizeTaskDailyAllocations(t.dailyAllocations);
   });
   db.timesheet = Array.isArray(db.timesheet) ? db.timesheet : [];
+  db.timesheet.forEach(x => {
+    x.dayDate = x.dayDate || x.weekEnding || '';
+    if (!x.weekEnding && x.dayDate) {
+      const d = parseGanttDate(x.dayDate);
+      x.weekEnding = d ? ganttIsoDate(weekEndFriday(d)) : '';
+    }
+  });
   db.notes = Array.isArray(db.notes) ? db.notes : [];
   return db;
 }
@@ -1108,6 +1121,9 @@ function taskRate(task){
 function taskTimesheetEntries(taskId){
   return state.db.timesheet.filter(x=>x.taskId===taskId);
 }
+function taskDayTimesheetEntries(taskId, dayDate){
+  return state.db.timesheet.filter(x => x.taskId === taskId && x.dayDate === dayDate);
+}
 function taskActualHours(taskOrId){
   const taskId = typeof taskOrId === 'object' ? taskOrId?.id : taskOrId;
   return taskTimesheetEntries(taskId).reduce((s,x)=>s+(+x.hoursLogged||0),0);
@@ -1128,6 +1144,51 @@ function taskLogSummary(taskId){
     byPerson.set(key, entry);
   });
   return [...byPerson.values()].sort((a,b)=>b.hours-a.hours);
+}
+function taskActualDayTotals(taskOrId){
+  const taskId = typeof taskOrId === 'object' ? taskOrId?.id : taskOrId;
+  const totals = new Map();
+  taskTimesheetEntries(taskId).forEach(x => {
+    if (!x.dayDate) return;
+    totals.set(x.dayDate, roundTaskHours((totals.get(x.dayDate) || 0) + (+x.hoursLogged || 0)));
+  });
+  return totals;
+}
+function syncTaskDailyHours(taskId, date, hours, kind){
+  const task = taskById(taskId);
+  if (!task || !date) return;
+  const value = roundTaskHours(hours);
+  if (kind === 'alloc') {
+    const existing = normalizeTaskDailyAllocations(task.dailyAllocations);
+    const next = existing.filter(entry => entry.date !== date);
+    if (value > 0) next.push({date, hours: value});
+    next.sort((a, b) => a.date.localeCompare(b.date));
+    task.dailyAllocations = normalizeTaskDailyAllocations(next);
+    task.allocatedHours = roundTaskHours(task.dailyAllocations.reduce((sum, entry) => sum + roundTaskHours(entry.hours), 0));
+    return;
+  }
+  const weekEnding = ganttIsoDate(weekEndFriday(parseGanttDate(date)));
+  const idx = state.db.timesheet.findIndex(x => x.taskId === task.id && x.dayDate === date);
+  if (value <= 0) {
+    if (idx >= 0) state.db.timesheet.splice(idx, 1);
+    return;
+  }
+  const data = {
+    weekEnding,
+    dayDate: date,
+    personId: task.assigneeId || '',
+    projectId: task.projectId || '',
+    taskId: task.id,
+    hoursLogged: value,
+    billable: 'Y',
+    notes: '',
+  };
+  if (idx >= 0) {
+    Object.assign(state.db.timesheet[idx], data);
+  } else {
+    state.db.timesheet.push({id: uid(), ...data});
+  }
+  task.actualHours = taskActualHours(task.id);
 }
 function taskBudget(task,hoursKey='actualHours'){
   if(hoursKey==='allocatedHours') return (+task?.allocatedHours || 0) * taskRate(task);
@@ -1483,6 +1544,32 @@ function fmtShortDate(value){
   const d = parseGanttDate(value);
   if (!d) return String(value || '');
   return d.toLocaleDateString('en-US', {month:'short', day:'2-digit'});
+}
+
+function firstName(value){
+  const text = String(value || '').trim();
+  if (!text) return '';
+  return text.split(/\s+/)[0];
+}
+
+function ganttTaskHourEditorsHtml(task, taskStart, dayWidth){
+  const allocMap = taskAllocationMap(task);
+  const actualMap = taskActualDayTotals(task);
+  const start = taskStart || parseGanttDate(task?.startDate) || parseGanttDate(task?.dueDate);
+  const end = parseGanttDate(task?.dueDate) || start;
+  if (!start || !end) return '';
+  const dates = taskWorkdayRange(ganttIsoDate(start), ganttIsoDate(end));
+  return dates.map(date => {
+    const d = parseGanttDate(date);
+    const offsetDays = Math.max(0, ganttDayDiff(taskStart, d || taskStart));
+    const left = offsetDays * dayWidth;
+    const alloc = roundTaskHours(allocMap.get(date) || 0);
+    const actual = roundTaskHours(actualMap.get(date) || 0);
+    return `<div class="gantt-bar-hour-cell" style="left:${left}px;width:${dayWidth}px">
+      <input class="gantt-hour-input alloc" data-gantt-hour-input="1" data-task-id="${esc(task.id)}" data-date="${esc(date)}" data-kind="alloc" value="${alloc > 0 ? esc(alloc) : ''}" placeholder="0" inputmode="decimal" aria-label="Allocated hours on ${esc(taskAllocationDateLabel(date))}">
+      <input class="gantt-hour-input actual" data-gantt-hour-input="1" data-task-id="${esc(task.id)}" data-date="${esc(date)}" data-kind="actual" value="${actual > 0 ? esc(actual) : '0'}" placeholder="0" inputmode="decimal" aria-label="Actual hours on ${esc(taskAllocationDateLabel(date))}">
+    </div>`;
+  }).join('');
 }
 
 function weekEndFriday(date){
@@ -2063,7 +2150,7 @@ function renderTeam(){
 
 function renderTimesheet(){
   const f=state.filters;
-  let list=state.db.timesheet.slice().sort((a,b)=>(b.weekEnding||'').localeCompare(a.weekEnding||''));
+  let list=state.db.timesheet.slice().sort((a,b)=>(b.dayDate||b.weekEnding||'').localeCompare(a.dayDate||a.weekEnding||''));
   if(f.tsPerson) list=list.filter(x=>x.personId===f.tsPerson);
   if(f.tsProject==='__internal__') list=list.filter(x=>!x.projectId || !isProjectTask(taskById(x.taskId)));
   else if(f.tsProject) list=list.filter(x=>x.projectId===f.tsProject);
@@ -2072,11 +2159,11 @@ function renderTimesheet(){
   const rows=list.map(x=>{
     const p=projectById(x.projectId), m=personById(x.personId), t=taskById(x.taskId);
     const projLabel=p?.shortName || (t?.taskType==='leave' ? 'Leave' : 'Internal');
-    return `<tr><td>${esc(x.weekEnding)}</td><td>${esc(m?.name||'&mdash;')}</td><td>${esc(projLabel)}</td><td style="font-size:12px">${esc(t?.name||'&mdash;')}</td><td class="num">${fmtN(x.hoursLogged)}</td><td>${x.billable==='Y'?'<span class="badge badge-green">Y</span>':'<span class="badge badge-grey">N</span>'}</td><td style="font-size:12px">${esc(x.notes||'')}</td><td class="actions"><button class="btn-icon" onclick="openTimesheetModal('${x.id}')">Edit</button><button class="btn-icon danger" onclick="deleteTimesheet('${x.id}')">Delete</button></td></tr>`;
-  }).join('')||`<tr><td colspan="8" class="empty">No task log entries yet.</td></tr>`;
-  return `<h1 class="view-title">Task Log</h1><p class="view-sub">Weekly hour logs determine task Actual Hours automatically.</p>
+    return `<tr><td>${esc(x.dayDate||x.weekEnding||'')}</td><td>${esc(x.weekEnding||'')}</td><td>${esc(m?.name||'&mdash;')}</td><td>${esc(projLabel)}</td><td style="font-size:12px">${esc(t?.name||'&mdash;')}</td><td class="num">${fmtN(x.hoursLogged)}</td><td>${x.billable==='Y'?'<span class="badge badge-green">Y</span>':'<span class="badge badge-grey">N</span>'}</td><td style="font-size:12px">${esc(x.notes||'')}</td><td class="actions"><button class="btn-icon" onclick="openTimesheetModal('${x.id}')">Edit</button><button class="btn-icon danger" onclick="deleteTimesheet('${x.id}')">Delete</button></td></tr>`;
+  }).join('')||`<tr><td colspan="9" class="empty">No task log entries yet.</td></tr>`;
+  return `<h1 class="view-title">Task Log</h1><p class="view-sub">Daily task logs determine task Actual Hours automatically and stay linked to the timeline.</p>
   <div class="toolbar"><select onchange="state.filters.tsPerson=this.value;render()">${personOpts}</select><select onchange="state.filters.tsProject=this.value;render()">${projectOpts}</select><span class="spacer"></span><button class="btn btn-primary" onclick="openTimesheetModal()">+ Log Hours</button></div>
-  <div class="card" style="padding:0"><div class="tbl-wrap"><table><thead><tr><th>Week Ending</th><th>Person</th><th>Project</th><th>Task</th><th class="num">Hours</th><th>Billable</th><th>Notes</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  <div class="card" style="padding:0"><div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Week Ending</th><th>Person</th><th>Project</th><th>Task</th><th class="num">Hours</th><th>Billable</th><th>Notes</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
 }
 function renderGantt(){
   const f=state.filters;
@@ -2122,24 +2209,24 @@ function renderGantt(){
     const assignee=personById(t.assigneeId);
     const project=projectById(t.projectId);
     const projectLabel=project?.shortName || (t.taskType==='leave' ? 'Leave' : 'Internal');
-    return `<tr><td class="gantt-left gantt-task-name"><div class="gantt-task-stack" style="cursor:pointer" onclick="openTaskModal('${t.id}')"><b>${esc(t.name)}</b><span>${esc(t.status)}</span></div></td><td class="gantt-left gantt-assignee">${esc(assignee?.name||'Unassigned')}</td><td class="gantt-left gantt-project">${esc(projectLabel)}</td></tr>`;
+    return `<tr><td class="gantt-left gantt-task-name"><div class="gantt-task-stack" style="cursor:pointer" onclick="openTaskModal('${t.id}')"><b>${esc(t.name)}</b><span>${esc(t.status)}</span></div></td><td class="gantt-left gantt-assignee">${esc(firstName(assignee?.name)||'Unassigned')}</td><td class="gantt-left gantt-project">${esc(projectLabel)}</td></tr>`;
   }).join('');
   const rightRows=tasks.map(t=>{
-    const assignee=personById(t.assigneeId);
-    const project=projectById(t.projectId);
-    const projectLabel=project?.shortName || (t.taskType==='leave' ? 'Leave' : 'Internal');
     const taskStart=parseGanttDate(t.startDate) || start;
     const taskEnd=parseGanttDate(t.dueDate) || taskStart;
     const leftDays=Math.max(0, ganttDayDiff(start, taskStart));
     const spanDays=Math.max(1, ganttDayDiff(taskStart, taskEnd) + 1);
     const leftPx=leftDays * dayWidth;
-    const widthPx=Math.max(spanDays * dayWidth - 4, Math.max(28, Math.round(dayWidth * 0.8)));
+    const widthPx=Math.max(spanDays * dayWidth, dayWidth);
     const statusClass=String(t.status||'').toLowerCase().replace(/\s+/g,'-');
     const unscheduled=!(t.startDate || t.dueDate);
-    const actualHours=taskActualHours(t);
     const overloadDates=overloadByTask.get(t.id);
     const overloadClass=overloadDates && overloadDates.size ? ' overload' : '';
+    const assignee=personById(t.assigneeId);
+    const project=projectById(t.projectId);
+    const projectLabel=project?.shortName || (t.taskType==='leave' ? 'Leave' : 'Internal');
     const overloadTitle=overloadDates && overloadDates.size ? ` | Overloaded days: ${[...overloadDates].map(fmtShortDate).join(', ')}` : '';
+    const hourEditorsHtml = ganttTaskHourEditorsHtml(t, taskStart, dayWidth);
     return `<tr>
       <td class="gantt-scale-cell">
         <div class="gantt-row-lane" style="--gantt-day-width:${dayWidth}px;min-width:${dayCount*dayWidth}px">
@@ -2147,8 +2234,7 @@ function renderGantt(){
           ${todayIndex>=0&&todayIndex<dayCount?`<div class="gantt-today-line" style="left:${todayIndex*dayWidth}px"></div>`:''}
           <div class="gantt-bar ${statusClass}${unscheduled?' not-started':''}${overloadClass}" data-task-id="${esc(t.id)}" style="left:${leftPx}px;width:${widthPx}px${unscheduled?';opacity:0.35':''}" title="${esc(t.name)} | ${esc(assignee?.name||'Unassigned')} | ${esc(projectLabel)} | ${esc(t.startDate||'')}${t.dueDate?` - ${esc(t.dueDate)}`:''}${overloadTitle}">
             <div class="gantt-resize-handle left"></div>
-            <div class="gantt-bar-main"><b>${esc(t.name)}</b><span>${esc(assignee?.name||'Unassigned')} | ${esc(t.status||'')}</span></div>
-            <div class="gantt-bar-meta">${fmtN(actualHours)}h / ${fmtN(t.allocatedHours||0)}h</div>
+            ${hourEditorsHtml ? `<div class="gantt-bar-hours-layer">${hourEditorsHtml}</div>` : ''}
             <div class="gantt-resize-handle right"></div>
           </div>
         </div>
@@ -2204,12 +2290,32 @@ function initGanttInteractions(){
     const leftHandle = bar.querySelector('.gantt-resize-handle.left');
     const rightHandle = bar.querySelector('.gantt-resize-handle.right');
     bar.onmousedown = e => {
-      if (e.target.closest('.gantt-resize-handle')) return;
+      if (e.target.closest('.gantt-resize-handle, [data-gantt-hour-input]')) return;
       ganttBeginDrag(e, taskId, 'move', bar);
     };
     if (leftHandle) leftHandle.onmousedown = e => ganttBeginDrag(e, taskId, 'resize-left', bar);
     if (rightHandle) rightHandle.onmousedown = e => ganttBeginDrag(e, taskId, 'resize-right', bar);
   });
+  const rightBody = document.getElementById('ganttRightBody');
+  if (rightBody) {
+    if (rightBody._ganttHourHandler) rightBody.removeEventListener('change', rightBody._ganttHourHandler);
+    const onHourChange = e => {
+      const input = e.target.closest('[data-gantt-hour-input]');
+      if (!input) return;
+      const taskId = input.dataset.taskId;
+      const date = input.dataset.date;
+      const kind = input.dataset.kind;
+      const task = taskById(taskId);
+      if (!task || !date) return;
+      captureGanttScroll();
+      syncTaskDailyHours(taskId, date, input.value, kind);
+      saveDB();
+      render();
+      toast(kind === 'alloc' ? 'Allocated hours updated' : 'Actual hours updated');
+    };
+    rightBody._ganttHourHandler = onHourChange;
+    rightBody.addEventListener('change', onHourChange);
+  }
 }
 
 function ganttBeginDrag(evt, taskId, mode, barEl){
@@ -2396,7 +2502,7 @@ function openTaskModal(id, defaults={}){
     <div class="form-row"><div class="form-group"><label>Task Type *</label><select required name="taskType">${typeOpts}</select></div><div class="form-group"><label>Project</label><select name="projectId">${projOpts}</select></div></div>
     <div class="form-row"><div class="form-group"><label>Assignee *</label><select required name="assigneeId">${asgOpts}</select></div><div class="form-group"><label>Status</label><select name="status">${stOpts}</select></div></div>
     <div class="form-group"><label>Task Name *</label><input required name="name" value="${esc(t.name)}"></div>
-    <div class="form-row"><div class="form-group"><label>Allocated Hours</label><input type="number" name="allocatedHours" value="${t.allocatedHours||0}" min="0" step="0.01"></div><div class="form-group"><label>Actual Hours</label><input type="text" value="${fmtN(actual)} (from Task Log)" readonly></div></div>
+    <div class="form-row"><div class="form-group"><label>Allocated Hours</label><input type="number" name="allocatedHours" value="${t.allocatedHours||0}" min="0" step="0.01"></div><div class="form-group"><label>Actual Hours</label><input type="text" value="${fmtN(actual)} (from Task Log / Timeline)" readonly></div></div>
     <div class="form-row"><div class="form-group"><label>Start Date</label><input type="date" name="startDate" value="${esc(t.startDate)}"></div><div class="form-group"><label>Due Date</label><input type="date" name="dueDate" value="${esc(t.dueDate)}"></div></div>
     <div class="form-row"><div class="form-group"><label>Priority</label><select name="priority">${prOpts}</select></div><div class="form-group"><label>Project Note</label><input type="text" value="Use Internal or Leave when no project applies" readonly></div></div>
     <div class="form-group"><label>Notes</label><textarea name="notes">${esc(t.notes)}</textarea></div>
@@ -2516,7 +2622,7 @@ function deleteTeam(id){
 
 // TIMESHEET CRUD
 function openTimesheetModal(id){
-  const ts=id?state.db.timesheet.find(x=>x.id===id):{weekEnding:todayISO(),personId:state.db.team[0]?.id||'',projectId:state.db.projects[0]?.id||'',taskId:'',hoursLogged:0,billable:'Y',notes:''};
+  const ts=id?state.db.timesheet.find(x=>x.id===id):{dayDate:todayISO(),weekEnding:ganttIsoDate(weekEndFriday(parseGanttDate(todayISO()))),personId:state.db.team[0]?.id||'',projectId:state.db.projects[0]?.id||'',taskId:'',hoursLogged:0,billable:'Y',notes:''};
   const projOpts=['<option value="">— Internal / no project —</option>'].concat(state.db.projects.map(p=>`<option value="${p.id}" ${ts.projectId===p.id?'selected':''}>${esc(p.shortName)}</option>`)).join('');
   const perOpts=state.db.team.map(m=>`<option value="${m.id}" ${ts.personId===m.id?'selected':''}>${esc(m.name)}</option>`).join('');
   const taskOpts=state.db.tasks.slice().sort((a,b)=>((a.taskType||'project')+(a.name||'')).localeCompare((b.taskType||'project')+(b.name||''))).map(t=>{
@@ -2525,8 +2631,9 @@ function openTimesheetModal(id){
     return `<option value="${t.id}" ${ts.taskId===t.id?'selected':''}>${esc(label)}</option>`;
   }).join('');
   openModal(`<h3>${id?'Edit':'Log'} Hours</h3><form onsubmit="saveTimesheet(event,'${id||''}');return false">
-    <div class="form-row"><div class="form-group"><label>Week Ending *</label><input required type="date" name="weekEnding" value="${esc(ts.weekEnding)}"></div><div class="form-group"><label>Person *</label><select required name="personId">${perOpts}</select></div></div>
-    <div class="form-row"><div class="form-group"><label>Project</label><select name="projectId" onchange="updateTaskOptions(this)">${projOpts}</select></div><div class="form-group"><label>Task</label><select name="taskId" id="tsTaskSelect"><option value="">&mdash;</option>${taskOpts}</select></div></div>
+    <div class="form-row"><div class="form-group"><label>Work Date *</label><input required type="date" name="dayDate" value="${esc(ts.dayDate||ts.weekEnding)}" oninput="this.form.elements.weekEnding.value = this.value ? ganttIsoDate(weekEndFriday(parseGanttDate(this.value))) : ''"></div><div class="form-group"><label>Week Ending</label><input type="date" name="weekEnding" value="${esc(ts.weekEnding)}" readonly></div></div>
+    <div class="form-row"><div class="form-group"><label>Person *</label><select required name="personId">${perOpts}</select></div><div class="form-group"><label>Project</label><select name="projectId" onchange="updateTaskOptions(this)">${projOpts}</select></div></div>
+    <div class="form-row"><div class="form-group"><label>Task</label><select name="taskId" id="tsTaskSelect"><option value="">&mdash;</option>${taskOpts}</select></div><div class="form-group"><label>&nbsp;</label><input type="text" value="This date will link the log to the timeline" readonly></div></div>
     <div class="form-row"><div class="form-group"><label>Hours *</label><input required type="number" name="hoursLogged" value="${ts.hoursLogged||0}" min="0" step="0.25"></div><div class="form-group"><label>Billable</label><select name="billable"><option value="Y" ${ts.billable==='Y'?'selected':''}>Yes</option><option value="N" ${ts.billable==='N'?'selected':''}>No</option></select></div></div>
     <div class="form-group"><label>Notes</label><textarea name="notes">${esc(ts.notes)}</textarea></div>
     <div class="modal-actions"><button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button><button type="submit" class="btn btn-primary">Save</button></div></form>`);
@@ -2547,13 +2654,24 @@ function saveTimesheet(e,id){
   e.preventDefault(); const f=e.target,g=n=>f.elements[n].value;
   const taskId=g('taskId');
   const task=taskById(taskId);
-  const data={weekEnding:g('weekEnding'),personId:g('personId'),projectId:g('projectId')||task?.projectId||'',taskId,hoursLogged:+g('hoursLogged')||0,billable:g('billable'),notes:g('notes')};
+  const previous = id ? state.db.timesheet.find(x=>x.id===id) : null;
+  const dayDate=g('dayDate') || g('weekEnding');
+  const weekEnding=dayDate ? ganttIsoDate(weekEndFriday(parseGanttDate(dayDate))) : g('weekEnding');
+  const data={dayDate,weekEnding,personId:g('personId'),projectId:g('projectId')||task?.projectId||'',taskId,hoursLogged:+g('hoursLogged')||0,billable:g('billable'),notes:g('notes')};
   if(id){Object.assign(state.db.timesheet.find(x=>x.id===id),data);toast('Task Log updated');}else{state.db.timesheet.push({id:uid(),...data});toast('Hours logged');}
+  if (previous?.taskId && previous.taskId !== taskId) {
+    const oldTask = taskById(previous.taskId);
+    if (oldTask) oldTask.actualHours = taskActualHours(oldTask.id);
+  }
+  if (task) task.actualHours = taskActualHours(task.id);
   saveDB();closeModal();render();
 }
 function deleteTimesheet(id){
   if(!confirm('Delete this task log entry?')) return;
+  const entry = state.db.timesheet.find(x=>x.id===id);
   state.db.timesheet=state.db.timesheet.filter(x=>x.id!==id);
+  const task = entry?.taskId ? taskById(entry.taskId) : null;
+  if (task) task.actualHours = taskActualHours(task.id);
   saveDB();render();toast('Entry deleted');
 }
 
@@ -2622,8 +2740,8 @@ function exportExcel(){
   const teamSheet=[['Name','Role','Email','Hourly Rate','Weekly Cap','Period Cap','Alloc','Actual','Skills','Notes']];
   db.team.forEach(m=>{const tot=personTotals(m.id);teamSheet.push([m.name,m.role,m.email,personRate(m.id),m.weeklyCapacity,(m.weeklyCapacity||40)*db.settings.weeksInPeriod,tot.allocHrs,tot.actualHrs,m.skills||'',m.notes||'']);});
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(teamSheet),'Team');
-  const tsSheet=[['Week Ending','Person','Project Code','Task','Hours','Billable','Notes']];
-  db.timesheet.forEach(x=>{const p=projectById(x.projectId),m=personById(x.personId),t=taskById(x.taskId);tsSheet.push([x.weekEnding,m?.name||'',p?.code||'',t?.name||'',x.hoursLogged,x.billable,x.notes||'']);});
+  const tsSheet=[['Date','Week Ending','Person','Project Code','Task','Hours','Billable','Notes']];
+  db.timesheet.forEach(x=>{const p=projectById(x.projectId),m=personById(x.personId),t=taskById(x.taskId);tsSheet.push([x.dayDate||x.weekEnding||'',x.weekEnding,m?.name||'',p?.code||'',t?.name||'',x.hoursLogged,x.billable,x.notes||'']);});
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(tsSheet),'Task Log');
   const nSheet=[['Created','Owner','Category','Subject','Details','Follow-up','Status','Priority']];
   db.notes.forEach(n=>{const own=personById(n.ownerId);nSheet.push([n.dateCreated,own?.name||'',n.category,n.subject,n.details,n.followUpDate,n.status,n.priority]);});

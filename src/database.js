@@ -1,5 +1,5 @@
 // Sustainability Team Planner - auto-generated database file
-// Last saved: 2026-07-03T20:15:29.548Z
+// Last saved: 2026-07-04T14:14:58.981Z
 // Do not edit manually unless you know what you are doing.
 window.__DB__ = {
   "settings": {
@@ -59,10 +59,7 @@ window.__DB__ = {
           "id": "c_ta13_estidama",
           "standard": "estidama",
           "label": "Estidama PBRS",
-          "target": "2 Pearl",
-          "status": "Pursuing",
-          "leadId": "t_mrunmai",
-          "notes": "",
+          "target": "",
           "scorecard": {
             "s": {
               "view": "setup",
@@ -90,18 +87,11 @@ window.__DB__ = {
                 "RE-R3": true,
                 "SM-R1": true,
                 "SM-R2": true,
-                "SM-R3": true,
-                "IDP-1": true,
-                "IDP-2": true,
-                "IDP-5": true
+                "SM-R3": true
               },
               "creditPoints": {},
               "dropdownChoice": {},
-              "optionChecked": {
-                "IDP-3|1": true,
-                "IDP-3|0": true,
-                "IDP-6|0": false
-              },
+              "optionChecked": {},
               "secOpen": {},
               "notes": {}
             },
@@ -110,7 +100,7 @@ window.__DB__ = {
               "projShortName": "Fahid TA13",
               "projFullName": "TA13 Development",
               "projCode": "12654321",
-              "projType": "",
+              "projType": "Multi-Residential",
               "projTarget": ""
             }
           }
@@ -118,23 +108,15 @@ window.__DB__ = {
         {
           "id": "c_ta13_leed",
           "standard": "leed",
-          "label": "LEED BD+C",
-          "target": "Gold",
-          "status": "Pursuing",
-          "leadId": "t_areesha",
-          "notes": ""
+          "label": "LEED BD+C"
         },
         {
           "id": "c_ta13_fitwel",
           "standard": "fitwel",
-          "label": "Fitwel",
-          "target": "2 Star",
-          "status": "Planned",
-          "leadId": "t_areesha",
-          "notes": ""
+          "label": "Fitwel"
         }
       ],
-      "buildingUse": ""
+      "buildingUse": "Multi-Residential"
     },
     {
       "id": "p_canopies",
@@ -154,11 +136,7 @@ window.__DB__ = {
         {
           "id": "c_canopies_estidama",
           "standard": "estidama",
-          "label": "Estidama PCRS",
-          "target": "1 Pearl",
-          "status": "Pursuing",
-          "leadId": "t_mrunmai",
-          "notes": ""
+          "label": "Estidama PCRS"
         }
       ]
     },
@@ -180,20 +158,12 @@ window.__DB__ = {
         {
           "id": "c_bag_estidama",
           "standard": "estidama",
-          "label": "Estidama PBRS",
-          "target": "3 Pearl",
-          "status": "Pursuing",
-          "leadId": "t_mrunmai",
-          "notes": ""
+          "label": "Estidama PBRS"
         },
         {
           "id": "c_bag_fitwel",
           "standard": "fitwel",
-          "label": "Fitwel",
-          "target": "3 Star",
-          "status": "Pursuing",
-          "leadId": "t_mrunmai",
-          "notes": ""
+          "label": "Fitwel"
         }
       ]
     },
@@ -215,11 +185,7 @@ window.__DB__ = {
         {
           "id": "c_noma_leed",
           "standard": "leed",
-          "label": "LEED BD+C",
-          "target": "Silver",
-          "status": "Planned",
-          "leadId": "t_mrunmai",
-          "notes": ""
+          "label": "LEED"
         }
       ]
     }
