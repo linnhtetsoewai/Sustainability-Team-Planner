@@ -113,7 +113,7 @@ td.actions{white-space:nowrap;text-align:right}
 .badge-red{background:#FADCDC;color:#993030}
 .badge-grey{background:#E7E6E6;color:#555}
 .badge-blue{background:#DDE7F0;color:#2A4E70}
-.badge-allocation{background:#D7EFE6;color:#16513A;border:1px solid rgba(31,78,60,0.14);font-weight:700}
+.badge-allocation{display:inline-flex;align-items:center;background:#D7EFE6;color:#16513A;border:1px solid rgba(31,78,60,0.14);font-weight:700;padding:1px 6px;font-size:10px;line-height:1;border-radius:999px;vertical-align:middle;white-space:nowrap;flex:0 0 auto}
 .task-progress{display:flex;flex-direction:column;gap:6px;min-width:0;width:100%}
 .task-progress-text{display:flex;justify-content:space-between;gap:10px;font-size:11px;color:var(--muted);font-weight:600}
 .task-progress-track{height:10px;border-radius:999px;background:#E7ECE8;overflow:hidden;border:1px solid rgba(0,0,0,0.06)}
@@ -129,7 +129,7 @@ td.actions{white-space:nowrap;text-align:right}
 .project-group-body td.actions .btn-icon{padding:0 6px}
 .task-toggle-wrap{display:flex;align-items:center;justify-content:center;gap:10px;min-width:0}
 .task-toggle-wrap .task-name{min-width:0;width:100%;text-align:left}
-.task-toggle-wrap .task-name > div:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task-toggle-wrap .task-name > div:first-child{display:flex;align-items:center;gap:6px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .task-toggle-wrap .task-name > div:last-child{overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .task-detail-row td{background:#F8FBF8;border-bottom:1px solid var(--border);padding:0 12px 12px}
 .task-detail-panel{margin:0 0 4px 36px;padding:12px 14px;border:1px solid var(--border);border-radius:8px;background:#fff}
@@ -2100,7 +2100,7 @@ function renderTasks(){
     const overdue=isOverdue(t.dueDate,t.status);
     const expanded=state.taskExpanded.has(t.id);
     const logs=taskLogSummary(t.id);
-    const typeTag = t.taskType && t.taskType !== 'project' ? `<span class="badge ${String(t.taskType||'')==='allocation' ? 'badge-allocation' : 'badge-grey'}" style="margin-left:8px">${esc(taskTypeLabel(t))}</span>` : '';
+    const typeTag = t.taskType && t.taskType !== 'project' ? `<span class="badge ${String(t.taskType||'')==='allocation' ? 'badge-allocation' : 'badge-grey'}" style="margin-left:6px">${esc(taskTypeLabel(t))}</span>` : '';
     const detail=expanded?`<tr class="task-detail-row"><td colspan="12"><div class="task-detail-panel"><div class="task-detail-head"><span>Task Log breakdown</span><span>${fmtN(logs.reduce((s,x)=>s+(+x.hours||0),0))}h logged</span></div>${logs.length?`<div class="task-log-list">${logs.map(x=>`<div class="task-log-item"><div><b>${esc(x.name)}</b><div class="task-log-meta">${x.entries} entry${x.entries===1?'':'ies'}</div></div><div class="task-log-hours">${fmtN(x.hours)}h</div><div class="task-log-hours">${fmtC(x.budget)}</div></div>`).join('')}</div>`:`<div class="task-log-empty">No task log entries yet for this task.</div>`}</div></td></tr>`:'';
     return `<tr><td><button class="task-toggle ${expanded?'expanded':''}" onclick="toggleTaskDetails('${t.id}', event)">&#9662;</button></td><td><div class="task-toggle-wrap"><div class="task-name"><div>${esc(t.name)}${typeTag}</div><div style="font-size:11px;color:var(--muted)">${esc(t.notes||'')}</div></div></div></td><td>${esc(m?.name||'—')}</td><td class="num">${fmtN(alloc)}</td><td class="num">${String(t.taskType||'')==='allocation' ? '—' : fmtN(actual)}</td><td class="num">${fmtC(taskBudget(t,'allocatedHours'))}</td><td class="num">${String(t.taskType||'')==='allocation' ? '—' : fmtC(taskBudget(t,'actualHours'))}</td><td>${esc(t.dueDate||'—')} ${overdue?'<span class="badge badge-red">!</span>':''}</td><td>${statusBadge(t.status)}</td><td>${priorityBadge(t.priority)}</td><td>${String(t.taskType||'')==='allocation' ? '—' : taskProgress(actual, alloc)}</td><td class="actions"><button class="btn-icon" onclick="openTaskModal('${t.id}')">Edit</button><button class="btn-icon danger" onclick="deleteTask('${t.id}')">Delete</button></td></tr>${detail}`;
   };
@@ -2217,7 +2217,7 @@ function renderGantt(){
     const assignee=personById(t.assigneeId);
     const project=projectById(t.projectId);
     const projectLabel=project?.shortName || (t.taskType==='leave' ? 'Leave' : 'Internal');
-    const badge = String(t.taskType||'')==='allocation' ? `<span class="badge badge-allocation" style="margin-left:8px">Allocation</span>` : (t.taskType && t.taskType !== 'project' ? `<span class="badge badge-grey" style="margin-left:8px">${esc(taskTypeLabel(t))}</span>` : '');
+    const badge = String(t.taskType||'')==='allocation' ? `<span class="badge badge-allocation" style="margin-left:6px">Allocation</span>` : (t.taskType && t.taskType !== 'project' ? `<span class="badge badge-grey" style="margin-left:6px">${esc(taskTypeLabel(t))}</span>` : '');
     return `<tr><td class="gantt-left gantt-task-name"><div class="gantt-task-stack" style="cursor:pointer" onclick="openTaskModal('${t.id}')"><b>${esc(t.name)}</b>${badge}<span>${esc(t.status)}</span></div></td><td class="gantt-left gantt-assignee">${esc(firstName(assignee?.name)||'Unassigned')}</td><td class="gantt-left gantt-project">${esc(projectLabel)}</td></tr>`;
   }).join('');
   const rightRows=tasks.map(t=>{
