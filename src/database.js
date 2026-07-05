@@ -1,5 +1,5 @@
 // Sustainability Team Planner - auto-generated database file
-// Last saved: 2026-07-04T14:14:58.981Z
+// Last saved: 2026-07-05T07:36:21.657Z
 // Do not edit manually unless you know what you are doing.
 window.__DB__ = {
   "settings": {
@@ -444,6 +444,42 @@ window.__DB__ = {
           "hours": 8
         }
       ]
+    },
+    {
+      "id": "buxl6i0k",
+      "taskType": "allocation",
+      "projectId": "p_ta13",
+      "name": "Planned Allocation",
+      "assigneeId": "t_mrunmai",
+      "allocatedHours": 0,
+      "actualHours": 0,
+      "startDate": "2026-07-05",
+      "dueDate": "2026-07-10",
+      "status": "Not Started",
+      "priority": "Medium",
+      "notes": "",
+      "dailyAllocations": [
+        {
+          "date": "2026-07-06",
+          "hours": 0
+        },
+        {
+          "date": "2026-07-07",
+          "hours": 0
+        },
+        {
+          "date": "2026-07-08",
+          "hours": 0
+        },
+        {
+          "date": "2026-07-09",
+          "hours": 0
+        },
+        {
+          "date": "2026-07-10",
+          "hours": 0
+        }
+      ]
     }
   ],
   "timesheet": [
@@ -455,7 +491,8 @@ window.__DB__ = {
       "taskId": "flr2rg1t",
       "hoursLogged": 5,
       "billable": "Y",
-      "notes": ""
+      "notes": "",
+      "dayDate": "2026-07-03"
     },
     {
       "id": "yyrd09v0",
@@ -465,7 +502,8 @@ window.__DB__ = {
       "taskId": "4b9me9xu",
       "hoursLogged": 5,
       "billable": "Y",
-      "notes": ""
+      "notes": "",
+      "dayDate": "2026-07-03"
     }
   ],
   "notes": [
