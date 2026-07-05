@@ -1,0 +1,1349 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estidama Scorecard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --sand: #F5EDE0;
+    --cream: #FFFDF6;
+    --gold: #A67C3A;
+    --gold-dark: #7A5820;
+    --gold-light: #F2E2B6;
+    --gold-mid: #CFB06A;
+    --espresso: #231406;
+    --warm-800: #3C2308;
+    --warm-700: #5B3C1D;
+    --warm-600: #7A5535;
+    --warm-500: #896742;
+    --warm-400: #A68460;
+    --warm-300: #C5AF96;
+    --warm-200: #DDD0BA;
+    --warm-100: #ECE5D5;
+    --warm-50: #F6F2EB;
+    --border: #D8C9AC;
+    --green: #2C6A48;
+    --green-light: #E5F1EC;
+    --amber: #A07200;
+    --amber-light: #FAF0D0;
+    --red-text: #7A2A0A;
+    --radius: 8px;
+    --radius-lg: 14px;
+    --font: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-display: 'Cormorant Garamond', Georgia, serif;
+    --shadow-sm: 0 1px 3px rgba(35,20,6,0.09), 0 1px 2px rgba(35,20,6,0.05);
+    --shadow-md: 0 4px 14px rgba(35,20,6,0.1), 0 2px 4px rgba(35,20,6,0.06);
+  }
+  html { font-size: 14px; scroll-behavior: smooth; }
+  body { font-family: var(--font); color: var(--espresso); background: var(--sand); min-height: 100vh; }
+
+  /* ---------- LAYOUT ---------- */
+  .page-wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px 60px; }
+  .site-header { background: var(--cream); border-bottom: 1px solid var(--border); padding: 0 20px; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm); }
+  .header-inner { max-width: 1040px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 56px; gap: 12px; }
+  .header-logo { display: flex; align-items: center; gap: 11px; }
+  .logo-mark { width: 34px; height: 34px; background: linear-gradient(135deg, var(--gold-dark) 0%, var(--gold) 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(122,88,32,0.35); }
+  .logo-mark svg { width: 18px; height: 18px; fill: #fff; }
+  .header-title { font-family: var(--font-display); font-size: 17px; font-weight: 700; color: var(--espresso); line-height: 1.2; letter-spacing: 0.01em; }
+  .header-sub { font-size: 10.5px; color: var(--warm-500); margin-top: 1px; letter-spacing: 0.03em; }
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+
+  /* ---------- BUTTONS ---------- */
+  .btn { padding: 7px 16px; font-size: 12.5px; border-radius: var(--radius); cursor: pointer; border: 1px solid var(--border); background: var(--cream); color: var(--warm-700); font-family: var(--font); font-weight: 600; transition: all 0.15s ease; white-space: nowrap; letter-spacing: 0.01em; }
+  .btn:hover { background: var(--warm-50); border-color: var(--warm-300); box-shadow: var(--shadow-sm); }
+  .btn.primary { background: linear-gradient(135deg, var(--gold-dark) 0%, var(--gold) 100%); color: var(--cream); border-color: transparent; box-shadow: 0 2px 8px rgba(122,88,32,0.35); }
+  .btn.primary:hover { box-shadow: 0 4px 14px rgba(122,88,32,0.45); transform: translateY(-1px); }
+  .btn.sm { padding: 5px 12px; font-size: 11.5px; }
+
+  /* ---------- PAGE SECTIONS ---------- */
+  #view-setup, #view-stage { display: none; }
+  #view-setup.active, #view-stage.active { display: block; }
+
+  /* ---------- PAGE TITLE ROW ---------- */
+  .page-title-row { display: flex; align-items: flex-end; justify-content: space-between; padding: 24px 0 16px; gap: 16px; flex-wrap: wrap; }
+  .page-title { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--espresso); letter-spacing: -0.01em; line-height: 1.2; }
+  .page-desc { font-size: 12.5px; color: var(--warm-500); margin-top: 4px; }
+
+  /* ---------- SUMMARY CARDS ---------- */
+  .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  @media (max-width: 700px) { .summary-grid { grid-template-columns: repeat(2, 1fr); } }
+  .sum-card { background: var(--cream); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 18px; box-shadow: var(--shadow-sm); border-top: 3px solid var(--gold-mid); transition: transform 0.15s, box-shadow 0.15s; animation: fadeSlideUp 0.35s ease both; }
+  .sum-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .sum-card:nth-child(2) { animation-delay: 0.06s; }
+  .sum-card:nth-child(3) { animation-delay: 0.12s; }
+  .sum-card:nth-child(4) { animation-delay: 0.18s; }
+  .sum-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.09em; color: var(--warm-400); margin-bottom: 6px; font-weight: 700; }
+  .sum-value { font-family: var(--font-display); font-size: 36px; font-weight: 700; line-height: 1; color: var(--espresso); }
+  .sum-sub { font-size: 11px; color: var(--warm-400); margin-top: 5px; }
+  .rating-pill { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 20px; font-family: var(--font-display); font-size: 15px; font-weight: 700; }
+  .rp-0 { background: var(--warm-100); color: var(--warm-700); }
+  .rp-1 { background: var(--gold-light); color: var(--gold-dark); box-shadow: 0 1px 6px rgba(166,124,58,0.25); }
+  .rp-2 { background: #e5f0dc; color: #2a5818; }
+  .rp-3 { background: #c8e4bb; color: #1c4a0c; }
+  .rp-4 { background: #aad3a0; color: #113c08; }
+  .rp-5 { background: #80c276; color: #062800; }
+
+  @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ---------- DONUT CHART ---------- */
+  .donut-wrap { background: var(--cream); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px 22px 16px; margin-bottom: 20px; box-shadow: var(--shadow-sm); }
+  .donut-title { font-family: var(--font-display); font-size: 16px; color: var(--espresso); margin-bottom: 3px; font-weight: 700; letter-spacing: 0.01em; }
+  .donut-sub { font-size: 12px; color: var(--warm-500); margin-bottom: 14px; letter-spacing: 0.01em; }
+  .donut-layout { display: flex; align-items: center; gap: 26px; }
+  .donut-svg-wrap { position: relative; flex-shrink: 0; }
+  .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
+  .donut-center-num { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--espresso); line-height: 1; }
+  .donut-center-label { font-size: 8.5px; color: var(--warm-400); letter-spacing: 0.07em; text-transform: uppercase; margin-top: 3px; }
+  .donut-legend { display: grid; grid-template-columns: 10px auto 1.5px auto auto; column-gap: 20px; row-gap: 0; align-items: center; align-content: start; }
+  .donut-legend-row { display: contents; }
+  .donut-legend-hdr { display: contents; }
+  .donut-divider { background: rgba(166,124,58,0.3); align-self: stretch; border-radius: 1px; }
+  .donut-col-hdr { font-size: 9.5px; color: var(--warm-400); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; text-align: right; padding: 0 0 8px; }
+  .donut-col-hdr-blank { padding: 0 0 8px; }
+  .donut-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .donut-legend-name { font-size: 11.5px; color: var(--warm-700); white-space: nowrap; padding: 4px 0; }
+  .donut-legend-opt { color: var(--warm-500); font-size: 11.5px; text-align: right; padding: 4px 0; }
+  .donut-legend-req { font-size: 11px; color: var(--warm-500); text-align: right; padding: 4px 0; }
+  .donut-seg { transition: opacity 0.2s; cursor: pointer; }
+  .donut-seg:hover { opacity: 0.8; }
+  .donut-layout { align-items: flex-start; }
+  .donut-detail { flex: 1; min-width: 0; border-left: 1px solid var(--border); padding-left: 20px; padding-top: 2px; }
+  .donut-detail-empty { font-size: 12px; color: var(--warm-300); font-style: italic; }
+  .donut-detail-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .donut-detail-swatch { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+  .donut-detail-sec { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--espresso); }
+  .donut-credit-list { display: flex; flex-direction: column; }
+  .donut-credit-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px solid var(--warm-50); }
+  .donut-credit-code { flex: 1; font-size: 12px; font-weight: 600; color: var(--warm-700); }
+  .donut-credit-badge { font-size: 9px; background: var(--gold-light); color: var(--gold-dark); border-radius: 3px; padding: 1px 5px; font-weight: 600; letter-spacing: 0.03em; flex-shrink: 0; }
+  .donut-credit-pts { font-size: 12px; color: var(--warm-500); min-width: 16px; text-align: right; flex-shrink: 0; }
+
+  /* ---------- KICKOFF NOTE ---------- */
+  .notice { background: linear-gradient(to right, var(--gold-light), rgba(242,226,182,0.2)); border-left: 3px solid var(--gold-mid); border-radius: 0 var(--radius) var(--radius) 0; padding: 10px 16px; font-size: 12.5px; color: var(--warm-700); margin-bottom: 18px; line-height: 1.5; }
+
+  /* ---------- STAGE TABS ---------- */
+  .stage-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 20px; }
+  .stage-tab { padding: 10px 24px; font-size: 13px; cursor: pointer; background: none; border: none; color: var(--warm-500); font-family: var(--font); font-weight: 600; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: color 0.15s; }
+  .stage-tab:hover { color: var(--espresso); }
+  .stage-tab.active { color: var(--gold-dark); border-bottom-color: var(--gold); }
+
+  /* ---------- SECTION TABS ---------- */
+  .section-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  .section-tab-button { padding: 8px 16px; font-size: 12.5px; font-family: var(--font); font-weight: 600; border: 1.5px solid var(--border); border-radius: 999px; background: var(--cream); color: var(--warm-600); cursor: pointer; transition: all 0.15s ease; }
+  .section-tab-button:hover { border-color: var(--gold-mid); color: var(--gold-dark); background: var(--warm-50); }
+  .section-tab-button.active { background: linear-gradient(135deg, var(--gold-dark), var(--gold)); color: var(--cream); border-color: transparent; box-shadow: 0 2px 8px rgba(122,88,32,0.3); }
+
+  /* ---------- CREDIT SECTIONS ---------- */
+  .section-wrap { margin-bottom: 8px; }
+  .section-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--warm-50); border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; user-select: none; transition: background 0.12s; }
+  .section-head:hover { background: var(--warm-100); }
+  .section-head.open { border-radius: var(--radius) var(--radius) 0 0; border-bottom-color: transparent; }
+  .sec-left { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 700; color: var(--espresso); }
+  .sec-chevron { color: var(--warm-400); font-size: 10px; transition: transform 0.2s; display: inline-block; }
+  .sec-chevron.open { transform: rotate(90deg); }
+  .sec-pts { font-size: 12px; color: var(--warm-500); font-weight: 500; }
+
+  /* ---------- CREDIT ROWS (SETUP) ---------- */
+  .credits-body { border: 1px solid var(--border); border-top: none; border-radius: 0 0 var(--radius) var(--radius); background: var(--cream); }
+  .credit-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px 12px 32px; border-bottom: 1px solid var(--warm-100); transition: background 0.12s, border-left-color 0.12s; border-left: 3px solid transparent; }
+  .credit-row:last-child { border-bottom: none; }
+  .credit-row.checked { background: linear-gradient(to right, rgba(166,124,58,0.07), transparent); border-left-color: var(--gold-mid); }
+  .credit-row.req-row { background: var(--warm-50); border-left-color: var(--warm-200); }
+  .credit-cb { width: 15px; height: 15px; margin-top: 3px; flex-shrink: 0; cursor: pointer; accent-color: var(--gold); }
+  .credit-cb:disabled { cursor: default; accent-color: var(--warm-300); }
+  .credit-meta { flex: 1; min-width: 0; }
+  .credit-description { font-size: 11.5px; color: var(--warm-500); margin-top: 3px; line-height: 1.5; }
+  .credit-code-line { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+  .credit-code { font-size: 12px; font-weight: 700; color: var(--gold-dark); letter-spacing: 0.03em; }
+  .req-badge { font-size: 9px; background: rgba(122,88,32,0.13); color: var(--gold-dark); border-radius: 4px; padding: 1.5px 6px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+  .uitype-badge { font-size: 9px; border-radius: 4px; padding: 1.5px 5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+  .uitype-straight { background: var(--green-light); color: var(--green); }
+  .uitype-dropdown { background: #e3edf9; color: #1a5090; }
+  .uitype-checkbox { background: var(--amber-light); color: var(--amber); }
+  .credit-name { font-size: 13px; color: var(--espresso); font-weight: 600; line-height: 1.35; }
+  .credit-pts-note { font-size: 11px; color: var(--warm-400); margin-top: 3px; }
+  .credit-pts-picker { margin-top: 8px; max-width: 100%; }
+  .credit-pts-summary { list-style: none; border: 1px solid var(--border); border-radius: var(--radius); padding: 7px 10px; font-size: 12.5px; font-family: var(--font); background: var(--cream); color: var(--espresso); cursor: pointer; white-space: normal; line-height: 1.4; transition: border-color 0.12s; }
+  .credit-pts-summary:hover { border-color: var(--gold-mid); }
+  .credit-pts-picker[open] .credit-pts-summary { border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-color: var(--gold); }
+  .credit-pts-summary::-webkit-details-marker { display: none; }
+  .credit-pts-summary::marker { content: ''; }
+  .credit-pts-menu { border: 1px solid var(--gold); border-top: none; border-bottom-left-radius: var(--radius); border-bottom-right-radius: var(--radius); background: var(--cream); overflow: hidden; box-shadow: var(--shadow-md); }
+  .credit-pts-option { display: block; width: 100%; text-align: left; border: none; border-top: 1px solid var(--warm-100); background: var(--cream); color: var(--espresso); font: inherit; padding: 8px 12px; cursor: pointer; white-space: normal; line-height: 1.45; transition: background 0.1s; }
+  .credit-pts-option:first-child { border-top: none; }
+  .credit-pts-option:hover { background: var(--gold-light); }
+  .credit-pts-option.active { background: rgba(166,124,58,0.12); }
+  .credit-pts-points { font-weight: 700; color: var(--gold-dark); margin-right: 5px; }
+
+  /* ---------- CHECKBOX OPTION ROWS ---------- */
+  .option-check-row { display: flex; align-items: flex-start; gap: 8px; margin-top: 7px; cursor: pointer; }
+  .option-check-row input[type=checkbox] { width: 14px; height: 14px; margin-top: 2px; flex-shrink: 0; cursor: pointer; accent-color: var(--gold); }
+  .option-check-label { font-size: 12.5px; line-height: 1.45; color: var(--espresso); }
+  .option-pts-badge { font-weight: 700; color: var(--gold-dark); margin-right: 4px; }
+
+  /* ---------- STAGE CREDIT ROWS ---------- */
+  .stage-credit-block { border-bottom: 1px solid var(--warm-100); }
+  .stage-credit-block:last-child { border-bottom: none; }
+  .stage-credit-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 12px 32px; cursor: pointer; transition: background 0.1s; gap: 12px; }
+  .stage-credit-head:hover { background: var(--warm-50); }
+  .stage-credit-head.open { background: rgba(166,124,58,0.05); }
+  .sch-left { flex: 1; min-width: 0; }
+  .sch-title-row { display: flex; align-items: center; gap: 7px; margin-bottom: 3px; flex-wrap: wrap; }
+  .sch-right { font-size: 11.5px; font-weight: 600; flex-shrink: 0; color: var(--warm-400); }
+
+  /* ---------- NOTES PANEL ---------- */
+  .notes-panel { padding: 12px 18px 16px 48px; background: var(--warm-50); border-top: 1px solid var(--warm-100); }
+  .note-label { font-size: 10.5px; color: var(--warm-400); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 5px; font-weight: 700; }
+  .note-field { width: 100%; font-size: 12.5px; font-family: var(--font); color: var(--espresso); background: var(--cream); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 12px; resize: vertical; min-height: 48px; line-height: 1.5; transition: border-color 0.15s, box-shadow 0.15s; }
+  .note-field:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(166,124,58,0.12); }
+
+  /* ---------- STAGE SUMMARY ---------- */
+  .stage-summary { background: var(--cream); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px 20px; margin-top: 20px; box-shadow: var(--shadow-sm); }
+  .ss-title { font-family: var(--font-display); font-size: 16px; font-weight: 700; margin-bottom: 14px; color: var(--espresso); letter-spacing: 0.01em; }
+  .ss-row { display: flex; justify-content: space-between; align-items: flex-start; font-size: 12.5px; padding: 8px 0; border-bottom: 1px solid var(--warm-100); gap: 16px; }
+  .ss-row:last-child { border-bottom: none; }
+  .ss-row-label { color: var(--warm-700); flex-shrink: 0; font-weight: 500; }
+  .ss-codes { font-weight: 600; text-align: right; line-height: 1.7; color: var(--espresso); }
+
+  /* ---------- PROJECT INFO BANNER ---------- */
+  .project-banner { background: var(--cream); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 18px; display: flex; align-items: flex-end; gap: 14px; flex-wrap: nowrap; overflow-x: auto; box-shadow: var(--shadow-sm); }
+  .proj-field { display: flex; flex-direction: column; gap: 4px; flex: 1 1 160px; min-width: 150px; }
+  .proj-field.project-record { flex: 0 0 260px; min-width: 220px; }
+  .proj-field label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--warm-400); white-space: nowrap; font-weight: 700; }
+  .proj-field input, .proj-field select { font-size: 13px; font-family: var(--font); color: var(--espresso); border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 10px; background: var(--cream); min-width: 0; transition: border-color 0.15s, box-shadow 0.15s; }
+  .proj-field input:focus, .proj-field select:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(166,124,58,0.12); }
+  @media (max-width: 980px) { .project-banner { flex-wrap: wrap; } }
+
+  /* ---------- PRINT ---------- */
+  @media print {
+    .site-header, .header-actions, .btn, .stage-tabs, .page-title-row .btn { display: none !important; }
+    .page-wrap { max-width: 100%; padding: 0; }
+    body { background: #fff; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="header-logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 20 20"><polygon points="10,2 18,7 18,13 10,18 2,13 2,7"/></svg>
+      </div>
+      <div>
+        <div class="header-title">Sustainability Platform</div>
+        <div class="header-sub">Report Generation | Coordination | Estidama Abu Dhabi</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn sm" onclick="exportData()">Export JSON</button>
+      <button class="btn sm" onclick="importData()">Import JSON</button>
+      <button class="btn sm" onclick="window.print()">Print</button>
+      <span id="save-indicator" style="font-size:11px;color:var(--green);display:none;font-weight:600;letter-spacing:0.04em;">Saved</span>
+    </div>
+  </div>
+</header>
+
+<div class="page-wrap">
+  <!-- SETUP VIEW -->
+  <div id="view-setup" class="active">
+    <div class="page-title-row">
+      <div>
+        <div class="page-title">Credit Selection</div>
+        <div class="page-desc">Select credits to target at project kick-off. Mandatory credits are pre-selected.</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
+        <button class="btn primary" onclick="goToPlanner()">&lt;- Planner</button>
+        <button class="btn primary" onclick="goToStage()">Start Stage Tracking -></button>
+      </div>
+    </div>
+
+    <div class="project-banner">
+      <div class="proj-field"><label>Short Name</label><input type="text" id="proj-short-name" readonly tabindex="-1" placeholder="e.g. TA13"/></div>
+      <div class="proj-field"><label>Full Name</label><input type="text" id="proj-full-name" readonly tabindex="-1" placeholder="e.g. TA13 Development"/></div>
+      <div class="proj-field"><label>Project Code</label><input type="text" id="proj-code" readonly tabindex="-1" placeholder="e.g. 12654321"/></div>
+      <div class="proj-field"><label>Building use</label>
+        <select id="proj-type" onchange="saveProject(true)">
+          <option value="">- Select -</option>
+          <option>Office</option><option>Retail</option><option>Multi-Residential</option><option>School</option><option>Mixed Use</option>
+        </select>
+      </div>
+      <div class="proj-field"><label>Target Pearl rating</label>
+        <select id="proj-target" onchange="saveProject(true)">
+          <option value="">- Select -</option>
+          <option>1 Pearl</option><option>2 Pearl (60 pts)</option><option>3 Pearl (85 pts)</option><option>4 Pearl (115 pts)</option><option>5 Pearl (140 pts)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="summary-grid" id="setup-summary"></div>
+    <div id="points-pile-chart"></div>
+    <div class="section-tabs" id="setup-section-tabs"></div>
+    <div id="setup-credits"></div>
+  </div>
+
+  <!-- STAGE VIEW -->
+  <div id="view-stage">
+    <div class="page-title-row">
+      <div>
+        <div class="page-title" id="stage-view-title">Stage Checklist</div>
+        <div class="page-desc" id="stage-view-sub"></div>
+      </div>
+      <button class="btn" onclick="goToSetup()">&lt;- Credit Selection</button>
+    </div>
+    <div class="summary-grid" id="stage-summary"></div>
+    <div class="stage-tabs">
+      <button class="stage-tab active" data-stage="concept" onclick="setStage('concept')">Concept Design</button>
+      <button class="stage-tab" data-stage="schematic" onclick="setStage('schematic')">Schematic Design</button>
+      <button class="stage-tab" data-stage="detailed" onclick="setStage('detailed')">Detailed Design</button>
+    </div>
+    <div id="stage-credits"></div>
+    <div class="stage-summary" id="stage-end-summary"></div>
+  </div>
+</div>
+
+<script>
+const FILE_HANDLE_DB = 'ghd_planner_file_handle';
+const FILE_HANDLE_STORE = 'handles';
+const FILE_HANDLE_KEY = 'database-js';
+let fileHandle = null;
+let lastFileModified = null;
+let pollTimer = null;
+let pendingSaveResolve = null;
+let databaseReady = false;
+let scorecardDirty = false;
+let ESTIDAMA = {};
+const SECTION_COLORS = {
+  IDP: '#2c6fad', NS: '#1f7a5f', LBo: '#b07d00', LBi: '#7c3f7c',
+  PW: '#1e85a5', RE: '#b04a00', SM: '#4f772f', IP: '#4a4a8c',
+};
+let SECTIONS = {};
+let CREDITS = {};
+let ALL_CREDITS = [];
+let RATING_THRESHOLDS = [
+  {min:0,label:'1 Pearl'},{min:60,label:'2 Pearl'},{min:85,label:'3 Pearl'},{min:115,label:'4 Pearl'},{min:140,label:'5 Pearl'}
+];
+let STAGES = ['concept','schematic','detailed'];
+let STAGE_LABELS = {concept:'Concept Design',schematic:'Schematic Design',detailed:'Detailed Design'};
+const SCORECARD_PARAMS = new URLSearchParams(window.location.search);
+const SCORECARD_CONTEXT = {
+  standard: SCORECARD_PARAMS.get('standard') || 'estidama',
+  projectId: SCORECARD_PARAMS.get('projectId') || '',
+  certId: SCORECARD_PARAMS.get('certId') || '',
+};
+
+function openFileHandleDB(){
+  return new Promise((resolve, reject) => {
+    if (!('indexedDB' in window)) {
+      resolve(null);
+      return;
+    }
+    const req = indexedDB.open(FILE_HANDLE_DB, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore(FILE_HANDLE_STORE);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error || new Error('IndexedDB unavailable'));
+  });
+}
+
+async function storeFileHandle(handle){
+  const db = await openFileHandleDB();
+  if (!db) return;
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction(FILE_HANDLE_STORE, 'readwrite');
+    tx.objectStore(FILE_HANDLE_STORE).put(handle, FILE_HANDLE_KEY);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error || new Error('Could not store file handle'));
+  });
+  db.close();
+}
+
+async function loadStoredFileHandle(){
+  const db = await openFileHandleDB();
+  if (!db) return null;
+  try {
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction(FILE_HANDLE_STORE, 'readonly');
+      const req = tx.objectStore(FILE_HANDLE_STORE).get(FILE_HANDLE_KEY);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => reject(req.error || new Error('Could not load file handle'));
+    });
+  } finally {
+    db.close();
+  }
+}
+
+function parseDatabaseText(text){
+  const sandbox = {window: null};
+  sandbox.window = sandbox;
+  const result = new Function('window', `${text}\nreturn window.__DB__;`)(sandbox);
+  if (!result || typeof result !== 'object') throw new Error('Could not load window.__DB__ from file');
+  return JSON.parse(JSON.stringify(result));
+}
+
+function refreshCatalogFromDB(){
+  ESTIDAMA = window.__DB__?.standards?.estidama || {};
+  SECTIONS = ESTIDAMA.sections || {};
+  CREDITS = ESTIDAMA.credits || {};
+  ALL_CREDITS = ESTIDAMA.allCredits || Object.values(CREDITS).flat();
+  RATING_THRESHOLDS = ESTIDAMA.ratingThresholds || [
+    {min:0,label:'1 Pearl'},{min:60,label:'2 Pearl'},{min:85,label:'3 Pearl'},{min:115,label:'4 Pearl'},{min:140,label:'5 Pearl'}
+  ];
+  STAGES = ESTIDAMA.stages || ['concept','schematic','detailed'];
+  STAGE_LABELS = ESTIDAMA.stageLabels || {concept:'Concept Design',schematic:'Schematic Design',detailed:'Detailed Design'};
+}
+
+function makeDefaultScorecardState(){
+  return {
+    view: 'setup',
+    stage: 'concept',
+    activeSetupSection: Object.keys(CREDITS)[0] || 'IDP',
+    currentProjectId: null,
+    projectDb: [],
+    selected: {},
+    creditPoints: {},
+    dropdownChoice: {},
+    optionChecked: {},
+    secOpen: {},
+    notes: {},
+  };
+}
+
+function scorecardStateKey(){
+  return ['pbrs_checklist', SCORECARD_CONTEXT.standard, SCORECARD_CONTEXT.projectId || 'new', SCORECARD_CONTEXT.certId || 'cert'].join(':');
+}
+
+// ----------------------------------------------------------------
+// STATE
+// ----------------------------------------------------------------
+let S = makeDefaultScorecardState();
+
+// ----------------------------------------------------------------
+// UTILS
+// ----------------------------------------------------------------
+function getCreditPoints(code) {
+  const c = ALL_CREDITS.find(x => x.code === code);
+  if (!c || c.req) return 0;
+  if (c.uiType === 'checkbox') {
+    return (c.pointOptions || []).reduce((sum, opt, idx) =>
+      sum + (S.optionChecked[code + '|' + idx] ? opt.pts : 0), 0);
+  }
+  if (!S.selected[code]) return 0;
+  if (c.uiType === 'straight') return Number(c.pts) || 0;
+  if (c.uiType === 'dropdown') {
+    const choiceIdx = Number(S.dropdownChoice[code]);
+    if (Number.isInteger(choiceIdx) && (c.pointOptions || [])[choiceIdx]) {
+      return Number((c.pointOptions || [])[choiceIdx].pts) || 0;
+    }
+    const pts = Number(S.creditPoints[code]);
+    return pts > 0 ? Math.min(pts, Number(c.pts)) : Number(c.pts);
+  }
+  return 0;
+}
+
+function getPossiblePts() {
+  return ALL_CREDITS.filter(c => !c.req).reduce((sum, c) => sum + getCreditPoints(c.code), 0);
+}
+
+function getRating(pts) {
+  let r = 0;
+  RATING_THRESHOLDS.forEach((t, i) => { if (pts >= t.min) r = i; });
+  return r;
+}
+
+function nk(code, stage) { return code + '|' + stage; }
+
+function renderKeepScroll(renderFn){
+  const x = window.scrollX;
+  const y = window.scrollY;
+  renderFn();
+  requestAnimationFrame(() => {
+    window.scrollTo(x, y);
+  });
+}
+
+// ----------------------------------------------------------------
+// RENDER SETUP
+// ----------------------------------------------------------------
+function renderSetupSummary() {
+  const possible = getPossiblePts();
+  const r = getRating(possible);
+  const req = ALL_CREDITS.filter(c => c.req).length;
+  const optTotal = ALL_CREDITS.filter(c => !c.req).length;
+  const selOpt = ALL_CREDITS.filter(c => !c.req && (
+    c.uiType === 'checkbox' ? getCreditPoints(c.code) > 0 : S.selected[c.code]
+  )).length;
+  document.getElementById('setup-summary').innerHTML = `
+    <div class="sum-card"><div class="sum-label">Mandatory credits</div><div class="sum-value">${req}</div><div class="sum-sub">Required for any Pearl</div></div>
+    <div class="sum-card"><div class="sum-label">Optional selected</div><div class="sum-value">${selOpt}</div><div class="sum-sub">of ${optTotal} available</div></div>
+    <div class="sum-card"><div class="sum-label">Potential points</div><div class="sum-value">${possible}</div><div class="sum-sub">excl. mandatory</div></div>
+    <div class="sum-card"><div class="sum-label">Target rating</div><div class="sum-value" style="padding-top:4px"><span class="rating-pill rp-${r}">&diams; ${RATING_THRESHOLDS[r].label}</span></div><div class="sum-sub">${possible>=140?'5 Pearl achievable':possible>=115?'4 Pearl achievable':possible>=85?'3 Pearl achievable':possible>=60?'2 Pearl achievable':'1 Pearl (mandatory only)'}</div></div>
+  `;
+}
+
+function setSetupSection(section) {
+  S.activeSetupSection = section;
+  renderSetup();
+  saveState();
+}
+
+function renderSetupSectionTabs() {
+  const active = S.activeSetupSection || Object.keys(CREDITS)[0];
+  let html = '';
+  Object.entries(CREDITS).forEach(([sec]) => {
+    html += `<button type="button" class="section-tab-button ${sec===active?'active':''}" onclick="setSetupSection('${sec}')">${SECTIONS[sec]}</button>`;
+  });
+  document.getElementById('setup-section-tabs').innerHTML = html;
+}
+
+function showSectionDetail(sec, color) {
+  const panel = document.getElementById('donut-detail-panel');
+  if (!panel) return;
+  if (window._donutActiveSec === sec) {
+    window._donutActiveSec = null;
+    document.querySelectorAll('.donut-seg[data-sec]').forEach(el => el.style.opacity = '');
+    panel.innerHTML = '<div class="donut-detail-empty">Click a slice to view credits</div>';
+    return;
+  }
+  window._donutActiveSec = sec;
+  document.querySelectorAll('.donut-seg[data-sec]').forEach(el => {
+    el.style.opacity = el.dataset.sec === sec ? '1' : '0.25';
+  });
+  _renderDonutPanel(sec, color);
+}
+
+function _renderDonutPanel(sec, color) {
+  const panel = document.getElementById('donut-detail-panel');
+  if (!panel) return;
+  const credits = CREDITS[sec] || [];
+  const rows = credits.map(c => {
+    const pts = getCreditPoints(c.code);
+    return `<div class="donut-credit-row">
+      <span class="donut-credit-code">${c.code}</span>
+      ${c.req ? '<span class="donut-credit-badge">Req</span>' : ''}
+      <span class="donut-credit-pts">${pts}</span>
+    </div>`;
+  }).join('');
+  panel.innerHTML = `
+    <div class="donut-detail-head">
+      <span class="donut-detail-swatch" style="background:${color};"></span>
+      <span class="donut-detail-sec">${SECTIONS[sec] || sec}</span>
+    </div>
+    <div class="donut-credit-list">${rows}</div>`;
+}
+
+function renderPointsPileChart() {
+  const chart = document.getElementById('points-pile-chart');
+  if (!chart) return;
+
+  const sectionData = Object.entries(CREDITS).map(([sec, credits]) => ({
+    sec,
+    label: SECTIONS[sec] || sec,
+    optPoints: credits.filter(c => !c.req).reduce((sum, c) => sum + getCreditPoints(c.code), 0),
+    reqCount: credits.filter(c => c.req).length,
+    color: SECTION_COLORS[sec] || '#777',
+  })).filter(d => d.optPoints > 0 || d.reqCount > 0);
+
+  if (sectionData.length === 0) { chart.innerHTML = ''; return; }
+
+  const totalOpt = sectionData.reduce((s, d) => s + d.optPoints, 0);
+  const totalReq = sectionData.reduce((s, d) => s + d.reqCount, 0);
+
+  // Two-ring donut: outer = optional pts, inner = mandatory credits
+  const SZ = 160, cx = SZ / 2, cy = SZ / 2;
+  const R_opt = 62, sw_opt = 18;
+  const R_req = 38, sw_req = 14;
+  const C_opt = 2 * Math.PI * R_opt;
+  const C_req = 2 * Math.PI * R_req;
+  const GAP = 0.016;
+
+  let svg = `<circle cx="${cx}" cy="${cy}" r="${R_opt}" fill="none" stroke="var(--warm-100)" stroke-width="${sw_opt}"/>`;
+  svg    += `<circle cx="${cx}" cy="${cy}" r="${R_req}" fill="none" stroke="var(--warm-100)" stroke-width="${sw_req}"/>`;
+
+  // Outer ring — optional points
+  if (totalOpt > 0) {
+    let off = 0;
+    sectionData.filter(d => d.optPoints > 0).forEach(d => {
+      const frac = d.optPoints / totalOpt;
+      const dash = (Math.max(0, frac - GAP) * C_opt).toFixed(3);
+      const gap  = (C_opt - +dash).toFixed(3);
+      const rot  = (off * 360 - 90).toFixed(3);
+      svg += `<circle class="donut-seg" data-sec="${d.sec}" data-color="${d.color}" onclick="showSectionDetail('${d.sec}','${d.color}')" cx="${cx}" cy="${cy}" r="${R_opt}" fill="none" stroke="${d.color}" stroke-width="${sw_opt}" stroke-dasharray="${dash} ${gap}" transform="rotate(${rot} ${cx} ${cy})"><title>${d.sec}: ${d.optPoints} optional pts</title></circle>`;
+      off += frac;
+    });
+  }
+
+  // Inner ring — mandatory credits
+  if (totalReq > 0) {
+    let off = 0;
+    sectionData.filter(d => d.reqCount > 0).forEach(d => {
+      const frac = d.reqCount / totalReq;
+      const dash = (Math.max(0, frac - GAP) * C_req).toFixed(3);
+      const gap  = (C_req - +dash).toFixed(3);
+      const rot  = (off * 360 - 90).toFixed(3);
+      svg += `<circle class="donut-seg" data-sec="${d.sec}" data-color="${d.color}" onclick="showSectionDetail('${d.sec}','${d.color}')" cx="${cx}" cy="${cy}" r="${R_req}" fill="none" stroke="${d.color}" stroke-width="${sw_req}" stroke-dasharray="${dash} ${gap}" transform="rotate(${rot} ${cx} ${cy})"><title>${d.sec}: ${d.reqCount} mandatory</title></circle>`;
+      off += frac;
+    });
+  }
+
+  const legendRows = sectionData.map(d => `
+    <div class="donut-legend-row">
+      <span class="donut-dot" style="background:${d.color};"></span>
+      <span class="donut-legend-name">${d.sec}</span>
+      <span class="donut-divider"></span>
+      <span class="donut-legend-opt">${d.optPoints > 0 ? d.optPoints : '—'}</span>
+      <span class="donut-legend-req">${d.reqCount > 0 ? d.reqCount : '—'}</span>
+    </div>`).join('');
+
+  chart.innerHTML = `
+    <div class="donut-wrap">
+      <div class="donut-title">Points distribution</div>
+      <div class="donut-sub">Outer ring: optional pts &nbsp;·&nbsp; Inner ring: mandatory credits</div>
+      <div class="donut-layout">
+        <div class="donut-svg-wrap">
+          <svg width="${SZ}" height="${SZ}" viewBox="0 0 ${SZ} ${SZ}" style="display:block;">
+            ${svg}
+          </svg>
+          <div class="donut-center">
+            <span class="donut-center-num">${totalOpt}</span>
+            <span class="donut-center-label">opt pts</span>
+          </div>
+        </div>
+        <div class="donut-legend">
+          <div class="donut-legend-hdr">
+            <span class="donut-col-hdr-blank"></span>
+            <span class="donut-col-hdr-blank"></span>
+            <span class="donut-col-hdr-blank"></span>
+            <span class="donut-col-hdr">Opt</span>
+            <span class="donut-col-hdr">Req</span>
+          </div>
+          ${legendRows}
+        </div>
+        <div class="donut-detail" id="donut-detail-panel">
+          <div class="donut-detail-empty">Click a slice to view credits</div>
+        </div>
+      </div>
+    </div>`;
+
+  // Restore active section after re-render
+  if (window._donutActiveSec) {
+    const active = sectionData.find(d => d.sec === window._donutActiveSec);
+    if (active) {
+      _renderDonutPanel(active.sec, active.color);
+      document.querySelectorAll('.donut-seg[data-sec]').forEach(el => {
+        el.style.opacity = el.dataset.sec === active.sec ? '1' : '0.25';
+      });
+    } else {
+      window._donutActiveSec = null;
+    }
+  }
+}
+
+function renderCreditRow(c) {
+  if (c.req) {
+    return `<div class="credit-row req-row">
+      <input type="checkbox" class="credit-cb" checked disabled/>
+      <div class="credit-meta">
+        <div class="credit-code-line">
+          <span class="credit-code">${c.code}</span>
+          <span class="req-badge">Required</span>
+        </div>
+        <div class="credit-name">${c.title}</div>
+        ${c.desc && c.desc !== 'Desc placeholder' ? `<div class="credit-description">${c.desc}</div>` : ''}
+        <div class="credit-pts-note">Mandatory for all Pearl ratings - no credit points</div>
+      </div>
+    </div>`;
+  }
+
+  const type = c.uiType;
+  const opts = c.pointOptions || [];
+
+  if (type === 'straight') {
+    const sel = !!S.selected[c.code];
+    return `<div class="credit-row ${sel?'checked':''}">
+      <input type="checkbox" class="credit-cb" ${sel?'checked':''} onchange="toggleCredit('${c.code}', this.checked)"/>
+      <div class="credit-meta">
+        <div class="credit-code-line">
+          <span class="credit-code">${c.code}</span>
+          <span class="uitype-badge uitype-straight">Straight</span>
+        </div>
+        <div class="credit-name">${c.title}</div>
+        ${c.desc && c.desc !== 'Desc placeholder' ? `<div class="credit-description">${c.desc}</div>` : ''}
+        <div class="credit-pts-note">${c.pts} pt${c.pts>1?'s':''} if achieved</div>
+        ${sel && opts[0] ? `<div class="credit-description" style="margin-top:6px;color:var(--warm-700);">${opts[0].desc}</div>` : ''}
+      </div>
+    </div>`;
+  }
+
+  if (type === 'dropdown') {
+    const sel = !!S.selected[c.code];
+    const currentPts = Number(S.creditPoints[c.code]) || 0;
+    let currentChoice = Number(S.dropdownChoice[c.code]);
+    if (!Number.isInteger(currentChoice) && currentPts > 0) {
+      const legacyIdx = opts.findIndex(opt => Number(opt.pts) === currentPts);
+      currentChoice = legacyIdx >= 0 ? legacyIdx : null;
+    }
+    const optionsHtml = opts.map((opt, idx) =>
+      `<button type="button" class="credit-pts-option ${currentChoice===idx?'active':''}" onclick="setCreditPoints('${c.code}', ${idx})">
+        <span class="credit-pts-points">${opt.pts} pt${opt.pts>1?'s':''}</span>
+        <span>${opt.desc}</span>
+      </button>`
+    ).join('');
+    return `<div class="credit-row ${sel?'checked':''}">
+      <input type="checkbox" class="credit-cb" ${sel?'checked':''} onchange="toggleCredit('${c.code}', this.checked)"/>
+      <div class="credit-meta">
+        <div class="credit-code-line">
+          <span class="credit-code">${c.code}</span>
+          <span class="uitype-badge uitype-dropdown">Dropdown</span>
+        </div>
+        <div class="credit-name">${c.title}</div>
+        ${c.desc && c.desc !== 'Desc placeholder' ? `<div class="credit-description">${c.desc}</div>` : ''}
+        <div class="credit-pts-note">${currentPts > 0 ? currentPts + ' pts selected' : `Up to ${c.pts} pts - choose a level`}</div>
+        <details class="credit-pts-picker">
+          <summary class="credit-pts-summary">${currentChoice===null ? 'Choose a level...' : `${currentPts} pts selected`}</summary>
+          <div class="credit-pts-menu">
+            ${optionsHtml}
+          </div>
+        </details>
+      </div>
+    </div>`;
+  }
+
+  if (type === 'checkbox') {
+    const earned = getCreditPoints(c.code);
+    const anyChecked = earned > 0;
+    const optRowsHtml = opts.map((opt, idx) => {
+      const chk = !!S.optionChecked[c.code + '|' + idx];
+      return `<label class="option-check-row">
+        <input type="checkbox" ${chk?'checked':''} onchange="toggleOption('${c.code}', ${idx}, this.checked)"/>
+        <span class="option-check-label">
+          <span class="option-pts-badge">${opt.pts} pt${opt.pts>1?'s':''}</span>${opt.desc}
+        </span>
+      </label>`;
+    }).join('');
+    return `<div class="credit-row ${anyChecked?'checked':''}">
+      <div style="width:15px;flex-shrink:0;"></div>
+      <div class="credit-meta">
+        <div class="credit-code-line">
+          <span class="credit-code">${c.code}</span>
+          <span class="uitype-badge uitype-checkbox">Checkbox</span>
+        </div>
+        <div class="credit-name">${c.title}</div>
+        ${c.desc && c.desc !== 'Desc placeholder' ? `<div class="credit-description">${c.desc}</div>` : ''}
+        <div class="credit-pts-note">Select all that apply | ${earned} / ${c.pts} pts</div>
+        <div style="margin-top:4px;">${optRowsHtml}</div>
+      </div>
+    </div>`;
+  }
+
+  return '';
+}
+
+function renderSetupCredits() {
+  const active = S.activeSetupSection || Object.keys(CREDITS)[0];
+  const credits = CREDITS[active] || [];
+  const secMax = credits.filter(c => !c.req).reduce((s, c) => s + (Number(c.pts) || 0), 0);
+  const secSel = credits.filter(c => !c.req).reduce((s, c) => s + getCreditPoints(c.code), 0);
+  let html = `<div class="section-wrap">
+    <div class="section-head open">
+      <div class="sec-left">${SECTIONS[active]}</div>
+      <div class="sec-pts">${secSel} / ${secMax} pts selected</div>
+    </div>
+    <div class="credits-body">`;
+  credits.forEach(c => { html += renderCreditRow(c); });
+  html += `</div></div>`;
+  document.getElementById('setup-credits').innerHTML = html;
+}
+
+// ----------------------------------------------------------------
+// RENDER STAGE
+// ----------------------------------------------------------------
+function renderStageSummaryCards() {
+  const possible = getPossiblePts();
+  const r = getRating(possible);
+  const selCredits = ALL_CREDITS.filter(c => {
+    if (c.req) return true;
+    return c.uiType === 'checkbox' ? getCreditPoints(c.code) > 0 : S.selected[c.code];
+  });
+  const noted = selCredits.filter(c => S.notes[nk(c.code, S.stage)] && S.notes[nk(c.code, S.stage)].trim()).length;
+  document.getElementById('stage-summary').innerHTML = `
+    <div class="sum-card"><div class="sum-label">Selected credits</div><div class="sum-value">${selCredits.length}</div><div class="sum-sub">incl. mandatory</div></div>
+    <div class="sum-card"><div class="sum-label">With notes</div><div class="sum-value" style="color:var(--green)">${noted}</div><div class="sum-sub">this stage</div></div>
+    <div class="sum-card"><div class="sum-label">Potential points</div><div class="sum-value">${possible}</div><div class="sum-sub">excl. mandatory</div></div>
+    <div class="sum-card"><div class="sum-label">Target rating</div><div class="sum-value" style="padding-top:4px"><span class="rating-pill rp-${r}">&diams; ${RATING_THRESHOLDS[r].label}</span></div><div class="sum-sub">${possible} pts potential</div></div>
+  `;
+}
+
+function renderStageCredits() {
+  const stage = S.stage;
+  let html = '';
+  Object.entries(CREDITS).forEach(([sec, credits]) => {
+    const active = credits.filter(c => c.req || (c.uiType === 'checkbox' ? getCreditPoints(c.code) > 0 : S.selected[c.code]));
+    if (!active.length) return;
+    const secOpen = S.secOpen['ss_' + sec];
+    html += `<div class="section-wrap">
+      <div class="section-head ${secOpen?'open':''}" onclick="toggleSec('ss_${sec}')">
+        <div class="sec-left"><span class="sec-chevron ${secOpen?'open':''}">&#9654;</span>${SECTIONS[sec]}</div>
+        <div class="sec-pts">${active.length} credit${active.length===1?'':'s'}</div>
+      </div>`;
+    if (secOpen) {
+      html += `<div class="credits-body">`;
+      active.forEach(c => {
+        const cOpen = S.secOpen['cc_' + c.code];
+        const noteKey = nk(c.code, stage);
+        const hasNote = S.notes[noteKey] && S.notes[noteKey].trim();
+        const ptsInfo = c.req ? 'Required' : (() => {
+          if (c.uiType === 'straight') return `${c.pts} pt${c.pts>1?'s':''}`;
+          if (c.uiType === 'dropdown') {
+            const p = Number(S.creditPoints[c.code]) || 0;
+            return p > 0 ? `${p} pts selected` : `Up to ${c.pts} pts`;
+          }
+          if (c.uiType === 'checkbox') {
+            const p = getCreditPoints(c.code);
+            return `${p} / ${c.pts} pts`;
+          }
+          return '';
+        })();
+        html += `<div class="stage-credit-block">
+          <div class="stage-credit-head ${cOpen?'open':''}" onclick="toggleSec('cc_${c.code}')">
+            <div class="sch-left">
+              <div class="sch-title-row">
+                <span class="credit-code">${c.code}</span>
+                <span style="font-size:13px;font-weight:600;color:var(--espresso)">${c.title}</span>
+                ${c.req ? '<span class="req-badge">Required</span>' : ''}
+                ${hasNote ? '<span style="font-size:10px;background:#eaf4ea;color:#2a7a2a;border-radius:3px;padding:1px 5px;font-weight:600;">Note</span>' : ''}
+              </div>
+              <div style="font-size:11px;color:var(--warm-500);margin-top:2px;">${ptsInfo}</div>
+            </div>
+            <span style="font-size:20px;color:var(--warm-300);transform:${cOpen?'rotate(90deg)':'none'};transition:transform 0.2s;display:inline-block;">&#8250;</span>
+          </div>`;
+        if (cOpen) {
+          html += `<div class="notes-panel">
+            <div class="note-label">Coordination notes &amp; action items</div>
+            <textarea class="note-field" placeholder="Record responsibilities, follow-up actions, consultants to coordinate with, or pending items for next stage..." onchange="setNote('${noteKey}', this.value)">${S.notes[noteKey]||''}</textarea>
+          </div>`;
+        }
+        html += `</div>`;
+      });
+      html += `</div>`;
+    }
+    html += `</div>`;
+  });
+  document.getElementById('stage-credits').innerHTML = html;
+}
+
+function renderStageEndSummary() {
+  const stage = S.stage;
+  let html = `<div class="ss-title">Stage summary - ${STAGE_LABELS[stage]}</div>`;
+  Object.entries(CREDITS).forEach(([sec, credits]) => {
+    const active = credits.filter(c => c.req || (c.uiType === 'checkbox' ? getCreditPoints(c.code) > 0 : S.selected[c.code]));
+    if (!active.length) return;
+    html += `<div class="ss-row">
+      <div class="ss-row-label">${SECTIONS[sec]}</div>
+      <div class="ss-codes">${active.map(c => c.code).join(' | ')}</div>
+    </div>`;
+  });
+  document.getElementById('stage-end-summary').innerHTML = html;
+}
+
+// ----------------------------------------------------------------
+// FULL RENDERS
+// ----------------------------------------------------------------
+function renderSetup() {
+  renderKeepScroll(() => {
+    renderProjectSelect();
+    renderSetupSummary();
+    renderPointsPileChart();
+    renderSetupSectionTabs();
+    renderSetupCredits();
+  });
+}
+function renderStageView() {
+  renderKeepScroll(() => {
+    document.querySelectorAll('.stage-tab').forEach(t => t.classList.toggle('active', t.dataset.stage === S.stage));
+    const pn = document.getElementById('proj-short-name');
+    document.getElementById('stage-view-title').textContent = (pn&&pn.value ? pn.value + ' - ' : '') + 'Stage Checklist';
+    document.getElementById('stage-view-sub').textContent = 'Tracking ' + ALL_CREDITS.filter(c => c.req || (c.uiType==='checkbox'?getCreditPoints(c.code)>0:S.selected[c.code])).length + ' selected credits';
+    renderStageSummaryCards();
+    renderStageCredits();
+    renderStageEndSummary();
+  });
+}
+
+function refreshScorecardPanels(){
+  if (S.view === 'setup') {
+    renderSetupSummary();
+    renderPointsPileChart();
+    renderSetupSectionTabs();
+  } else {
+    renderStageSummaryCards();
+    renderStageCredits();
+    renderStageEndSummary();
+  }
+}
+
+// ----------------------------------------------------------------
+// EVENT HANDLERS
+// ----------------------------------------------------------------
+function toggleSec(key) {
+  S.secOpen[key] = !S.secOpen[key];
+  refreshScorecardPanels();
+  saveState();
+}
+
+function toggleCredit(code, checked) {
+  S.selected[code] = checked;
+  if (!checked) S.creditPoints[code] = 0;
+  refreshScorecardPanels();
+  saveState();
+}
+
+function setCreditPoints(code, value) {
+  const c = ALL_CREDITS.find(x => x.code === code);
+  const choiceIdx = Number(value);
+  const choice = c && c.uiType === 'dropdown' && Number.isInteger(choiceIdx)
+    ? (c.pointOptions || [])[choiceIdx]
+    : null;
+  if (choice) {
+    S.selected[code] = true;
+    S.dropdownChoice[code] = choiceIdx;
+    S.creditPoints[code] = Number(choice.pts) || 0;
+  } else {
+    S.selected[code] = false;
+    S.dropdownChoice[code] = null;
+    S.creditPoints[code] = 0;
+  }
+  refreshScorecardPanels();
+  saveState();
+}
+
+function toggleOption(code, idx, checked) {
+  S.optionChecked[code + '|' + idx] = checked;
+  refreshScorecardPanels();
+  saveState();
+}
+
+function setNote(key, val) {
+  S.notes[key] = val;
+  saveState();
+}
+
+function setStage(stage) {
+  S.stage = stage;
+  renderStageView();
+  saveState();
+}
+
+function goToStage() {
+  S.view = 'stage';
+  document.getElementById('view-setup').classList.remove('active');
+  document.getElementById('view-stage').classList.add('active');
+  renderStageView();
+  saveState();
+}
+
+function goToPlanner() {
+  void saveDatabaseFile(true).catch(() => {});
+  window.location.assign(new URL('../index.html', window.location.href).href);
+}
+
+function goToSetup() {
+  S.view = 'setup';
+  document.getElementById('view-stage').classList.remove('active');
+  document.getElementById('view-setup').classList.add('active');
+  renderSetup();
+  saveState();
+}
+
+// ----------------------------------------------------------------
+// PERSIST - file-backed database.js
+// ----------------------------------------------------------------
+function scorecardProject(){
+  return window.__DB__?.projects?.find(p => p.id === SCORECARD_CONTEXT.projectId) || null;
+}
+
+function scorecardCertification(project = scorecardProject()){
+  if (!project) return null;
+  const certs = Array.isArray(project.certifications) ? project.certifications : [];
+  return certs.find(c => c.id === SCORECARD_CONTEXT.certId)
+    || certs.find(c => c.standard === SCORECARD_CONTEXT.standard)
+    || null;
+}
+
+function syncHeaderFieldsFromDB(){
+  const project = scorecardProject();
+  const cert = scorecardCertification(project);
+  if (!project) return;
+  const shortName = project.shortName || project.name || '';
+  const fullName = project.name || project.shortName || '';
+  const code = project.code || '';
+  const buildingUse = project.buildingUse || project.type || '';
+  const target = cert?.target || '';
+  document.getElementById('proj-short-name').value = shortName;
+  document.getElementById('proj-full-name').value = fullName;
+  document.getElementById('proj-code').value = code;
+  document.getElementById('proj-type').value = buildingUse;
+  document.getElementById('proj-target').value = target;
+}
+
+function hydrateScorecardFromDatabase(){
+  refreshCatalogFromDB();
+  S = makeDefaultScorecardState();
+  const project = scorecardProject();
+  const cert = scorecardCertification(project);
+  if (!project) return false;
+  const state = cert?.scorecard?.s || {};
+  S.view = state.view || 'setup';
+  S.stage = state.stage || 'concept';
+  S.activeSetupSection = state.activeSetupSection || Object.keys(CREDITS)[0] || 'IDP';
+  S.currentProjectId = project.id;
+  S.projectDb = Array.isArray(cert?.scorecard?.projectDb) ? cert.scorecard.projectDb : [];
+  S.selected = state.selected || {};
+  S.creditPoints = state.creditPoints || {};
+  S.dropdownChoice = state.dropdownChoice || {};
+  S.optionChecked = state.optionChecked || {};
+  S.secOpen = state.secOpen || {};
+  S.notes = state.notes || {};
+  ALL_CREDITS.forEach(c => { if (c.req) S.selected[c.code] = true; });
+  syncHeaderFieldsFromDB();
+  databaseReady = true;
+  return true;
+}
+
+function captureScorecardState(){
+  const project = scorecardProject();
+  const cert = scorecardCertification(project);
+  if (!project || !cert) return false;
+  project.buildingUse = document.getElementById('proj-type')?.value || project.buildingUse || '';
+  cert.target = document.getElementById('proj-target')?.value || cert.target || '';
+  cert.scorecard = {
+    s: JSON.parse(JSON.stringify(S)),
+    projectDb: Array.isArray(S.projectDb) ? JSON.parse(JSON.stringify(S.projectDb)) : [],
+    meta: {
+      projShortName: document.getElementById('proj-short-name')?.value || '',
+      projFullName: document.getElementById('proj-full-name')?.value || '',
+      projCode: document.getElementById('proj-code')?.value || '',
+      projType: document.getElementById('proj-type')?.value || '',
+      projTarget: document.getElementById('proj-target')?.value || '',
+    }
+  };
+  return true;
+}
+
+async function saveDatabaseFile(silent = false){
+  if (!captureScorecardState()) return false;
+  if (!fileHandle) {
+    const stored = await loadStoredFileHandle().catch(() => null);
+    if (stored) {
+      fileHandle = stored;
+    } else {
+      if (!silent) showStartupDatabasePrompt();
+      return false;
+    }
+  }
+  try {
+    const writable = await fileHandle.createWritable();
+    const jsContent = '// Sustainability Team Planner - auto-generated database file\n// Last saved: ' + new Date().toISOString() + '\n// Do not edit manually unless you know what you are doing.\nwindow.__DB__ = ' + JSON.stringify(window.__DB__, null, 2) + ';\n';
+    await writable.write(jsContent);
+    await writable.close();
+    const file = await fileHandle.getFile();
+    lastFileModified = file.lastModified;
+    scorecardDirty = false;
+    const ind = document.getElementById('save-indicator');
+    if (ind) { ind.textContent = 'Saved'; ind.style.display='inline'; clearTimeout(ind._t); ind._t=setTimeout(()=>ind.style.display='none', 1500); }
+    return true;
+  } catch (e) {
+    if (!silent) alert('Save failed: ' + e.message);
+    return false;
+  }
+}
+
+function saveState(silent = true) {
+  scorecardDirty = true;
+  const ind = document.getElementById('save-indicator');
+  if (ind) { ind.textContent = 'Unsaved'; ind.style.display='inline'; }
+}
+
+async function loadDatabaseFromHandle(handle){
+  const file = await handle.getFile();
+  const text = await file.text();
+  window.__DB__ = parseDatabaseText(text);
+  refreshCatalogFromDB();
+  fileHandle = handle;
+  lastFileModified = file.lastModified;
+  databaseReady = true;
+  await storeFileHandle(handle);
+  hydrateScorecardFromDatabase();
+  syncHeaderFieldsFromDB();
+  startFilePolling();
+  return window.__DB__;
+}
+
+async function linkDatabaseFile(silent = false){
+  if (!('showOpenFilePicker' in window)) {
+    if (!silent) alert('Direct file linking requires Chrome, Edge, or Opera.');
+    return null;
+  }
+  try {
+    const [handle] = await window.showOpenFilePicker({
+      types: [{description:'Database JS', accept:{'text/javascript':['.js']}}]
+    });
+    const perm = await handle.requestPermission({mode:'readwrite'});
+    if (perm !== 'granted') {
+      if (!silent) alert('Permission denied');
+      return null;
+    }
+    await loadDatabaseFromHandle(handle);
+    if (!silent) alert('Linked to ' + handle.name);
+    return handle;
+  } catch (e) {
+    if (e.name !== 'AbortError' && !silent) alert('Link failed: ' + e.message);
+    return null;
+  }
+}
+
+async function ensureLinkedFileHandle(){
+  if (fileHandle) return fileHandle;
+  try {
+    const stored = await loadStoredFileHandle();
+    if (stored) {
+      await loadDatabaseFromHandle(stored);
+      return fileHandle;
+    }
+  } catch (e) {}
+  return null;
+}
+
+function showStartupDatabasePrompt(){
+  openModal(`<h3>Pick database.js</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:12px">The scorecard stays blank until you pick the shared <code>database.js</code> file.</p>
+    <div style="padding:12px;border:1px solid var(--border);border-radius:8px;background:#f8fbf8;font-size:12px;word-break:break-all;user-select:text">C:\\Users\\linnh\\Documents\\AAA\\Sustainability Planner\\src\\database.js</div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-secondary" onclick="copyStartupDatabasePath()">Copy Path</button>
+      <button type="button" class="btn btn-primary" onclick="pickStartupDatabaseFile()">Pick database.js</button>
+    </div>`);
+}
+
+async function copyStartupDatabasePath(){
+  try {
+    await navigator.clipboard.writeText('C:\\Users\\linnh\\Documents\\AAA\\Sustainability Planner\\src\\database.js');
+  } catch (e) {}
+}
+
+async function pickStartupDatabaseFile(){
+  const handle = await linkDatabaseFile(true);
+  if (!handle) return;
+  closeModal();
+  render();
+}
+
+async function reloadFromFile(){
+  if (await ensureLinkedFileHandle()) {
+    await loadDatabaseFromHandle(fileHandle);
+    render();
+  } else {
+    showStartupDatabasePrompt();
+  }
+}
+
+function startFilePolling(){
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(async () => {
+    if (!fileHandle) return;
+    try {
+      const file = await fileHandle.getFile();
+      if (lastFileModified && file.lastModified > lastFileModified + 500) {
+        lastFileModified = file.lastModified;
+      }
+    } catch (e) {}
+  }, 15000);
+}
+
+// ----------------------------------------------------------------
+// EXPORT / IMPORT / PROJECT DB
+// ----------------------------------------------------------------
+function buildProjectEntry() {
+  const now = new Date().toISOString();
+  const id = S.currentProjectId || 'prj_' + Date.now();
+  return {
+    id, updated: now,
+    shortName: document.getElementById('proj-short-name')?.value || 'Untitled project',
+    fullName:  document.getElementById('proj-full-name')?.value || '',
+    name:      document.getElementById('proj-full-name')?.value || '',
+    number:    document.getElementById('proj-code')?.value || '',
+    code:      document.getElementById('proj-code')?.value || '',
+    type:      document.getElementById('proj-type')?.value || '',
+    target:    document.getElementById('proj-target')?.value || '',
+    state: {
+      view: S.view, stage: S.stage,
+      selected: S.selected, creditPoints: S.creditPoints,
+      dropdownChoice: S.dropdownChoice,
+      optionChecked: S.optionChecked,
+      secOpen: S.secOpen, notes: S.notes,
+    }
+  };
+}
+
+function saveProject(silent = false) {
+  const project = buildProjectEntry();
+  const idx = S.projectDb.findIndex(p => p.id === project.id);
+  if (idx >= 0) S.projectDb[idx] = project; else S.projectDb.push(project);
+  S.currentProjectId = project.id;
+  renderProjectSelect();
+  saveState();
+  if (!silent) alert('Project saved.');
+}
+
+function setProjectFields(p) {
+  document.getElementById('proj-short-name').value = p.shortName || p.name || '';
+  document.getElementById('proj-full-name').value  = p.fullName || p.name || p.number || '';
+  document.getElementById('proj-code').value       = p.code || p.number || '';
+  document.getElementById('proj-type').value       = p.type || '';
+  document.getElementById('proj-target').value     = p.target || '';
+}
+
+function loadProject(id) {
+  if (!id) {
+    S.currentProjectId = null;
+    S.selected = {}; S.creditPoints = {}; S.dropdownChoice = {}; S.optionChecked = {};
+    S.secOpen = {}; S.notes = {}; S.view = 'setup'; S.stage = 'concept';
+    setProjectFields({});
+    ALL_CREDITS.forEach(c => { if (c.req) S.selected[c.code] = true; });
+    renderSetup(); saveState(); return;
+  }
+  const project = S.projectDb.find(p => p.id === id);
+  if (!project) return;
+  S.currentProjectId = id;
+  S.view            = project.state.view          || 'setup';
+  S.stage           = project.state.stage         || 'concept';
+  S.selected        = project.state.selected      || {};
+  S.creditPoints    = project.state.creditPoints  || {};
+  S.dropdownChoice  = project.state.dropdownChoice|| {};
+  S.optionChecked   = project.state.optionChecked || {};
+  S.secOpen         = project.state.secOpen       || {};
+  S.notes           = project.state.notes         || {};
+  setProjectFields(project);
+  if (S.view === 'stage') {
+    document.getElementById('view-setup').classList.remove('active');
+    document.getElementById('view-stage').classList.add('active');
+    renderStageView();
+  } else {
+    renderSetup();
+  }
+  saveState();
+}
+
+function hydrateFromPlannerProject(){
+  const projectId = SCORECARD_CONTEXT.projectId || '';
+  if (!projectId || !window.__DB__?.projects) return false;
+  const source = window.__DB__.projects.find(p => p.id === projectId);
+  if (!source) return false;
+  const certId = SCORECARD_CONTEXT.certId || '';
+  const cert = (source.certifications || []).find(c => c.id === certId)
+    || (source.certifications || []).find(c => c.standard === 'estidama')
+    || null;
+  const existingIdx = S.projectDb.findIndex(p => p.id === source.id);
+  const entry = {
+    id: source.id,
+    updated: new Date().toISOString(),
+    shortName: source.shortName || source.name || source.code || 'Untitled project',
+    fullName: source.name || source.shortName || source.code || 'Untitled project',
+    name: source.name || source.shortName || source.code || 'Untitled project',
+    number: source.code || '',
+    code: source.code || '',
+    type: '',
+    target: cert?.target || '',
+    state: existingIdx >= 0 ? (S.projectDb[existingIdx].state || {}) : {
+      view: 'setup',
+      stage: 'concept',
+      selected: {},
+      creditPoints: {},
+      dropdownChoice: {},
+      optionChecked: {},
+      secOpen: {},
+      notes: {},
+    }
+  };
+  if (existingIdx >= 0) S.projectDb[existingIdx] = entry;
+  else S.projectDb.push(entry);
+  S.currentProjectId = source.id;
+  return true;
+}
+
+function renderProjectSelect() {
+  const select = document.getElementById('proj-select');
+  if (!select) return;
+  const active = S.currentProjectId || '';
+  let html = '<option value="">New project</option>';
+  S.projectDb.forEach(p => {
+    html += `<option value="${p.id}" ${p.id===active?'selected':''}>${p.shortName || p.name || p.number || 'Project ' + p.id}</option>`;
+  });
+  select.innerHTML = html;
+  select.value = active;
+}
+
+function exportData() {
+  const cur = buildProjectEntry();
+  const projects = [...S.projectDb];
+  const idx = projects.findIndex(p => p.id === cur.id);
+  if (idx >= 0) projects[idx] = cur; else projects.push(cur);
+  const data = { version: '1.0', exported: new Date().toISOString(), projects, currentProjectId: cur.id };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'PBRS_Projects_' + (cur.name || 'Project').replace(/\s+/g, '_') + '.json';
+  a.click();
+}
+
+function importData() {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = '.json';
+  inp.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (data.projects) {
+          S.projectDb = Array.isArray(data.projects) ? data.projects : [];
+          S.currentProjectId = data.currentProjectId || (S.projectDb[0] && S.projectDb[0].id) || null;
+          renderProjectSelect();
+          loadProject(S.currentProjectId || '');
+        }
+      } catch(err) { alert('Could not read file. Please check it is a valid PBRS JSON file.'); }
+    };
+    reader.readAsText(file);
+  };
+  inp.click();
+}
+
+// ----------------------------------------------------------------
+// INIT
+// ----------------------------------------------------------------
+async function bootstrapScorecard(){
+  try {
+    const stored = await loadStoredFileHandle().catch(() => null);
+    if (stored) {
+      await loadDatabaseFromHandle(stored);
+      if (S.view === 'stage') {
+        document.getElementById('view-setup').classList.remove('active');
+        document.getElementById('view-stage').classList.add('active');
+        renderStageView();
+      } else {
+        renderSetup();
+      }
+      return;
+    }
+  } catch (e) {}
+  showStartupDatabasePrompt();
+}
+
+bootstrapScorecard();
+</script>
+</body>
+</html>
