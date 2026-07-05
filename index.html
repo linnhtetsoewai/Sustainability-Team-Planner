@@ -854,7 +854,7 @@ async function loadDatabaseFromHandle(handle){
   databaseReady = true;
   state.dirty = false;
   resetHistory();
-  await storeFileHandle(handle);
+  storeFileHandle(handle).catch(() => {});
   updateDirtyIndicator();
   startFilePolling();
   return data;
@@ -1100,9 +1100,12 @@ async function copyStartupDatabasePath(){
 }
 
 async function pickStartupDatabaseFile(){
-  const handle = await linkDatabaseFile(true);
-  if (!handle) return;
   closeModal();
+  const handle = await linkDatabaseFile(true);
+  if (!handle) {
+    showStartupDatabasePrompt();
+    return;
+  }
   render();
 }
 
@@ -1138,7 +1141,7 @@ async function linkDatabaseFile(silent = false){
     const [handle] = await window.showOpenFilePicker({
       types: [{description:'Database JSON', accept:{'application/json':['.json']}}]
     });
-    const perm = await handle.requestPermission({mode:'readwrite'});
+    const perm = await handle.requestPermission({mode:'read'});
     if (perm !== 'granted') { if (!silent) toast('Permission denied', true); return null; }
     await loadDatabaseFromHandle(handle);
     if (!silent) toast('Linked to ' + handle.name);
