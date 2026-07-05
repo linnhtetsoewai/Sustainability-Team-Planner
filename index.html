@@ -402,6 +402,8 @@ let lastFileModified = null;
 let pollTimer = null;
 let pendingSaveLinkResolve = null;
 let databaseReady = false;
+const HISTORY_LIMIT = 50;
+const historyState = {undo:[], redo:[], lock:false};
 const CERTIFICATION_OPTIONS = [
   {value:'estidama', label:'Estidama'},
   {value:'leed', label:'LEED'},
@@ -739,14 +741,14 @@ function defaultDB(){
     {id:uid(),projectId:p4,stageName:'Concept Design',submissionLabel:'100%',kickoffDate:'2026-06-25',submissionDate:'',status:'Planned',ownerId:t1,notes:'Client issue'},
     {id:uid(),projectId:p4,stageName:'Schematic Design',submissionLabel:'100%',kickoffDate:'2026-08-10',submissionDate:'',status:'Planned',ownerId:t1,notes:'Advisory package'}
   ];
-  const T=(pi,n,ai,ah,acth,sd,dd,st,pr,nt,tp='project')=>({id:uid(),projectId:pi,taskType:tp,name:n,assigneeId:ai,allocatedHours:ah,actualHours:acth,startDate:sd,dueDate:dd,status:st,priority:pr,notes:nt});
+  const T=(pi,n,ai,ah,acth,sd,dd,st,pr,nt,tp='project',ps='')=>({id:uid(),projectId:pi,taskType:tp,projectStage:ps,name:n,assigneeId:ai,allocatedHours:ah,actualHours:acth,startDate:sd,dueDate:dd,status:st,priority:pr,notes:nt});
   const tasks=[
-    T(p1,'Estidama PBRS gap analysis',t2,48,42,'2026-01-20','2026-03-15','Completed','High','Baseline gap analysis vs 2 Pearl target'),
-    T(p1,'LEED credit tracker setup',t3,24,20,'2026-02-01','2026-03-01','Completed','Medium','Live tracker on SharePoint'),
-    T(p1,'Daylight simulation (ClimateStudio)',t3,56,32,'2026-03-10','2026-07-30','In Progress','High','Podium + typical tower floors'),
+    T(p1,'Estidama PBRS gap analysis',t2,48,42,'2026-01-20','2026-03-15','Completed','High','Baseline gap analysis vs 2 Pearl target','project','Pre Concept Validation'),
+    T(p1,'LEED credit tracker setup',t3,24,20,'2026-02-01','2026-03-01','Completed','Medium','Live tracker on SharePoint','project','Concept Design'),
+    T(p1,'Daylight simulation (ClimateStudio)',t3,56,32,'2026-03-10','2026-07-30','In Progress','High','Podium + typical tower floors','project','Schematic Design'),
     T(p1,'Energy modelling peer review',t1,40,18,'2026-04-01','2026-08-15','In Progress','High','Review IES-VE model from MEP'),
-    T(p1,'Sustainability report drafting',t1,64,10,'2026-06-01','2026-10-15','In Progress','Medium','Final report + appendices'),
-    T(p2,'Outdoor thermal comfort (UTCI) study',t3,80,55,'2026-02-10','2026-06-30','In Progress','High','Rhino + ENVI-met, 3 scenarios'),
+    T(p1,'Sustainability report drafting',t1,64,10,'2026-06-01','2026-10-15','In Progress','Medium','Final report + appendices','project','Detailed Design'),
+    T(p2,'Outdoor thermal comfort (UTCI) study',t3,80,55,'2026-02-10','2026-06-30','In Progress','High','Rhino + ENVI-met, 3 scenarios','project','Concept Design'),
     T(p2,'Wind CFD analysis',t3,56,28,'2026-03-15','2026-07-15','In Progress','High','Pedestrian wind comfort — Lawson'),
     T(p2,'Estidama PCRS credit LC-R4 evidence',t2,32,26,'2026-03-01','2026-06-01','In Progress','Medium','Ecological network evidence pack'),
     T(p2,'Facade shading study',t3,40,12,'2026-05-01','2026-08-30','In Progress','Medium','LSG / SHGC optimisation'),
@@ -759,7 +761,7 @@ function defaultDB(){
     T(p4,'Strategy workshop prep',t1,32,0,'2026-05-05','2026-05-25','Not Started','High','Half-day workshop with client'),
     T(p4,'Sustainability benchmarking study',t2,40,0,'2026-05-15','2026-06-30','Not Started','Medium','3 peer developments'),
     T(p4,'Client presentation',t1,16,0,'2026-06-10','2026-06-20','Not Started','High','Deck + narrative'),
-    T(p4,'LEED pre-assessment',t2,48,0,'2026-06-15','2026-08-15','Not Started','Medium','LEED BD+C Core & Shell v4.1'),
+    T(p4,'LEED pre-assessment',t2,48,0,'2026-06-15','2026-08-15','Not Started','Medium','LEED BD+C Core & Shell v4.1','project','Schematic Design'),
     T(p4,'Carbon footprint estimate',t3,32,0,'2026-07-01','2026-08-30','Not Started','Medium','OneClick LCA — high level')
   ];
   const notes=[
@@ -815,6 +817,7 @@ function normalizeDB(db){
   db.tasks.forEach(t => {
     t.taskType = t.taskType || (t.projectId ? 'project' : 'internal');
     if (t.taskType !== 'project') t.projectId = t.projectId || '';
+    t.projectStage = t.projectStage || t.stageName || t.stage || '';
     t.allocatedHours = +t.allocatedHours || 0;
     t.actualHours = +t.actualHours || 0;
     t.dailyAllocations = normalizeTaskDailyAllocations(t.dailyAllocations);
@@ -848,6 +851,8 @@ async function loadDatabaseFromHandle(handle){
   fileHandle = handle;
   lastFileModified = file.lastModified;
   databaseReady = true;
+  state.dirty = false;
+  resetHistory();
   await storeFileHandle(handle);
   updateDirtyIndicator();
   startFilePolling();
@@ -929,6 +934,93 @@ function loadUIState(){
       if (Array.isArray(ui.projectExpanded)) state.projectExpanded = new Set(ui.projectExpanded);
     }
   } catch(e) {}
+}
+
+function cloneHistoryValue(value){
+  return value == null ? value : JSON.parse(JSON.stringify(value));
+}
+
+function captureHistorySnapshot(){
+  return {
+    db: cloneHistoryValue(state.db),
+    currentView: state.currentView,
+    filters: cloneHistoryValue(state.filters),
+    chartFocus: cloneHistoryValue(state.chartFocus),
+    collapsed: [...state.collapsed],
+    taskExpanded: [...state.taskExpanded],
+    projectExpanded: [...state.projectExpanded],
+    ganttDayWidth: state.ganttDayWidth,
+    ganttScroll: cloneHistoryValue(state.ganttScroll),
+    source: state.source,
+  };
+}
+
+function historySnapshotKey(snapshot){
+  return JSON.stringify(snapshot);
+}
+
+function resetHistory(){
+  historyState.undo = [];
+  historyState.redo = [];
+}
+
+function pushHistorySnapshot(){
+  if (historyState.lock || !state.db) return;
+  const snapshot = captureHistorySnapshot();
+  const key = historySnapshotKey(snapshot);
+  const last = historyState.undo[historyState.undo.length - 1];
+  if (last && last.key === key) return;
+  historyState.undo.push({key, snapshot});
+  if (historyState.undo.length > HISTORY_LIMIT) historyState.undo.shift();
+  historyState.redo = [];
+}
+
+function applyHistorySnapshot(snapshot){
+  if (!snapshot) return;
+  historyState.lock = true;
+  try {
+    if (snapshot.db) state.db = normalizeDB(cloneHistoryValue(snapshot.db));
+    state.currentView = snapshot.currentView || 'dashboard';
+    state.filters = cloneHistoryValue(snapshot.filters) || {};
+    state.chartFocus = cloneHistoryValue(snapshot.chartFocus) || {team:'',project:''};
+    state.collapsed = new Set(snapshot.collapsed || []);
+    state.taskExpanded = new Set(snapshot.taskExpanded || []);
+    state.projectExpanded = new Set(snapshot.projectExpanded || []);
+    state.ganttDayWidth = clampGanttDayWidth(snapshot.ganttDayWidth || 48);
+    state.ganttScroll = cloneHistoryValue(snapshot.ganttScroll) || {top:0,left:0};
+    state.source = snapshot.source || state.source;
+  } finally {
+    historyState.lock = false;
+  }
+  saveDB();
+  closeModal();
+  render();
+}
+
+function undoAppChange(){
+  if (!historyState.undo.length) {
+    toast('Nothing to undo', true);
+    return;
+  }
+  const current = captureHistorySnapshot();
+  historyState.redo.push({key:historySnapshotKey(current), snapshot:current});
+  if (historyState.redo.length > HISTORY_LIMIT) historyState.redo.shift();
+  const entry = historyState.undo.pop();
+  applyHistorySnapshot(entry.snapshot);
+  toast('Undid last change');
+}
+
+function redoAppChange(){
+  if (!historyState.redo.length) {
+    toast('Nothing to redo', true);
+    return;
+  }
+  const current = captureHistorySnapshot();
+  historyState.undo.push({key:historySnapshotKey(current), snapshot:current});
+  if (historyState.undo.length > HISTORY_LIMIT) historyState.undo.shift();
+  const entry = historyState.redo.pop();
+  applyHistorySnapshot(entry.snapshot);
+  toast('Redid last change');
 }
 
 function updateDirtyIndicator(){
@@ -1063,6 +1155,7 @@ async function reloadFromFile(){
       const file = await fileHandle.getFile();
       const text = await file.text();
       const data = parseDatabaseText(text);
+      pushHistorySnapshot();
       state.db = data;
       lastFileModified = file.lastModified;
       state.dirty = false;
@@ -1158,6 +1251,7 @@ function taskActualDayTotals(taskOrId){
 function syncTaskDailyHours(taskId, date, hours, kind){
   const task = taskById(taskId);
   if (!task || !date) return;
+  pushHistorySnapshot();
   const value = roundTaskHours(hours);
   if (kind === 'alloc') {
     const existing = normalizeTaskDailyAllocations(task.dailyAllocations);
@@ -1373,6 +1467,61 @@ const projectById=id=>state.db.projects.find(p=>p.id===id);
 const personById=id=>state.db.team.find(t=>t.id===id);
 const taskById=id=>state.db.tasks.find(t=>t.id===id);
 const milestoneById=id=>state.db.milestones.find(m=>m.id===id);
+function projectStageEntries(projectId){
+  return milestonesForProject(projectId).reduce((list, milestone) => {
+    if (!milestone.stageName || list.some(item => item.stageName === milestone.stageName)) return list;
+    list.push(milestone);
+    return list;
+  }, []);
+}
+function taskProjectStage(task){
+  return String(task?.projectStage || '').trim();
+}
+function taskProjectStageLabel(task){
+  const stage = taskProjectStage(task);
+  if (!stage) return '—';
+  const milestone = projectStageEntries(task?.projectId).find(m => m.stageName === stage);
+  return milestone?.submissionLabel ? `${stage} (${milestone.submissionLabel})` : stage;
+}
+function taskStageOptions(projectId, selectedStage=''){
+  const stages = projectStageEntries(projectId);
+  const selected = String(selectedStage || '').trim();
+  const seen = new Set();
+  const options = [];
+  stages.forEach(m => {
+    const value = m.stageName || '';
+    if (!value || seen.has(value)) return;
+    seen.add(value);
+    options.push({value, label: m.submissionLabel ? `${value} (${m.submissionLabel})` : value});
+  });
+  return options.map(opt => `<option value="${esc(opt.value)}" ${selected===opt.value?'selected':''}>${esc(opt.label)}</option>`).join('');
+}
+function updateTaskStageOptions(form){
+  if (!form) return;
+  const taskType = String(form.elements.taskType?.value || 'project');
+  const projectSelect = form.elements.projectId;
+  const stageSelect = form.elements.projectStage;
+  if (!projectSelect || !stageSelect) return;
+  const pid = projectSelect.value || '';
+  const current = String(stageSelect.value || form.dataset.projectStage || '').trim();
+  const stageEnabled = taskType === 'project' || taskType === 'allocation';
+  if (!stageEnabled) {
+    stageSelect.innerHTML = '<option value="">Not used for this task type</option>';
+    stageSelect.disabled = true;
+    form.dataset.projectStage = current;
+    return;
+  }
+  if (!pid) {
+    stageSelect.innerHTML = '<option value="">Select a project first</option>';
+    stageSelect.disabled = true;
+    form.dataset.projectStage = current;
+    return;
+  }
+  stageSelect.disabled = false;
+  stageSelect.innerHTML = `<option value="">No stage selected</option>${taskStageOptions(pid, current)}`;
+  if (current) stageSelect.value = current;
+  form.dataset.projectStage = stageSelect.value || current || '';
+}
 const taskTypeLabel = t => {
   const type = String(t?.taskType || 'project');
   if (type === 'leave') return 'Leave';
@@ -1462,6 +1611,7 @@ function captureGanttScroll(){
 }
 
 function zoomGantt(delta){
+  pushHistorySnapshot();
   captureGanttScroll();
   state.ganttDayWidth = clampGanttDayWidth((state.ganttDayWidth || 48) + delta);
   render();
@@ -2089,7 +2239,7 @@ function renderTasks(){
   else if(f.taskProj) tasks=tasks.filter(t=>t.projectId===f.taskProj);
   if(f.taskAsg) tasks=tasks.filter(t=>t.assigneeId===f.taskAsg);
   if(f.taskStatus) tasks=tasks.filter(t=>t.status===f.taskStatus);
-  if(f.taskSearch){const q=f.taskSearch.toLowerCase();tasks=tasks.filter(t=>(t.name+(t.notes||'')).toLowerCase().includes(q));}
+  if(f.taskSearch){const q=f.taskSearch.toLowerCase();tasks=tasks.filter(t=>(t.name+(t.notes||'')+(t.projectStage||'')+taskProjectStageLabel(t)).toLowerCase().includes(q));}
   const projOpts=['<option value="">All projects</option>',`<option value="__internal__" ${f.taskProj==='__internal__'?'selected':''}>Internal / Leave</option>`].concat(state.db.projects.map(p=>`<option value="${p.id}" ${f.taskProj===p.id?'selected':''}>${esc(p.shortName)}</option>`)).join('');
   const asgOpts=['<option value="">All assignees</option>'].concat(state.db.team.map(m=>`<option value="${m.id}" ${f.taskAsg===m.id?'selected':''}>${esc(m.name)}</option>`)).join('');
   const stOpts=['','Not Started','In Progress','Blocked','Completed'].map(s=>`<option value="${s}" ${f.taskStatus===s?'selected':''}>${s||'All statuses'}</option>`).join('');
@@ -2102,9 +2252,10 @@ function renderTasks(){
     const logs=taskLogSummary(t.id);
     const isAllocation = String(t.taskType||'') === 'allocation';
     const typeTag = t.taskType && t.taskType !== 'project' && !isAllocation ? `<span class="badge badge-grey" style="margin-left:6px">${esc(taskTypeLabel(t))}</span>` : '';
+    const stageTag = taskProjectStage(t) ? `<span class="badge badge-blue" style="margin-left:6px">${esc(taskProjectStageLabel(t))}</span>` : '';
     const titleStyle = isAllocation ? 'color:var(--accent);font-weight:700' : '';
     const detail=expanded?`<tr class="task-detail-row"><td colspan="12"><div class="task-detail-panel"><div class="task-detail-head"><span>Task Log breakdown</span><span>${fmtN(logs.reduce((s,x)=>s+(+x.hours||0),0))}h logged</span></div>${logs.length?`<div class="task-log-list">${logs.map(x=>`<div class="task-log-item"><div><b>${esc(x.name)}</b><div class="task-log-meta">${x.entries} entry${x.entries===1?'':'ies'}</div></div><div class="task-log-hours">${fmtN(x.hours)}h</div><div class="task-log-hours">${fmtC(x.budget)}</div></div>`).join('')}</div>`:`<div class="task-log-empty">No task log entries yet for this task.</div>`}</div></td></tr>`:'';
-    return `<tr><td><button class="task-toggle ${expanded?'expanded':''}" onclick="toggleTaskDetails('${t.id}', event)">&#9662;</button></td><td><div class="task-toggle-wrap"><div class="task-name"><div style="${titleStyle}">${esc(t.name)}${typeTag}</div><div style="font-size:11px;color:var(--muted)">${esc(t.notes||'')}</div></div></div></td><td>${esc(m?.name||'—')}</td><td class="num">${fmtN(alloc)}</td><td class="num">${String(t.taskType||'')==='allocation' ? '—' : fmtN(actual)}</td><td class="num">${fmtC(taskBudget(t,'allocatedHours'))}</td><td class="num">${String(t.taskType||'')==='allocation' ? '—' : fmtC(taskBudget(t,'actualHours'))}</td><td>${esc(t.dueDate||'—')} ${overdue?'<span class="badge badge-red">!</span>':''}</td><td>${statusBadge(t.status)}</td><td>${priorityBadge(t.priority)}</td><td>${String(t.taskType||'')==='allocation' ? '—' : taskProgress(actual, alloc)}</td><td class="actions"><button class="btn-icon" onclick="openTaskModal('${t.id}')">Edit</button><button class="btn-icon danger" onclick="deleteTask('${t.id}')">Delete</button></td></tr>${detail}`;
+    return `<tr><td><button class="task-toggle ${expanded?'expanded':''}" onclick="toggleTaskDetails('${t.id}', event)">&#9662;</button></td><td><div class="task-toggle-wrap"><div class="task-name"><div style="${titleStyle}">${esc(t.name)}${typeTag}${stageTag}</div><div style="font-size:11px;color:var(--muted)">${esc(taskProjectStage(t) ? `Stage: ${taskProjectStageLabel(t)} | ` : '')}${esc(t.notes||'')}</div></div></div></td><td>${esc(m?.name||'—')}</td><td class="num">${fmtN(alloc)}</td><td class="num">${String(t.taskType||'')==='allocation' ? '—' : fmtN(actual)}</td><td class="num">${fmtC(taskBudget(t,'allocatedHours'))}</td><td class="num">${String(t.taskType||'')==='allocation' ? '—' : fmtC(taskBudget(t,'actualHours'))}</td><td>${esc(t.dueDate||'—')} ${overdue?'<span class="badge badge-red">!</span>':''}</td><td>${statusBadge(t.status)}</td><td>${priorityBadge(t.priority)}</td><td>${String(t.taskType||'')==='allocation' ? '—' : taskProgress(actual, alloc)}</td><td class="actions"><button class="btn-icon" onclick="openTaskModal('${t.id}')">Edit</button><button class="btn-icon danger" onclick="deleteTask('${t.id}')">Delete</button></td></tr>${detail}`;
   };
   const projectGroups=state.db.projects.map(p=>{
     const pts=tasks.filter(t=>t.projectId===p.id && isProjectTask(t)).sort((a,b)=>(a.dueDate||'').localeCompare(b.dueDate||''));
@@ -2124,7 +2275,7 @@ function renderTasks(){
   })() : '';
   const groups=projectGroups+internalGroup;
   return `<h1 class="view-title">Tasks</h1><p class="view-sub">Grouped by project. Click header to collapse.</p>
-  <div class="toolbar"><select onchange="state.filters.taskProj=this.value;render()">${projOpts}</select><select onchange="state.filters.taskAsg=this.value;render()">${asgOpts}</select><select onchange="state.filters.taskStatus=this.value;render()">${stOpts}</select><input type="text" placeholder="Search…" value="${esc(f.taskSearch||'')}" oninput="state.filters.taskSearch=this.value;render()"><span class="spacer"></span><button class="btn btn-primary" onclick="openTaskModal()">+ Add Task</button></div>
+  <div class="toolbar"><select onchange="pushHistorySnapshot();state.filters.taskProj=this.value;render()">${projOpts}</select><select onchange="pushHistorySnapshot();state.filters.taskAsg=this.value;render()">${asgOpts}</select><select onchange="pushHistorySnapshot();state.filters.taskStatus=this.value;render()">${stOpts}</select><input type="text" placeholder="Search…" value="${esc(f.taskSearch||'')}" oninput="state.filters.taskSearch=this.value;render()"><span class="spacer"></span><button class="btn btn-primary" onclick="openTaskModal()">+ Add Task</button></div>
   ${groups||`<div class="card empty">No tasks match your filters.</div>`}`;
 }
 
@@ -2172,7 +2323,7 @@ function renderTimesheet(){
     return `<tr><td>${esc(x.dayDate||x.weekEnding||'')}</td><td>${esc(x.weekEnding||'')}</td><td>${esc(m?.name||'&mdash;')}</td><td>${esc(projLabel)}</td><td style="font-size:12px">${esc(t?.name||'&mdash;')}</td><td class="num">${fmtN(x.hoursLogged)}</td><td>${x.billable==='Y'?'<span class="badge badge-green">Y</span>':'<span class="badge badge-grey">N</span>'}</td><td style="font-size:12px">${esc(x.notes||'')}</td><td class="actions"><button class="btn-icon" onclick="openTimesheetModal('${x.id}')">Edit</button><button class="btn-icon danger" onclick="deleteTimesheet('${x.id}')">Delete</button></td></tr>`;
   }).join('')||`<tr><td colspan="9" class="empty">No task log entries yet.</td></tr>`;
   return `<h1 class="view-title">Task Log</h1><p class="view-sub">Daily task logs determine task Actual Hours automatically and stay linked to the timeline.</p>
-  <div class="toolbar"><select onchange="state.filters.tsPerson=this.value;render()">${personOpts}</select><select onchange="state.filters.tsProject=this.value;render()">${projectOpts}</select><span class="spacer"></span><button class="btn btn-primary" onclick="openTimesheetModal()">+ Log Hours</button></div>
+  <div class="toolbar"><select onchange="pushHistorySnapshot();state.filters.tsPerson=this.value;render()">${personOpts}</select><select onchange="pushHistorySnapshot();state.filters.tsProject=this.value;render()">${projectOpts}</select><span class="spacer"></span><button class="btn btn-primary" onclick="openTimesheetModal()">+ Log Hours</button></div>
   <div class="card" style="padding:0"><div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Week Ending</th><th>Person</th><th>Project</th><th>Task</th><th class="num">Hours</th><th>Billable</th><th>Notes</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
 }
 function renderGantt(){
@@ -2221,8 +2372,9 @@ function renderGantt(){
     const projectLabel=project?.shortName || (t.taskType==='leave' ? 'Leave' : 'Internal');
     const isAllocation = String(t.taskType||'')==='allocation';
     const badge = !isAllocation && t.taskType && t.taskType !== 'project' ? `<span class="badge badge-grey" style="margin-left:6px">${esc(taskTypeLabel(t))}</span>` : '';
+    const stage = taskProjectStage(t) ? ` • ${taskProjectStageLabel(t)}` : '';
     const titleStyle = isAllocation ? 'color:var(--accent);font-weight:700' : '';
-    return `<tr><td class="gantt-left gantt-task-name"><div class="gantt-task-stack" style="cursor:pointer" onclick="openTaskModal('${t.id}')"><b style="${titleStyle}">${esc(t.name)}</b>${badge}<span>${esc(t.status)}</span></div></td><td class="gantt-left gantt-assignee">${esc(firstName(assignee?.name)||'Unassigned')}</td><td class="gantt-left gantt-project">${esc(projectLabel)}</td></tr>`;
+    return `<tr><td class="gantt-left gantt-task-name"><div class="gantt-task-stack" style="cursor:pointer" onclick="openTaskModal('${t.id}')"><b style="${titleStyle}">${esc(t.name)}</b>${badge}<span>${esc(t.status)}${esc(stage)}</span></div></td><td class="gantt-left gantt-assignee">${esc(firstName(assignee?.name)||'Unassigned')}</td><td class="gantt-left gantt-project">${esc(projectLabel)}</td></tr>`;
   }).join('');
   const rightRows=tasks.map(t=>{
     const taskStart=parseGanttDate(t.startDate) || start;
@@ -2245,7 +2397,7 @@ function renderGantt(){
         <div class="gantt-row-lane" style="--gantt-day-width:${dayWidth}px;min-width:${dayCount*dayWidth}px">
           <div class="gantt-grid-row">${days.map(d=>`<div class="gantt-grid-cell ${d.getDay()===0||d.getDay()===6?'weekend':''} ${d.getTime()===today.getTime()?'today':''}" style="width:${dayWidth}px;min-width:${dayWidth}px"></div>`).join('')}</div>
           ${todayIndex>=0&&todayIndex<dayCount?`<div class="gantt-today-line" style="left:${todayIndex*dayWidth}px"></div>`:''}
-          <div class="gantt-bar ${statusClass}${unscheduled?' not-started':''}${overloadClass}" data-task-id="${esc(t.id)}" style="left:${leftPx}px;width:${widthPx}px${unscheduled?';opacity:0.35':''}" title="${esc(t.name)} | ${esc(assignee?.name||'Unassigned')} | ${esc(projectLabel)} | ${esc(t.startDate||'')}${t.dueDate?` - ${esc(t.dueDate)}`:''}${overloadTitle}">
+          <div class="gantt-bar ${statusClass}${unscheduled?' not-started':''}${overloadClass}" data-task-id="${esc(t.id)}" style="left:${leftPx}px;width:${widthPx}px${unscheduled?';opacity:0.35':''}" title="${esc(t.name)}${taskProjectStage(t) ? ` | ${esc(taskProjectStageLabel(t))}` : ''} | ${esc(assignee?.name||'Unassigned')} | ${esc(projectLabel)} | ${esc(t.startDate||'')}${t.dueDate?` - ${esc(t.dueDate)}`:''}${overloadTitle}">
             <div class="gantt-resize-handle left"></div>
             ${hourEditorsHtml ? `<div class="gantt-bar-hours-layer">${hourEditorsHtml}</div>` : ''}
             <div class="gantt-resize-handle right"></div>
@@ -2260,8 +2412,8 @@ function renderGantt(){
   <div class="gantt-card">
     <div class="gantt-header">
       <div class="gantt-toolbar">
-        <select onchange="state.filters.ganttAsg=this.value;render()">${ganttAsgOpts}</select>
-        <select onchange="state.filters.ganttProject=this.value;render()">${ganttProjectOpts}</select>
+        <select onchange="pushHistorySnapshot();state.filters.ganttAsg=this.value;render()">${ganttAsgOpts}</select>
+        <select onchange="pushHistorySnapshot();state.filters.ganttProject=this.value;render()">${ganttProjectOpts}</select>
         <span class="spacer"></span>
         <button class="btn btn-primary btn-sm" type="button" onclick="openTaskModal(null,{startDate:'${ganttIsoDate(start)}',dueDate:'${ganttIsoDate(ganttAddDays(start,5))}'})">+ Add Task</button>
         <button class="btn btn-primary btn-sm" type="button" onclick="openAllocationModal()">+ Allocate</button>
@@ -2375,6 +2527,7 @@ function ganttUpdateDrag(evt){
 
 function ganttEndDrag(){
   if(!ganttDrag) return;
+  pushHistorySnapshot();
   document.removeEventListener('mousemove', ganttDrag.onMove);
   document.removeEventListener('mouseup', ganttDrag.onUp);
   const {task, bar, mode, rangeStart, dayWidth} = ganttDrag;
@@ -2418,7 +2571,7 @@ function renderNotes(){
   const stOpts=['<option value="">All statuses</option>'].concat(['Open','In Progress','Closed'].map(c=>`<option value="${c}" ${f.noteStatus===c?'selected':''}>${c}</option>`)).join('');
   const ownOpts=['<option value="">All owners</option>'].concat(state.db.team.map(m=>`<option value="${m.id}" ${f.noteOwner===m.id?'selected':''}>${esc(m.name)}</option>`)).join('');
   return `<h1 class="view-title">Notes & Reminders</h1><p class="view-sub">Overdue follow-ups highlighted red.</p>
-  <div class="toolbar"><select onchange="state.filters.noteCat=this.value;render()">${catOpts}</select><select onchange="state.filters.noteStatus=this.value;render()">${stOpts}</select><select onchange="state.filters.noteOwner=this.value;render()">${ownOpts}</select><span class="spacer"></span><button class="btn btn-primary" onclick="openNoteModal()">+ Add Note</button></div>
+  <div class="toolbar"><select onchange="pushHistorySnapshot();state.filters.noteCat=this.value;render()">${catOpts}</select><select onchange="pushHistorySnapshot();state.filters.noteStatus=this.value;render()">${stOpts}</select><select onchange="pushHistorySnapshot();state.filters.noteOwner=this.value;render()">${ownOpts}</select><span class="spacer"></span><button class="btn btn-primary" onclick="openNoteModal()">+ Add Note</button></div>
   <div class="notes-grid">${cards}</div>`;
 }
 
@@ -2459,6 +2612,7 @@ function openProjectModal(id){
 }
 function saveProject(e,id){
   e.preventDefault(); const f=e.target,g=n=>f.elements[n].value;
+  pushHistorySnapshot();
   const data={code:g('code'),name:g('name'),shortName:g('shortName'),client:g('client'),pm:g('pm'),sustainabilityLead:g('sustainabilityLead'),startDate:g('startDate'),endDate:g('endDate'),allocatedHours:+g('allocatedHours')||0,status:g('status'),notes:g('notes'),certifications:collectProjectCertifications(f),allocatedBudget:(+g('allocatedHours')||0)*(personRate(g('sustainabilityLead'))||rate())};
   if(id){Object.assign(projectById(id),data);toast('Project updated');}else{state.db.projects.push({id:uid(),...data});toast('Project added');}
   saveDB();closeModal();render();
@@ -2466,6 +2620,7 @@ function saveProject(e,id){
 function deleteProject(id){
   const p=projectById(id);
   if(!confirm(`Delete project "${p.shortName}" and all its tasks & task log entries?`)) return;
+  pushHistorySnapshot();
   state.db.tasks=state.db.tasks.filter(t=>t.projectId!==id);
   state.db.timesheet=state.db.timesheet.filter(x=>x.projectId!==id);
   state.db.milestones=state.db.milestones.filter(m=>m.projectId!==id);
@@ -2490,6 +2645,7 @@ function openMilestoneModal(id, defaults={}){
 }
 function saveMilestone(e,id){
   e.preventDefault(); const f=e.target,g=n=>f.elements[n].value;
+  pushHistorySnapshot();
   const data={projectId:g('projectId'),stageName:g('stageName'),submissionLabel:g('submissionLabel'),kickoffDate:g('kickoffDate'),submissionDate:g('submissionDate'),status:g('status'),ownerId:g('ownerId'),notes:g('notes')};
   if(id){Object.assign(milestoneById(id),data);toast('Stage updated');}else{state.db.milestones.push({id:uid(),...data});toast('Stage added');}
   saveDB();closeModal();render();
@@ -2497,13 +2653,14 @@ function saveMilestone(e,id){
 function deleteMilestone(id){
   const m=milestoneById(id);
   if(!confirm(`Delete stage submission "${m.stageName} ${m.submissionLabel}"?`)) return;
+  pushHistorySnapshot();
   state.db.milestones=state.db.milestones.filter(x=>x.id!==id);
   saveDB();render();toast('Stage deleted');
 }
 
 // TASK CRUD
 function openTaskModal(id, defaults={}){
-  const base={taskType:'project',projectId:state.db.projects[0]?.id||'',name:'',assigneeId:state.db.team[0]?.id||'',allocatedHours:0,startDate:'',dueDate:'',status:'Not Started',priority:'Medium',notes:'',dailyAllocations:[]};
+  const base={taskType:'project',projectId:state.db.projects[0]?.id||'',projectStage:'',name:'',assigneeId:state.db.team[0]?.id||'',allocatedHours:0,startDate:'',dueDate:'',status:'Not Started',priority:'Medium',notes:'',dailyAllocations:[]};
   const t=id?taskById(id):Object.assign({}, base, defaults);
   const isAllocation = String(t.taskType || 'project') === 'allocation';
   const projOpts=['<option value="">— No project / internal —</option>'].concat(state.db.projects.map(p=>`<option value="${p.id}" ${t.projectId===p.id?'selected':''}>${esc(p.shortName)} &mdash; ${esc(p.code)}</option>`)).join('');
@@ -2513,16 +2670,22 @@ function openTaskModal(id, defaults={}){
   const typeOpts=[['project','Project task'],['allocation','Allocation'],['internal','Internal work'],['leave','Leave']].map(([v,l])=>`<option value="${v}" ${String(t.taskType||'project')===v?'selected':''}>${l}</option>`).join('');
   const actual=taskActualHours(t);
   openModal(`<h3>${id?'Edit':'Add'} Task</h3><form onsubmit="saveTask(event,'${id||''}');return false">
-    <div class="form-row"><div class="form-group"><label>Task Type *</label><select required name="taskType">${typeOpts}</select></div><div class="form-group"><label>Project</label><select name="projectId">${projOpts}</select></div></div>
+    <div class="form-row"><div class="form-group"><label>Task Type *</label><select required name="taskType" onchange="updateTaskStageOptions(this.form)">${typeOpts}</select></div><div class="form-group"><label>Project</label><select name="projectId" onchange="updateTaskStageOptions(this.form)">${projOpts}</select></div></div>
+    <div class="form-row"><div class="form-group"><label>Project Stage</label><select name="projectStage"></select></div><div class="form-group"><label>Priority</label><select name="priority">${prOpts}</select></div></div>
     <div class="form-row"><div class="form-group"><label>Assignee *</label><select required name="assigneeId">${asgOpts}</select></div><div class="form-group"><label>Status</label><select name="status">${stOpts}</select></div></div>
     <div class="form-group"><label>Task Name *</label><input required name="name" value="${esc(t.name)}"></div>
     <div class="form-row"><div class="form-group"><label>Allocated Hours</label><input type="number" name="allocatedHours" value="${t.allocatedHours||0}" min="0" step="0.01"></div><div class="form-group"><label>Actual Hours</label>${isAllocation ? '<input type="text" value="" disabled>' : `<input type="text" value="${fmtN(actual)} (from Task Log / Timeline)" readonly>`}</div></div>
     <div class="form-row"><div class="form-group"><label>Start Date</label><input type="date" name="startDate" value="${esc(t.startDate)}"></div><div class="form-group"><label>Due Date</label><input type="date" name="dueDate" value="${esc(t.dueDate)}"></div></div>
-    <div class="form-row"><div class="form-group"><label>Priority</label><select name="priority">${prOpts}</select></div><div class="form-group"></div></div>
     <div class="form-group"><label>Notes</label><textarea name="notes">${esc(t.notes)}</textarea></div>
     <div id="task-allocation-root"></div>
     <div class="modal-actions"><button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button><button type="submit" class="btn btn-primary">Save</button></div></form>`);
-  setTimeout(() => wireTaskAllocationBuilder(document.querySelector('#modal-content form'), t), 0);
+  setTimeout(() => {
+    const form = document.querySelector('#modal-content form');
+    if (!form) return;
+    form.dataset.projectStage = taskProjectStage(t);
+    updateTaskStageOptions(form);
+    wireTaskAllocationBuilder(form, t);
+  }, 0);
 }
 function openAllocationModal(){
   const ganttProject = state.filters.ganttProject || state.db.projects[0]?.id || '';
@@ -2532,6 +2695,7 @@ function openAllocationModal(){
   openTaskModal(null, {
     taskType: 'allocation',
     projectId: ganttProject,
+    projectStage: projectStageEntries(ganttProject)[0]?.stageName || '',
     assigneeId: ganttAssignee,
     name: 'Planned Allocation',
     status: 'Not Started',
@@ -2604,10 +2768,14 @@ function saveTask(e,id){
   const startDate=g('startDate');
   const dueDate=g('dueDate');
   const allocatedHours=roundTaskHours(g('allocatedHours'));
+  const projectIdRaw=g('projectId')||'';
+  const projectStage=String(g('projectStage')||'').trim();
   const allocInputs = captureTaskAllocationInputs(f);
   const dailyAllocations = taskWorkdayRange(startDate, dueDate).map(date => ({date, hours: roundTaskHours(allocInputs.get(date) || 0)}));
   const allocationTotal = roundTaskHours(dailyAllocations.reduce((sum, entry) => sum + roundTaskHours(entry.hours), 0));
-  const projectId = (taskType === 'internal' || taskType === 'leave') ? '' : (g('projectId') || '');
+  const projectId = (taskType === 'internal' || taskType === 'leave') ? '' : projectIdRaw;
+  const validStages = projectStageEntries(projectId).map(m => m.stageName);
+  const normalizedStage = (taskType === 'internal' || taskType === 'leave' || !projectId || !projectStage || !validStages.includes(projectStage)) ? '' : projectStage;
   if (startDate && dueDate && allocatedHours > 0 && Math.abs(allocationTotal - allocatedHours) >= 0.01) {
     toast('Daily allocation must match the allocated hours.', true);
     return;
@@ -2621,13 +2789,15 @@ function saveTask(e,id){
     toast('Select a project for this task.', true);
     return;
   }
-  const data={taskType,projectId,name,assigneeId:g('assigneeId'),allocatedHours,actualHours:taskType==='allocation'?0:taskActualHours(taskId),startDate,dueDate,status:g('status'),priority:g('priority'),notes:g('notes'),dailyAllocations};
+  pushHistorySnapshot();
+  const data={taskType,projectId,projectStage:normalizedStage,name,assigneeId:g('assigneeId'),allocatedHours,actualHours:taskType==='allocation'?0:taskActualHours(taskId),startDate,dueDate,status:g('status'),priority:g('priority'),notes:g('notes'),dailyAllocations};
   if(id){Object.assign(taskById(id),data);toast('Task updated');}else{state.db.tasks.push({id:taskId,...data});toast('Task added');}
   saveDB();closeModal();render();
 }
 function deleteTask(id){
   const t=taskById(id);
   if(!confirm(`Delete task "${t.name}"?`)) return;
+  pushHistorySnapshot();
   state.db.tasks=state.db.tasks.filter(x=>x.id!==id);
   state.db.timesheet=state.db.timesheet.filter(x=>x.taskId!==id);
   saveDB();render();toast('Task deleted');
@@ -2645,6 +2815,7 @@ function openTeamModal(id){
 }
 function saveTeam(e,id){
   e.preventDefault(); const f=e.target,g=n=>f.elements[n].value;
+  pushHistorySnapshot();
   const data={name:g('name'),role:g('role'),email:g('email'),weeklyCapacity:+g('weeklyCapacity')||40,hourlyRate:+g('hourlyRate')||defaultHourlyRateForMember({role:g('role')}),skills:g('skills'),notes:g('notes')};
   if(id){Object.assign(personById(id),data);toast('Team member updated');}else{state.db.team.push({id:uid(),...data});toast('Team member added');}
   saveDB();closeModal();render();
@@ -2653,6 +2824,7 @@ function deleteTeam(id){
   const m=personById(id);
   const n=state.db.tasks.filter(t=>t.assigneeId===id).length;
   if(!confirm(`Delete "${m.name}"?${n?` They have ${n} assigned task(s) — those will become unassigned.`:''}`)) return;
+  pushHistorySnapshot();
   state.db.tasks.forEach(t=>{if(t.assigneeId===id) t.assigneeId=''});
   state.db.timesheet=state.db.timesheet.filter(x=>x.personId!==id);
   state.db.team=state.db.team.filter(x=>x.id!==id);
@@ -2666,7 +2838,7 @@ function openTimesheetModal(id){
   const perOpts=state.db.team.map(m=>`<option value="${m.id}" ${ts.personId===m.id?'selected':''}>${esc(m.name)}</option>`).join('');
   const taskOpts=state.db.tasks.slice().sort((a,b)=>((a.taskType||'project')+(a.name||'')).localeCompare((b.taskType||'project')+(b.name||''))).filter(t=>String(t.taskType||'')!=='allocation').map(t=>{
     const proj=projectById(t.projectId);
-    const label=`${taskTypeLabel(t)} - ${t.name}${proj?.shortName ? ` - ${proj.shortName}` : ''}`;
+    const label=`${taskTypeLabel(t)} - ${t.name}${taskProjectStage(t) ? ` - ${taskProjectStageLabel(t)}` : ''}${proj?.shortName ? ` - ${proj.shortName}` : ''}`;
     return `<option value="${t.id}" ${ts.taskId===t.id?'selected':''}>${esc(label)}</option>`;
   }).join('');
   openModal(`<h3>${id?'Edit':'Log'} Hours</h3><form onsubmit="saveTimesheet(event,'${id||''}');return false">
@@ -2676,14 +2848,17 @@ function openTimesheetModal(id){
     <div class="form-row"><div class="form-group"><label>Hours *</label><input required type="number" name="hoursLogged" value="${ts.hoursLogged||0}" min="0" step="0.25"></div><div class="form-group"><label>Billable</label><select name="billable"><option value="Y" ${ts.billable==='Y'?'selected':''}>Yes</option><option value="N" ${ts.billable==='N'?'selected':''}>No</option></select></div></div>
     <div class="form-group"><label>Notes</label><textarea name="notes">${esc(ts.notes)}</textarea></div>
     <div class="modal-actions"><button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button><button type="submit" class="btn btn-primary">Save</button></div></form>`);
-  setTimeout(()=>updateTaskOptions(document.querySelector('[name=projectId]')),0);
+  setTimeout(()=>{
+    const projectSelect = document.querySelector('[name=projectId]');
+    if (projectSelect) updateTaskOptions(projectSelect);
+  },0);
 }
 function updateTaskOptions(sel){
   if(!sel) return;
   const pid=sel.value;
   const opts=['<option value="">&mdash;</option>'].concat(state.db.tasks.filter(t=>String(t.taskType||'')!=='allocation' && (!pid || t.projectId===pid || !isProjectTask(t))).map(t=>{
     const proj=projectById(t.projectId);
-    const label=`${taskTypeLabel(t)} - ${t.name}${proj?.shortName ? ` - ${proj.shortName}` : ''}`;
+    const label=`${taskTypeLabel(t)} - ${t.name}${taskProjectStage(t) ? ` - ${taskProjectStageLabel(t)}` : ''}${proj?.shortName ? ` - ${proj.shortName}` : ''}`;
     return `<option value="${t.id}">${esc(label)}</option>`;
   })).join('');
   const target=document.getElementById('tsTaskSelect');
@@ -2691,6 +2866,7 @@ function updateTaskOptions(sel){
 }
 function saveTimesheet(e,id){
   e.preventDefault(); const f=e.target,g=n=>f.elements[n].value;
+  pushHistorySnapshot();
   const taskId=g('taskId');
   const task=taskById(taskId);
   const previous = id ? state.db.timesheet.find(x=>x.id===id) : null;
@@ -2707,6 +2883,7 @@ function saveTimesheet(e,id){
 }
 function deleteTimesheet(id){
   if(!confirm('Delete this task log entry?')) return;
+  pushHistorySnapshot();
   const entry = state.db.timesheet.find(x=>x.id===id);
   state.db.timesheet=state.db.timesheet.filter(x=>x.id!==id);
   const task = entry?.taskId ? taskById(entry.taskId) : null;
@@ -2730,12 +2907,14 @@ function openNoteModal(id){
 }
 function saveNote(e,id){
   e.preventDefault(); const f=e.target,g=n=>f.elements[n].value;
+  pushHistorySnapshot();
   const data={ownerId:g('ownerId'),category:g('category'),subject:g('subject'),details:g('details'),followUpDate:g('followUpDate'),status:g('status'),priority:g('priority')};
   if(id){Object.assign(state.db.notes.find(x=>x.id===id),data);toast('Note updated');}else{state.db.notes.push({id:uid(),dateCreated:todayISO(),...data});toast('Note added');}
   saveDB();closeModal();render();
 }
 function deleteNote(id){
   if(!confirm('Delete this note?')) return;
+  pushHistorySnapshot();
   state.db.notes=state.db.notes.filter(x=>x.id!==id);
   saveDB();render();toast('Note deleted');
 }
@@ -2751,11 +2930,13 @@ function openSettingsModal(){
 }
 function saveSettings(e){
   e.preventDefault(); const f=e.target,g=n=>f.elements[n].value;
+  pushHistorySnapshot();
   state.db.settings={blendedRate:+g('blendedRate')||350,currency:g('currency')||'AED',weeksInPeriod:+g('weeksInPeriod')||4};
   saveDB();closeModal();render();toast('Settings saved');
 }
 function resetToSeed(){
   if(!confirm('This will DELETE all your data and restore sample data. Continue?')) return;
+  pushHistorySnapshot();
   localStorage.removeItem(DB_KEY);
   if(typeof window.__DB__!=='undefined') window.__DB__=null;
   state.db=defaultDB();
@@ -2773,8 +2954,8 @@ function exportExcel(){
   const mileSheet=[['Project Code','Project','Stage','Submission %','Kick-off Date','Submission Date','Status','Owner','Notes']];
   db.milestones.slice().sort((a,b)=>(a.kickoffDate||'').localeCompare(b.kickoffDate||'')||(a.submissionDate||'').localeCompare(b.submissionDate||'')||(a.stageName||'').localeCompare(b.stageName||'')||(a.submissionLabel||'').localeCompare(b.submissionLabel||'')).forEach(m=>{const p=projectById(m.projectId),o=personById(m.ownerId);mileSheet.push([p?.code||'',p?.shortName||'',m.stageName,m.submissionLabel,m.kickoffDate,m.submissionDate,m.status,o?.name||'',m.notes||'']);});
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(mileSheet),'Milestones');
-  const taskSheet=[['Project Code','Project','Task','Assignee','Alloc Hrs','Actual Hrs','Alloc Budget','Actual Budget','Start','Due','Status','Priority','% Used','Notes']];
-  db.tasks.forEach((t)=>{const p=projectById(t.projectId),m=personById(t.assigneeId);const a=+t.allocatedHours||0,ac=String(t.taskType||'')==='allocation'?0:taskActualHours(t);taskSheet.push([p?.code||'',p?.shortName||'',t.name,m?.name||'',a,ac,taskBudget(t,'allocatedHours'),String(t.taskType||'')==='allocation'?'':taskBudget(t,'actualHours'),t.startDate,t.dueDate,t.status,t.priority,a?ac/a:0,t.notes||'']);});
+  const taskSheet=[['Project Code','Project','Project Stage','Task','Assignee','Alloc Hrs','Actual Hrs','Alloc Budget','Actual Budget','Start','Due','Status','Priority','% Used','Notes']];
+  db.tasks.forEach((t)=>{const p=projectById(t.projectId),m=personById(t.assigneeId);const a=+t.allocatedHours||0,ac=String(t.taskType||'')==='allocation'?0:taskActualHours(t);taskSheet.push([p?.code||'',p?.shortName||'',taskProjectStageLabel(t),t.name,m?.name||'',a,ac,taskBudget(t,'allocatedHours'),String(t.taskType||'')==='allocation'?'':taskBudget(t,'actualHours'),t.startDate,t.dueDate,t.status,t.priority,a?ac/a:0,t.notes||'']);});
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(taskSheet),'Tasks');
   const teamSheet=[['Name','Role','Email','Hourly Rate','Weekly Cap','Period Cap','Alloc','Actual','Skills','Notes']];
   db.team.forEach(m=>{const tot=personTotals(m.id);teamSheet.push([m.name,m.role,m.email,personRate(m.id),m.weeklyCapacity,(m.weeklyCapacity||40)*db.settings.weeksInPeriod,tot.allocHrs,tot.actualHrs,m.skills||'',m.notes||'']);});
@@ -2799,17 +2980,33 @@ function exportJSON(){
 function importJSON(evt){
   const file=evt.target.files[0]; if(!file) return;
   const r=new FileReader();
-  r.onload=()=>{try{const d=JSON.parse(r.result); if(!d.projects||!d.tasks||!d.team) throw new Error('Invalid backup'); if(!confirm('OVERWRITE all current data?')) return; state.db=normalizeDB(d); saveDB(); render(); toast('Data imported');}catch(e){toast('Import failed: '+e.message,true);}};
+  r.onload=()=>{try{const d=JSON.parse(r.result); if(!d.projects||!d.tasks||!d.team) throw new Error('Invalid backup'); if(!confirm('OVERWRITE all current data?')) return; pushHistorySnapshot(); state.db=normalizeDB(d); saveDB(); render(); toast('Data imported');}catch(e){toast('Import failed: '+e.message,true);}};
   r.readAsText(file); evt.target.value='';
 }
 
 // EVENT WIRING
 document.addEventListener('DOMContentLoaded',()=>{
   document.querySelectorAll('.nav-item').forEach(item=>{
-    item.addEventListener('click',()=>{state.currentView=item.dataset.view;document.getElementById('sidebar').classList.remove('open');render();});
+    item.addEventListener('click',()=>{pushHistorySnapshot();state.currentView=item.dataset.view;document.getElementById('sidebar').classList.remove('open');render();});
   });
   document.getElementById('modal-overlay').addEventListener('click',e=>{e.stopPropagation();});
-  document.addEventListener('keydown',e=>{if(e.key==='Escape' && document.getElementById('modal-overlay').classList.contains('active')) e.preventDefault();});
+  document.addEventListener('keydown',e=>{
+    const activeModal = document.getElementById('modal-overlay').classList.contains('active');
+    const target = e.target;
+    const editable = !!target && (target.isContentEditable || ['INPUT','TEXTAREA'].includes(target.tagName));
+    const key = String(e.key || '').toLowerCase();
+    const wantsUndo = (e.ctrlKey || e.metaKey) && !e.shiftKey && key === 'z';
+    const wantsRedo = (e.ctrlKey || e.metaKey) && (key === 'y' || (e.shiftKey && key === 'z'));
+    if (key === 'escape' && activeModal) {
+      e.preventDefault();
+      return;
+    }
+    if ((wantsUndo || wantsRedo) && !editable) {
+      e.preventDefault();
+      if (wantsUndo) undoAppChange();
+      else redoAppChange();
+    }
+  });
   document.getElementById('hamburgerBtn').addEventListener('click',()=>{document.getElementById('sidebar').classList.toggle('open');});
   loadUIState();
   (async () => {
