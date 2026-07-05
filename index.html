@@ -356,8 +356,8 @@ textarea{resize:vertical;min-height:60px}
     <span class="brand">Sustainability Team Planner</span>
   </div>
   <div class="top-actions">
-    <button class="btn btn-outline-light" id="saveBtn" onclick="saveToFile()" title="Save to src/database.js">Save<span id="dirtyDot" style="display:none;color:#FFD54F;margin-left:4px">●</span></button>
-    <button class="btn btn-outline-light" onclick="reloadFromFile()" title="Reload from src/database.js">Reload</button>
+    <button class="btn btn-outline-light" id="saveBtn" onclick="saveToFile()" title="Save to src/database.json">Save<span id="dirtyDot" style="display:none;color:#FFD54F;margin-left:4px">●</span></button>
+    <button class="btn btn-outline-light" onclick="reloadFromFile()" title="Reload from src/database.json">Reload</button>
     <button class="btn btn-outline-light" onclick="exportExcel()" title="Export to Excel">Excel</button>
     <button class="btn btn-outline-light" onclick="exportJSON()" title="Download JSON backup">JSON</button>
     <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
@@ -390,8 +390,8 @@ textarea{resize:vertical;min-height:60px}
 const DB_KEY = 'ghd_planner_db';
 const FILE_HANDLE_DB = 'ghd_planner_file_handle';
 const FILE_HANDLE_STORE = 'handles';
-const FILE_HANDLE_KEY = 'database-js';
-const SAVE_FILE_PATH = 'C:\\Users\\linnh\\Documents\\AAA\\Sustainability Planner\\src\\database.js';
+const FILE_HANDLE_KEY = 'database-json';
+const SAVE_FILE_PATH = 'C:\\Users\\linnh\\Documents\\AAA\\Sustainability Planner\\src\\database.json';
 const uid = () => Math.random().toString(36).slice(2,10);
 const todayISO = () => new Date().toISOString().slice(0,10);
 
@@ -835,10 +835,8 @@ function normalizeDB(db){
 }
 
 function parseDatabaseText(text){
-  const sandbox = {window: null};
-  sandbox.window = sandbox;
-  const result = new Function('window', `${text}\nreturn window.__DB__;`)(sandbox);
-  if (!result || typeof result !== 'object') throw new Error('Could not load window.__DB__ from file');
+  const result = JSON.parse(text);
+  if (!result || typeof result !== 'object') throw new Error('Could not parse JSON database file');
   return normalizeDB(JSON.parse(JSON.stringify(result)));
 }
 
@@ -1029,7 +1027,7 @@ function updateDirtyIndicator(){
   const status = document.getElementById('fileStatus');
   if (status) {
     if (fileHandle) status.innerHTML = 'Linked: ' + fileHandle.name + (state.dirty ? ' (unsaved)' : '');
-    else if (!databaseReady) status.innerHTML = 'Pick database.js to begin';
+    else if (!databaseReady) status.innerHTML = 'Pick database.json to begin';
     else status.innerHTML = '';
   }
 }
@@ -1057,7 +1055,7 @@ function openSaveLinkDialog(){
   return new Promise(resolve => {
     pendingSaveLinkResolve = resolve;
     openModal(`<h3>Link database file</h3>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:12px">Click Copy to copy the file path, then choose <code>database.js</code> in the file picker.</p>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px">Click Copy to copy the file path, then choose <code>database.json</code> in the file picker.</p>
       <div style="padding:12px;border:1px solid var(--border);border-radius:8px;background:#f8fbf8;font-size:12px;word-break:break-all;user-select:text">${esc(SAVE_FILE_PATH)}</div>
       <div class="modal-actions">
         <button type="button" class="btn btn-secondary" onclick="closeModal();resolveSaveLink(null)">Cancel</button>
@@ -1080,12 +1078,12 @@ async function copyPathAndPickFile(){
 }
 
 function showStartupDatabasePrompt(){
-  openModal(`<h3>Pick database.js</h3>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:12px">The planner stays blank until you pick the shared <code>database.js</code> file. Copy the path below if needed, then choose the file.</p>
+  openModal(`<h3>Pick database.json</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:12px">The planner stays blank until you pick the shared <code>database.json</code> file. Copy the path below if needed, then choose the file.</p>
     <div style="padding:12px;border:1px solid var(--border);border-radius:8px;background:#f8fbf8;font-size:12px;word-break:break-all;user-select:text">${esc(SAVE_FILE_PATH)}</div>
     <div class="modal-actions">
       <button type="button" class="btn btn-secondary" onclick="copyStartupDatabasePath()">Copy Path</button>
-      <button type="button" class="btn btn-primary" onclick="pickStartupDatabaseFile()">Pick database.js</button>
+      <button type="button" class="btn btn-primary" onclick="pickStartupDatabaseFile()">Pick database.json</button>
     </div>`);
 }
 
@@ -1106,7 +1104,7 @@ async function pickStartupDatabaseFile(){
 }
 
 async function saveToFile(){
-  const jsContent = '// Sustainability Team Planner - auto-generated database file\n// Last saved: ' + new Date().toISOString() + '\n// Do not edit manually unless you know what you are doing.\nwindow.__DB__ = ' + JSON.stringify(state.db, null, 2) + ';\n';
+  const jsonContent = JSON.stringify(state.db, null, 2) + '\n';
   try {
     let handle = await ensureLinkedFileHandle();
     if (!handle) handle = await openSaveLinkDialog();
@@ -1115,7 +1113,7 @@ async function saveToFile(){
     const granted = perm === 'granted' ? 'granted' : await handle.requestPermission({mode:'readwrite'});
     if (granted !== 'granted') throw new Error('Write permission denied');
     const writable = await handle.createWritable();
-    await writable.write(jsContent);
+    await writable.write(jsonContent);
     await writable.close();
     const file = await handle.getFile();
     lastFileModified = file.lastModified;
@@ -1135,7 +1133,7 @@ async function linkDatabaseFile(silent = false){
   }
   try {
     const [handle] = await window.showOpenFilePicker({
-      types: [{description:'Database JS', accept:{'text/javascript':['.js']}}]
+      types: [{description:'Database JSON', accept:{'application/json':['.json']}}]
     });
     const perm = await handle.requestPermission({mode:'readwrite'});
     if (perm !== 'granted') { if (!silent) toast('Permission denied', true); return null; }
@@ -1149,7 +1147,7 @@ async function linkDatabaseFile(silent = false){
 }
 
 async function reloadFromFile(){
-  if (state.dirty && !confirm('You have unsaved changes. Reload from database.js anyway?')) return;
+  if (state.dirty && !confirm('You have unsaved changes. Reload from database.json anyway?')) return;
   if (await ensureLinkedFileHandle()) {
     try {
       const file = await fileHandle.getFile();
@@ -1168,7 +1166,7 @@ async function reloadFromFile(){
       toast('Reload failed: ' + e.message, true); return;
     }
   }
-  if (confirm('No linked file found yet. Pick database.js now?')) {
+  if (confirm('No linked file found yet. Pick database.json now?')) {
     await linkDatabaseFile();
   }
 }
@@ -1192,7 +1190,7 @@ function showUpdateBanner(){
   const b = document.createElement('div');
   b.id = 'updateBanner';
   b.style.cssText = 'position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#E8B84A;color:#2B2B2B;padding:10px 18px;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,0.2);z-index:1500;font-size:13px;font-weight:600;display:flex;align-items:center;gap:12px';
-  b.innerHTML = 'A teammate updated database.js. <button class="btn btn-primary btn-sm" onclick="reloadFromFile();this.parentElement.remove()">Reload now</button> <button class="btn-icon" onclick="this.parentElement.remove()" style="color:#2B2B2B">✕</button>';
+  b.innerHTML = 'A teammate updated database.json. <button class="btn btn-primary btn-sm" onclick="reloadFromFile();this.parentElement.remove()">Reload now</button> <button class="btn-icon" onclick="this.parentElement.remove()" style="color:#2B2B2B">✕</button>';
   document.body.appendChild(b);
 }
 

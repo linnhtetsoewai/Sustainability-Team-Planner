@@ -1,7 +1,4 @@
-// Sustainability Team Planner - auto-generated database file
-// Last saved: 2026-07-05T07:36:21.657Z
-// Do not edit manually unless you know what you are doing.
-window.__DB__ = {
+{
   "settings": {
     "blendedRate": 350,
     "currency": "AED",
@@ -3469,4 +3466,4 @@ window.__DB__ = {
       }
     }
   }
-};
+}

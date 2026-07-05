@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const root = __dirname;
-const dbPath = path.join(root, 'database.js');
+const dbPath = path.join(root, 'database.json');
 const host = '127.0.0.1';
 const port = 43123;
 

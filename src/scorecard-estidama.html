@@ -310,7 +310,7 @@
 <script>
 const FILE_HANDLE_DB = 'ghd_planner_file_handle';
 const FILE_HANDLE_STORE = 'handles';
-const FILE_HANDLE_KEY = 'database-js';
+const FILE_HANDLE_KEY = 'database-json';
 let fileHandle = null;
 let lastFileModified = null;
 let pollTimer = null;
@@ -378,10 +378,8 @@ async function loadStoredFileHandle(){
 }
 
 function parseDatabaseText(text){
-  const sandbox = {window: null};
-  sandbox.window = sandbox;
-  const result = new Function('window', `${text}\nreturn window.__DB__;`)(sandbox);
-  if (!result || typeof result !== 'object') throw new Error('Could not load window.__DB__ from file');
+  const result = JSON.parse(text);
+  if (!result || typeof result !== 'object') throw new Error('Could not parse JSON database file');
   return JSON.parse(JSON.stringify(result));
 }
 
@@ -960,7 +958,7 @@ function goToSetup() {
 }
 
 // ----------------------------------------------------------------
-// PERSIST - file-backed database.js
+// PERSIST - file-backed database.json
 // ----------------------------------------------------------------
 function scorecardProject(){
   return window.__DB__?.projects?.find(p => p.id === SCORECARD_CONTEXT.projectId) || null;
@@ -1047,8 +1045,8 @@ async function saveDatabaseFile(silent = false){
   }
   try {
     const writable = await fileHandle.createWritable();
-    const jsContent = '// Sustainability Team Planner - auto-generated database file\n// Last saved: ' + new Date().toISOString() + '\n// Do not edit manually unless you know what you are doing.\nwindow.__DB__ = ' + JSON.stringify(window.__DB__, null, 2) + ';\n';
-    await writable.write(jsContent);
+    const jsonContent = JSON.stringify(window.__DB__, null, 2) + '\n';
+    await writable.write(jsonContent);
     await writable.close();
     const file = await fileHandle.getFile();
     lastFileModified = file.lastModified;
@@ -1090,7 +1088,7 @@ async function linkDatabaseFile(silent = false){
   }
   try {
     const [handle] = await window.showOpenFilePicker({
-      types: [{description:'Database JS', accept:{'text/javascript':['.js']}}]
+      types: [{description:'Database JSON', accept:{'application/json':['.json']}}]
     });
     const perm = await handle.requestPermission({mode:'readwrite'});
     if (perm !== 'granted') {
@@ -1119,18 +1117,18 @@ async function ensureLinkedFileHandle(){
 }
 
 function showStartupDatabasePrompt(){
-  openModal(`<h3>Pick database.js</h3>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:12px">The scorecard stays blank until you pick the shared <code>database.js</code> file.</p>
-    <div style="padding:12px;border:1px solid var(--border);border-radius:8px;background:#f8fbf8;font-size:12px;word-break:break-all;user-select:text">C:\\Users\\linnh\\Documents\\AAA\\Sustainability Planner\\src\\database.js</div>
+  openModal(`<h3>Pick database.json</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:12px">The scorecard stays blank until you pick the shared <code>database.json</code> file.</p>
+    <div style="padding:12px;border:1px solid var(--border);border-radius:8px;background:#f8fbf8;font-size:12px;word-break:break-all;user-select:text">C:\\Users\\linnh\\Documents\\AAA\\Sustainability Planner\\src\\database.json</div>
     <div class="modal-actions">
       <button type="button" class="btn btn-secondary" onclick="copyStartupDatabasePath()">Copy Path</button>
-      <button type="button" class="btn btn-primary" onclick="pickStartupDatabaseFile()">Pick database.js</button>
+      <button type="button" class="btn btn-primary" onclick="pickStartupDatabaseFile()">Pick database.json</button>
     </div>`);
 }
 
 async function copyStartupDatabasePath(){
   try {
-    await navigator.clipboard.writeText('C:\\Users\\linnh\\Documents\\AAA\\Sustainability Planner\\src\\database.js');
+    await navigator.clipboard.writeText('C:\\Users\\linnh\\Documents\\AAA\\Sustainability Planner\\src\\database.json');
   } catch (e) {}
 }
 
