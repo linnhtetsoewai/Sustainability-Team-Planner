@@ -45,6 +45,7 @@
       "client": "Aldar Properties",
       "pm": "Ibrahim",
       "sustainabilityLead": "t_mrunmai",
+      "ncr": 100,
       "startDate": "2026-01-15",
       "endDate": "2026-12-20",
       "allocatedHours": 620,
@@ -123,6 +124,7 @@
       "client": "Aldar Properties",
       "pm": "Saleh",
       "sustainabilityLead": "t_areesha",
+      "ncr": 100,
       "startDate": "2026-02-01",
       "endDate": "2026-10-30",
       "allocatedHours": 480,
@@ -133,9 +135,61 @@
         {
           "id": "c_canopies_estidama",
           "standard": "estidama",
-          "label": "Estidama PCRS"
+          "label": "Estidama PCRS",
+          "target": "",
+          "scorecard": {
+            "s": {
+              "view": "setup",
+              "stage": "concept",
+              "activeSetupSection": "IDP",
+              "currentProjectId": "p_canopies",
+              "projectDb": [],
+              "selected": {
+                "IDP-R1": true,
+                "IDP-R2": true,
+                "IDP-R3": true,
+                "NS-R1": true,
+                "NS-R2": true,
+                "NS-R3": true,
+                "LBo-R1": true,
+                "LBo-R2": true,
+                "LBo-R3": true,
+                "LBi-R1": true,
+                "LBi-R2": true,
+                "LBi-R3": true,
+                "PW-R1": true,
+                "PW-R2": true,
+                "RE-R1": true,
+                "RE-R2": true,
+                "RE-R3": true,
+                "SM-R1": true,
+                "SM-R2": true,
+                "SM-R3": true,
+                "IDP-1": true,
+                "IDP-2": true,
+                "IDP-4": true
+              },
+              "creditPoints": {},
+              "dropdownChoice": {},
+              "optionChecked": {
+                "IDP-3|0": true,
+                "IDP-3|1": true
+              },
+              "secOpen": {},
+              "notes": {}
+            },
+            "projectDb": [],
+            "meta": {
+              "projShortName": "The Canopies",
+              "projFullName": "The Canopies (Wussom Bay Residences)",
+              "projCode": "12698765",
+              "projType": "",
+              "projTarget": ""
+            }
+          }
         }
-      ]
+      ],
+      "buildingUse": ""
     },
     {
       "id": "p_bag",
@@ -145,6 +199,7 @@
       "client": "Aldar Properties",
       "pm": "Duua",
       "sustainabilityLead": "t_mrunmai",
+      "ncr": 100,
       "startDate": "2026-03-01",
       "endDate": "2027-02-28",
       "allocatedHours": 800,
@@ -172,6 +227,7 @@
       "client": "Aldar Properties",
       "pm": "",
       "sustainabilityLead": "t_mrunmai",
+      "ncr": 100,
       "startDate": "2026-05-01",
       "endDate": "2026-09-30",
       "allocatedHours": 240,

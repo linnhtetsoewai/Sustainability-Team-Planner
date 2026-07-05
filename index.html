@@ -704,19 +704,19 @@ function defaultDB(){
     {id:t3,name:'Linn Htet Soe Wai',role:'Computational Designer / Sustainability',email:'linn.htetsoewai@ghd.com',weeklyCapacity:40,hourlyRate:300,skills:'Rhino/GH; ClimateStudio; CFD; UTCI; ENVI-met',notes:'Simulation & computational tasks'}
   ];
   const projects=[
-    {id:p1,code:'12654321',name:'TA13 Development',shortName:'TA13',client:'Aldar Properties',pm:'J. Pardesi',sustainabilityLead:t1,startDate:'2026-01-15',endDate:'2026-12-20',allocatedHours:620,allocatedBudget:216000,status:'In Progress',notes:'Estidama PBRS + LEED dual certification',certifications:[
+    {id:p1,code:'12654321',name:'TA13 Development',shortName:'TA13',client:'Aldar Properties',pm:'J. Pardesi',sustainabilityLead:t1,ncr:100,startDate:'2026-01-15',endDate:'2026-12-20',allocatedHours:620,allocatedBudget:216000,status:'In Progress',notes:'Estidama PBRS + LEED dual certification',certifications:[
       {id:uid(),standard:'estidama',label:'Estidama PBRS',target:'2 Pearl',status:'Pursuing',leadId:t1,notes:''},
       {id:uid(),standard:'leed',label:'LEED BD+C',target:'Gold',status:'Pursuing',leadId:t2,notes:''},
       {id:uid(),standard:'fitwel',label:'Fitwel',target:'2 Star',status:'Planned',leadId:t2,notes:''},
     ]},
-    {id:p2,code:'12698765',name:'The Canopies (Wussom Bay Residences)',shortName:'The Canopies',client:'Wussom Bay Developments',pm:'N. AlHussain',sustainabilityLead:t1,startDate:'2026-02-01',endDate:'2026-10-30',allocatedHours:480,allocatedBudget:168000,status:'In Progress',notes:'Focus on outdoor thermal comfort & Estidama PCRS',certifications:[
+    {id:p2,code:'12698765',name:'The Canopies (Wussom Bay Residences)',shortName:'The Canopies',client:'Wussom Bay Developments',pm:'N. AlHussain',sustainabilityLead:t1,ncr:100,startDate:'2026-02-01',endDate:'2026-10-30',allocatedHours:480,allocatedBudget:168000,status:'In Progress',notes:'Focus on outdoor thermal comfort & Estidama PCRS',certifications:[
       {id:uid(),standard:'estidama',label:'Estidama PCRS',target:'1 Pearl',status:'Pursuing',leadId:t1,notes:''},
     ]},
-    {id:p3,code:'12687994',name:'BAG Masterplan',shortName:'BAG',client:'Modon',pm:'J. Pardesi',sustainabilityLead:t2,startDate:'2026-03-01',endDate:'2027-02-28',allocatedHours:800,allocatedBudget:280000,status:'In Progress',notes:'Estidama + Fitwel evidence coordination',certifications:[
+    {id:p3,code:'12687994',name:'BAG Masterplan',shortName:'BAG',client:'Modon',pm:'J. Pardesi',sustainabilityLead:t2,ncr:100,startDate:'2026-03-01',endDate:'2027-02-28',allocatedHours:800,allocatedBudget:280000,status:'In Progress',notes:'Estidama + Fitwel evidence coordination',certifications:[
       {id:uid(),standard:'estidama',label:'Estidama PBRS',target:'3 Pearl',status:'Pursuing',leadId:t2,notes:''},
       {id:uid(),standard:'fitwel',label:'Fitwel',target:'3 Star',status:'Pursuing',leadId:t2,notes:''},
     ]},
-    {id:p4,code:'12676543',name:'NoMA Sustainability Advisory',shortName:'NoMA',client:'NoMA Holdings',pm:'M.T. Jawed',sustainabilityLead:t1,startDate:'2026-05-01',endDate:'2026-09-30',allocatedHours:240,allocatedBudget:84000,status:'Not Started',notes:'Advisory + LEED pre-assessment',certifications:[
+    {id:p4,code:'12676543',name:'NoMA Sustainability Advisory',shortName:'NoMA',client:'NoMA Holdings',pm:'M.T. Jawed',sustainabilityLead:t1,ncr:100,startDate:'2026-05-01',endDate:'2026-09-30',allocatedHours:240,allocatedBudget:84000,status:'Not Started',notes:'Advisory + LEED pre-assessment',certifications:[
       {id:uid(),standard:'leed',label:'LEED BD+C',target:'Silver',status:'Planned',leadId:t1,notes:''},
     ]}
   ];
@@ -798,6 +798,7 @@ function normalizeDB(db){
   });
   db.projects = Array.isArray(db.projects) ? db.projects : [];
   db.projects.forEach(p => {
+    p.ncr = normalizeNcrValue(p.ncr);
     p.certifications = normalizeProjectCertifications(p.certifications);
   });
   db.milestones = Array.isArray(db.milestones) ? db.milestones : [];
@@ -1202,13 +1203,23 @@ const fmtN=n=>Number(n||0).toLocaleString('en-US');
 const fmtC=n=>state.db.settings.currency+' '+fmtN(Math.round(n||0));
 const fmtP=n=>((n||0)*100).toFixed(1)+'%';
 const rate=()=>state.db.settings.blendedRate;
+function normalizeNcrValue(value){
+  const raw = String(value ?? '').trim();
+  if (!raw) return 100;
+  const n = Number(raw);
+  return Number.isFinite(n) ? Math.max(0, n) : 100;
+}
+function ncrFactorForProject(project){
+  return normalizeNcrValue(project?.ncr) / 100;
+}
 function personRate(id){
   const p = personById(id);
   const r = +p?.hourlyRate;
   return r > 0 ? r : rate();
 }
 function taskRate(task){
-  return personRate(task?.assigneeId);
+  const project = projectById(task?.projectId);
+  return personRate(task?.assigneeId) * ncrFactorForProject(project);
 }
 function taskTimesheetEntries(taskId){
   return state.db.timesheet.filter(x=>x.taskId===taskId);
@@ -1222,16 +1233,20 @@ function taskActualHours(taskOrId){
 }
 function taskActualBudget(taskOrId){
   const taskId = typeof taskOrId === 'object' ? taskOrId?.id : taskOrId;
-  return taskTimesheetEntries(taskId).reduce((s,x)=>s+(+x.hoursLogged||0)*personRate(x.personId),0);
+  const task = taskById(taskId);
+  const ncrFactor = ncrFactorForProject(projectById(task?.projectId));
+  return taskTimesheetEntries(taskId).reduce((s,x)=>s+(+x.hoursLogged||0)*personRate(x.personId)*ncrFactor,0);
 }
 function taskLogSummary(taskId){
   const logs = taskTimesheetEntries(taskId);
+  const task = taskById(taskId);
+  const ncrFactor = ncrFactorForProject(projectById(task?.projectId));
   const byPerson = new Map();
   logs.forEach(x=>{
     const key = x.personId || '__unassigned__';
     const entry = byPerson.get(key) || {personId:x.personId||'', name:personById(x.personId)?.name||'Unassigned', hours:0, budget:0, entries:0};
     entry.hours += (+x.hoursLogged||0);
-    entry.budget += (+x.hoursLogged||0) * personRate(x.personId);
+    entry.budget += (+x.hoursLogged||0) * personRate(x.personId) * ncrFactor;
     entry.entries += 1;
     byPerson.set(key, entry);
   });
@@ -2579,14 +2594,14 @@ function closeModal(){document.getElementById('modal-overlay').classList.remove(
 
 // PROJECT CRUD
 function openProjectModal(id){
-  const p=id?projectById(id):{code:'',name:'',shortName:'',client:'',pm:'',sustainabilityLead:'',startDate:'',endDate:'',allocatedHours:0,status:'Not Started',notes:'',certifications:[]};
+  const p=id?projectById(id):{code:'',name:'',shortName:'',client:'',pm:'',sustainabilityLead:'',ncr:100,startDate:'',endDate:'',allocatedHours:0,status:'Not Started',notes:'',certifications:[]};
   const leadOpts=state.db.team.map(m=>`<option value="${m.id}" ${p.sustainabilityLead===m.id?'selected':''}>${esc(m.name)}</option>`).join('');
   const stOpts=['Not Started','In Progress','On Hold','Completed'].map(s=>`<option value="${s}" ${p.status===s?'selected':''}>${s}</option>`).join('');
   openModal(`<h3>${id?'Edit':'Add'} Project</h3><form onsubmit="saveProject(event,'${id||''}');return false">
     <div class="form-row"><div class="form-group"><label>Code *</label><input required name="code" value="${esc(p.code)}"></div><div class="form-group"><label>Short Name *</label><input required name="shortName" value="${esc(p.shortName)}"></div></div>
     <div class="form-group"><label>Full Name *</label><input required name="name" value="${esc(p.name)}"></div>
     <div class="form-row"><div class="form-group"><label>Client</label><input name="client" value="${esc(p.client)}"></div><div class="form-group"><label>PM</label><input name="pm" value="${esc(p.pm)}"></div></div>
-    <div class="form-group"><label>Lead</label><select name="sustainabilityLead"><option value="">—</option>${leadOpts}</select></div>
+    <div class="form-row"><div class="form-group"><label>Lead</label><select name="sustainabilityLead"><option value="">—</option>${leadOpts}</select></div><div class="form-group"><label>NCR (%)</label><input type="number" name="ncr" value="${normalizeNcrValue(p.ncr)}" min="0" max="100" step="1"></div></div>
     <div class="form-row"><div class="form-group"><label>Start Date</label><input type="date" name="startDate" value="${esc(p.startDate)}"></div><div class="form-group"><label>End Date</label><input type="date" name="endDate" value="${esc(p.endDate)}"></div></div>
     <div class="form-row"><div class="form-group"><label>Allocated Hours</label><input type="number" name="allocatedHours" value="${p.allocatedHours||0}" min="0"></div><div class="form-group"><label>Status</label><select name="status">${stOpts}</select></div></div>
     <div class="form-group"><label>Notes</label><textarea name="notes">${esc(p.notes)}</textarea></div>
@@ -2611,7 +2626,8 @@ function openProjectModal(id){
 function saveProject(e,id){
   e.preventDefault(); const f=e.target,g=n=>f.elements[n].value;
   pushHistorySnapshot();
-  const data={code:g('code'),name:g('name'),shortName:g('shortName'),client:g('client'),pm:g('pm'),sustainabilityLead:g('sustainabilityLead'),startDate:g('startDate'),endDate:g('endDate'),allocatedHours:+g('allocatedHours')||0,status:g('status'),notes:g('notes'),certifications:collectProjectCertifications(f),allocatedBudget:(+g('allocatedHours')||0)*(personRate(g('sustainabilityLead'))||rate())};
+  const ncr = normalizeNcrValue(g('ncr'));
+  const data={code:g('code'),name:g('name'),shortName:g('shortName'),client:g('client'),pm:g('pm'),sustainabilityLead:g('sustainabilityLead'),ncr,startDate:g('startDate'),endDate:g('endDate'),allocatedHours:+g('allocatedHours')||0,status:g('status'),notes:g('notes'),certifications:collectProjectCertifications(f),allocatedBudget:(+g('allocatedHours')||0)*(personRate(g('sustainabilityLead'))||rate())*(ncr/100)};
   if(id){Object.assign(projectById(id),data);toast('Project updated');}else{state.db.projects.push({id:uid(),...data});toast('Project added');}
   saveDB();closeModal();render();
 }
