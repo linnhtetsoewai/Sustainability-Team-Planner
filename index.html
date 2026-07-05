@@ -106,7 +106,13 @@ td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle
 tr:last-child td{border-bottom:none}
 tbody tr:hover{background:var(--tint)}
 td.num{text-align:right;font-variant-numeric:tabular-nums}
+.project-table th:nth-child(7),.project-table th:nth-child(8),.project-table th:nth-child(9),.project-table th:nth-child(10),.project-table th:nth-child(11),
+.project-table td:nth-child(7),.project-table td:nth-child(8),.project-table td:nth-child(9),.project-table td:nth-child(10),.project-table td:nth-child(11){text-align:center}
+.project-table td:nth-child(7),.project-table td:nth-child(8),.project-table td:nth-child(9),.project-table td:nth-child(10),.project-table td:nth-child(11){font-variant-numeric:tabular-nums}
 td.actions{white-space:nowrap;text-align:right}
+.team-table th:nth-child(4),.team-table th:nth-child(5),.team-table th:nth-child(6),.team-table th:nth-child(7),.team-table th:nth-child(8),.team-table th:nth-child(9),.team-table th:nth-child(10),
+.team-table td:nth-child(4),.team-table td:nth-child(5),.team-table td:nth-child(6),.team-table td:nth-child(7),.team-table td:nth-child(8),.team-table td:nth-child(9),.team-table td:nth-child(10){text-align:center}
+.team-table td:nth-child(4),.team-table td:nth-child(5),.team-table td:nth-child(6),.team-table td:nth-child(7),.team-table td:nth-child(8),.team-table td:nth-child(9),.team-table td:nth-child(10){font-variant-numeric:tabular-nums}
 .badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap}
 .badge-green{background:#DDF0DD;color:#2F6F30}
 .badge-amber{background:#FBEFD1;color:#8A6100}
@@ -216,6 +222,13 @@ td.actions{white-space:nowrap;text-align:right}
 .gantt-grid-cell{flex:0 0 var(--gantt-day-width,48px);min-width:var(--gantt-day-width,48px);border-left:1px solid rgba(0,0,0,0.05);background:linear-gradient(to bottom, transparent 0, transparent 50%, rgba(0,0,0,0.02) 50%, rgba(0,0,0,0.02) 100%)}
 .gantt-grid-cell.weekend{background:#fafaf7}
 .gantt-grid-cell.today{background:rgba(46,117,182,0.06)}
+.gantt-submission-column{position:absolute;top:0;bottom:0;border-left:1px solid rgba(194,61,126,0.18);border-right:1px solid rgba(194,61,126,0.18);background:rgba(194,61,126,0.08);box-shadow:inset 0 0 0 1px rgba(194,61,126,0.08);animation:ganttSubmissionPulse 1.2s ease-in-out infinite;pointer-events:none;z-index:1}
+.gantt-day-label.submission{background:linear-gradient(180deg,rgba(194,61,126,0.95),rgba(194,61,126,0.72));animation:ganttSubmissionPulse 1.2s ease-in-out infinite;position:relative}
+.gantt-day-label.submission .date-num{font-weight:800}
+@keyframes ganttSubmissionPulse{
+  0%,100%{opacity:0.42;filter:drop-shadow(0 0 2px rgba(194,61,126,0.18))}
+  50%{opacity:0.92;filter:drop-shadow(0 0 8px rgba(194,61,126,0.35))}
+}
 .gantt-bar{position:absolute;top:50%;height:calc((100% - 8px) * 0.9);transform:translateY(-50%);border-radius:8px;background:#4C8B6B;color:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.14);cursor:grab;user-select:none;display:block;padding:0;overflow:hidden;z-index:2}
 .gantt-bar,.gantt-resize-handle{touch-action:none}
 .gantt-bar.dragging:not(.resizing-left):not(.resizing-right){cursor:grabbing;opacity:0.92;box-shadow:0 6px 18px rgba(0,0,0,0.22)}
@@ -267,6 +280,8 @@ td.actions{white-space:nowrap;text-align:right}
 .project-stage-panel td{padding:8px 10px;vertical-align:top}
 .project-stage-panel th,.project-stage-panel td{overflow:hidden;text-overflow:ellipsis}
 .project-stage-panel td:last-child,.project-stage-panel th:last-child{white-space:nowrap}
+.project-stage-panel th:nth-child(2),.project-stage-panel th:nth-child(3),.project-stage-panel th:nth-child(4),.project-stage-panel th:nth-child(5),
+.project-stage-panel td:nth-child(2),.project-stage-panel td:nth-child(3),.project-stage-panel td:nth-child(4),.project-stage-panel td:nth-child(5){text-align:center}
 .project-cert-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .project-cert-pill{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:700;line-height:1.2;border:1px solid transparent;white-space:nowrap}
 .project-cert-pill.estidama{background:#ecf5ef;color:#2f6f30;border-color:#cfe4d4}
@@ -322,6 +337,9 @@ td.actions{white-space:nowrap;text-align:right}
 label{display:block;font-size:12px;font-weight:600;margin-bottom:4px;color:var(--charcoal);text-transform:uppercase;letter-spacing:0.3px}
 input,select,textarea{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;background:#fff;color:var(--charcoal)}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(76,139,107,0.15)}
+input.no-spinner::-webkit-outer-spin-button,
+input.no-spinner::-webkit-inner-spin-button{appearance:none;margin:0}
+input.no-spinner{appearance:textfield;-moz-appearance:textfield}
 textarea{resize:vertical;min-height:60px}
 .checkbox-row{display:flex;align-items:center;gap:8px;font-size:13px}
 .checkbox-row input{width:auto}
@@ -799,7 +817,9 @@ function normalizeDB(db){
   db.projects = Array.isArray(db.projects) ? db.projects : [];
   db.projects.forEach(p => {
     p.ncr = normalizeNcrValue(p.ncr);
-    const legacyBudget = (+p.allocatedHours || 0) * (personRate(p.sustainabilityLead) || rate()) * (p.ncr / 100);
+    const lead = db.team.find(m => m.id === p.sustainabilityLead);
+    const leadRate = +lead?.hourlyRate || (db.settings?.blendedRate || 350);
+    const legacyBudget = (+p.allocatedHours || 0) * leadRate * (p.ncr / 100);
     p.allocatedBudget = +p.allocatedBudget || legacyBudget || 0;
     p.certifications = normalizeProjectCertifications(p.certifications);
   });
@@ -1101,11 +1121,8 @@ async function copyStartupDatabasePath(){
 
 async function pickStartupDatabaseFile(){
   closeModal();
-  const handle = await linkDatabaseFile(true);
-  if (!handle) {
-    showStartupDatabasePrompt();
-    return;
-  }
+  const handle = await linkDatabaseFile(false);
+  if (!handle) return;
   render();
 }
 
@@ -1141,8 +1158,6 @@ async function linkDatabaseFile(silent = false){
     const [handle] = await window.showOpenFilePicker({
       types: [{description:'Database JSON', accept:{'application/json':['.json']}}]
     });
-    const perm = await handle.requestPermission({mode:'read'});
-    if (perm !== 'granted') { if (!silent) toast('Permission denied', true); return null; }
     await loadDatabaseFromHandle(handle);
     if (!silent) toast('Linked to ' + handle.name);
     return handle;
@@ -2217,12 +2232,12 @@ function renderProjects(){
       const overdue=(m.submissionDate && !['Submitted','Approved','Completed'].includes(m.status) && m.submissionDate<todayISO());
       return `<tr><td><div class="milestone-stage"><b>${esc(m.stageName)}</b><span>${esc(m.submissionLabel||'')}</span></div></td><td>${esc(m.kickoffDate||'—')}</td><td>${esc(m.submissionDate||'—')} ${overdue?'<span class="badge badge-red">Due</span>':''}</td><td>${statusBadge(m.status)}</td><td>${esc(owner?.name||'—')}</td><td style="font-size:12px">${esc(m.notes||'')}</td><td class="actions"><button class="btn-icon" onclick="openMilestoneModal('${m.id}')">Edit</button><button class="btn-icon danger" onclick="deleteMilestone('${m.id}')">Delete</button></td></tr>`;
     }).join('');
-    const detail=expanded ? `<tr class="project-stage-row"><td colspan="13"><div class="project-stage-panel"><div class="milestone-note">Kick-off and submission dates for this project are shown here.</div><div class="tbl-wrap"><table><colgroup><col style="width:22%"><col style="width:12%"><col style="width:12%"><col style="width:10%"><col style="width:14%"><col style="width:22%"><col style="width:8%"></colgroup><thead><tr><th>Stage</th><th>Kick-off</th><th>Submission</th><th>Status</th><th>Owner</th><th>Notes</th><th></th></tr></thead><tbody>${stageRows||`<tr><td colspan="7" class="empty">No stages for this project yet.</td></tr>`}</tbody></table></div></div></td></tr>` : '';
+    const detail=expanded ? `<tr class="project-stage-row"><td colspan="13"><div class="project-stage-panel"><div class="tbl-wrap"><table><colgroup><col style="width:22%"><col style="width:12%"><col style="width:12%"><col style="width:10%"><col style="width:14%"><col style="width:22%"><col style="width:8%"></colgroup><thead><tr><th>Stage</th><th>Kick-off</th><th>Submission</th><th>Status</th><th>Lead</th><th>Notes</th><th></th></tr></thead><tbody>${stageRows||`<tr><td colspan="7" class="empty">No stages for this project yet.</td></tr>`}</tbody></table></div></div></td></tr>` : '';
     return `<tr><td><button class="project-toggle ${expanded?'expanded':''}" onclick="toggleProjectStages('${p.id}', event)">&#9654;</button> <b>${esc(p.code)}</b></td><td><b>${esc(p.shortName)}</b><div style="font-size:11px;color:var(--muted)">${esc(p.name)}</div></td><td>${esc(p.client)}</td><td>${esc(p.pm)}</td><td>${esc(lead?.name||'—')}</td><td style="font-size:11px">${esc(p.startDate)}<br>${esc(p.endDate)}</td><td class="num">${fmtN(t.allocHrs)}</td><td class="num">${fmtN(t.actualHrs)}</td><td class="num">${fmtC(t.allocBudget)}</td><td>${badgePct(pctH)}</td><td>${statusBadge(p.status)}</td><td style="font-size:11px">${ms.count ? `<b>${ms.completed}/${ms.count}</b><br><span style="color:var(--muted)">${nextLine}</span>` : '<span style="color:var(--muted)">No milestones</span>'}</td><td class="actions"><button class="btn-icon" onclick="openProjectModal('${p.id}')">Edit</button><button class="btn-icon" onclick="openMilestoneModal(null,{projectId:'${p.id}'})">+ Stage</button><button class="btn-icon danger" onclick="deleteProject('${p.id}')">Delete</button></td></tr>${detail}`;
   }).join('')||`<tr><td colspan="13" class="empty">No projects.</td></tr>`;
   return `<h1 class="view-title">Projects</h1><p class="view-sub">Master list. Tasks, Team and Dashboard update automatically.</p>
   <div class="toolbar"><input type="text" placeholder="Search…" value="${esc(state.filters.projSearch||'')}" oninput="state.filters.projSearch=this.value;render()"><span class="spacer"></span><button class="btn btn-secondary" onclick="openMilestoneModal()">+ Stage Submission</button><button class="btn btn-primary" onclick="openProjectModal()">+ Add Project</button></div>
-  <div class="card" style="padding:0"><div class="tbl-wrap"><table><thead><tr><th>Code</th><th>Short / Name</th><th>Client</th><th>PM</th><th>Lead</th><th>Dates</th><th class="num">Alloc Hrs</th><th class="num">Actual Hrs</th><th class="num">Alloc Budget</th><th>Actual / Alloc</th><th>Status</th><th>Stages</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  <div class="card" style="padding:0"><div class="tbl-wrap"><table class="project-table"><thead><tr><th>Code</th><th>Short / Name</th><th>Client</th><th>PM</th><th>Lead</th><th>Dates</th><th class="num">Alloc Hrs</th><th class="num">Actual Hrs</th><th class="num">Alloc Budget</th><th>Actual / Alloc</th><th>Status</th><th>Stages</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
 }
 
 function renderProjects(){
@@ -2243,12 +2258,12 @@ function renderProjects(){
       const overdue=(m.submissionDate && !['Submitted','Approved','Completed'].includes(m.status) && m.submissionDate<todayISO());
       return `<tr><td><div class="milestone-stage"><b>${esc(m.stageName)}</b><span>${esc(m.submissionLabel||'')}</span></div></td><td>${esc(m.kickoffDate||'&mdash;')}</td><td>${esc(m.submissionDate||'&mdash;')} ${overdue?'<span class="badge badge-red">Due</span>':''}</td><td>${statusBadge(m.status)}</td><td>${esc(owner?.name||'&mdash;')}</td><td style="font-size:12px">${esc(m.notes||'')}</td><td class="actions"><button class="btn-icon" onclick="openMilestoneModal('${m.id}')">Edit</button><button class="btn-icon danger" onclick="deleteMilestone('${m.id}')">Delete</button></td></tr>`;
     }).join('');
-    const detail=expanded ? `<tr class="project-stage-row"><td colspan="13"><div class="project-stage-panel"><div class="milestone-note">Kick-off and submission dates for this project are shown here.</div><div class="tbl-wrap"><table><colgroup><col style="width:22%"><col style="width:12%"><col style="width:12%"><col style="width:10%"><col style="width:14%"><col style="width:22%"><col style="width:8%"></colgroup><thead><tr><th>Stage</th><th>Kick-off</th><th>Submission</th><th>Status</th><th>Owner</th><th>Notes</th><th></th></tr></thead><tbody>${stageRows||`<tr><td colspan="7" class="empty">No stages for this project yet.</td></tr>`}</tbody></table></div></div></td></tr>` : '';
+    const detail=expanded ? `<tr class="project-stage-row"><td colspan="13"><div class="project-stage-panel"><div class="tbl-wrap"><table><colgroup><col style="width:22%"><col style="width:12%"><col style="width:12%"><col style="width:10%"><col style="width:14%"><col style="width:22%"><col style="width:8%"></colgroup><thead><tr><th>Stage</th><th>Kick-off</th><th>Submission</th><th>Status</th><th>Lead</th><th>Notes</th><th></th></tr></thead><tbody>${stageRows||`<tr><td colspan="7" class="empty">No stages for this project yet.</td></tr>`}</tbody></table></div></div></td></tr>` : '';
     return `<tr><td><button class="project-toggle ${expanded?'expanded':''}" onclick="toggleProjectStages('${p.id}', event)">&#9654;</button> <b>${esc(p.code)}</b></td><td><b>${esc(p.shortName)}</b><div style="font-size:11px;color:var(--muted)">${esc(p.name)}</div><div class="project-cert-list">${certsHtml}</div></td><td>${esc(p.client)}</td><td>${esc(p.pm)}</td><td>${esc(lead?.name||'&mdash;')}</td><td style="font-size:11px">${esc(p.startDate)}<br>${esc(p.endDate)}</td><td class="num">${fmtN(t.allocHrs)}</td><td class="num">${fmtN(t.actualHrs)}</td><td class="num">${fmtC(t.allocBudget)}</td><td>${badgePct(pctH)}</td><td>${statusBadge(p.status)}</td><td style="font-size:11px">${ms.count ? `<b>${ms.completed}/${ms.count}</b><br><span style="color:var(--muted)">${nextLine}</span>` : '<span style="color:var(--muted)">No milestones</span>'}</td><td class="actions"><button class="btn-icon" onclick="openProjectModal('${p.id}')">Edit</button><button class="btn-icon" onclick="openMilestoneModal(null,{projectId:'${p.id}'})">+ Stage</button><button class="btn-icon danger" onclick="deleteProject('${p.id}')">Delete</button></td></tr>${detail}`;
   }).join('')||`<tr><td colspan="13" class="empty">No projects.</td></tr>`;
   return `<h1 class="view-title">Projects</h1><p class="view-sub">Master list. Tasks, Team and Dashboard update automatically.</p>
   <div class="toolbar"><input type="text" placeholder="Search..." value="${esc(state.filters.projSearch||'')}" oninput="state.filters.projSearch=this.value;render()"><span class="spacer"></span><button class="btn btn-secondary" onclick="openMilestoneModal()">+ Stage Submission</button><button class="btn btn-primary" onclick="openProjectModal()">+ Add Project</button></div>
-  <div class="card" style="padding:0"><div class="tbl-wrap"><table><thead><tr><th>Code</th><th>Short / Name</th><th>Client</th><th>PM</th><th>Lead</th><th>Dates</th><th class="num">Alloc Hrs</th><th class="num">Actual Hrs</th><th class="num">Alloc Budget</th><th>Actual / Alloc</th><th>Status</th><th>Stages</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  <div class="card" style="padding:0"><div class="tbl-wrap"><table class="project-table"><thead><tr><th>Code</th><th>Short / Name</th><th>Client</th><th>PM</th><th>Lead</th><th>Dates</th><th class="num">Alloc Hrs</th><th class="num">Actual Hrs</th><th class="num">Alloc Budget</th><th>Actual / Alloc</th><th>Status</th><th>Stages</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
 }
 
 function renderTasks(){
@@ -2325,7 +2340,7 @@ function renderTeam(){
   }).join('');
   return `<h1 class="view-title">Team</h1><p class="view-sub">Capacity & utilization over a rolling ${state.db.settings.weeksInPeriod}-week period.</p>
   <div class="toolbar"><span class="spacer"></span><button class="btn btn-primary" onclick="openTeamModal()">+ Add Team Member</button></div>
-  <div class="card" style="padding:0"><div class="tbl-wrap"><table><thead><tr><th>Name</th><th>Role</th><th>Email</th><th class="num">Wk Cap</th><th class="num">Rate</th><th class="num">Avail Period</th><th class="num">Alloc</th><th class="num">Actual</th><th>Alloc Util</th><th>Actual Util</th><th>Skills</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  <div class="card" style="padding:0"><div class="tbl-wrap"><table class="team-table"><thead><tr><th>Name</th><th>Role</th><th>Email</th><th class="num">Wk Cap</th><th class="num">Rate</th><th class="num">Avail Period</th><th class="num">Alloc</th><th class="num">Actual</th><th>Alloc Util</th><th>Actual Util</th><th>Skills</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
 }
 
 function renderTimesheet(){
@@ -2347,13 +2362,35 @@ function renderTimesheet(){
 }
 function renderGantt(){
   const f=state.filters;
+  const ganttProjectId = f.ganttProject || '';
+  const projectMilestones = ganttProjectId ? milestonesForProject(ganttProjectId) : [];
   let tasks=state.db.tasks.slice();
   if(f.ganttAsg) tasks=tasks.filter(t=>t.assigneeId===f.ganttAsg);
   if(f.ganttProject) tasks=tasks.filter(t=>t.projectId===f.ganttProject);
   tasks=tasks.sort((a,b)=>(a.startDate||'').localeCompare(b.startDate||'')||(a.dueDate||'').localeCompare(b.dueDate||''));
   if(!tasks.length){
+    if (ganttProjectId && projectMilestones.length) {
+      const project = projectById(ganttProjectId);
+      const milestoneDates = projectMilestones.flatMap(m => [m.kickoffDate, m.submissionDate]).filter(Boolean).map(parseGanttDate).filter(Boolean);
+      const earliest = milestoneDates.length ? new Date(Math.min(...milestoneDates.map(d => Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())))) : parseGanttDate(todayISO()) || new Date();
+      const latest = milestoneDates.length ? new Date(Math.max(...milestoneDates.map(d => Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())))) : parseGanttDate(todayISO()) || new Date();
+      tasks = [{
+        id:'__milestones__',
+        name:'No task created yet',
+        assigneeId:'',
+        projectId:ganttProjectId,
+        taskType:'internal',
+        startDate:ganttIsoDate(earliest),
+        dueDate:ganttIsoDate(latest),
+        status:'Planned',
+        priority:'Medium',
+        notes: 'No task created yet',
+        isMilestoneRow:true
+      }];
+    } else {
     const emptyMsg=state.db.tasks.length ? 'No tasks match the selected filters.' : 'No tasks to chart yet.';
     return `<h1 class="view-title">Timeline</h1><p class="view-sub">Task timelines by assignee.</p><div class="card empty">${emptyMsg}</div>`;
+    }
   }
   const dayWidth=state.ganttDayWidth||48;
   const dates=tasks.flatMap(t=>[t.startDate,t.dueDate]).map(parseGanttDate).filter(Boolean);
@@ -2368,6 +2405,26 @@ function renderGantt(){
   const today=new Date(); today.setHours(0,0,0,0);
   const todayIndex=ganttDayDiff(start, today);
   const overloadByTask = ganttTaskOverloadDates(tasks);
+  const submissionHighlights = new Map();
+  if (ganttProjectId) {
+    milestonesForProject(ganttProjectId)
+      .filter(m => m.submissionDate)
+      .forEach(m => {
+        const key = String(m.submissionDate).slice(0, 10);
+        const project = projectById(m.projectId);
+        const owner = personById(m.ownerId);
+        const entry = submissionHighlights.get(key) || {date:key, items:[]};
+        entry.items.push({
+          project: project?.shortName || project?.code || 'Project',
+          stage: m.stageName || 'Stage',
+          label: m.submissionLabel || '',
+          status: m.status || 'Planned',
+          lead: owner?.name || 'Unassigned',
+          notes: m.notes || ''
+        });
+        submissionHighlights.set(key, entry);
+      });
+  }
   const monthGroups=[];
   let currentMonth=null;
   days.forEach(d=>{
@@ -2382,20 +2439,28 @@ function renderGantt(){
   const dayCells=days.map(d=>{
     const weekend=d.getDay()===0||d.getDay()===6;
     const isToday=d.getTime()===today.getTime();
+    const key=ganttIsoDate(d);
+    const highlight=submissionHighlights.get(key);
+    const tip=highlight ? highlight.items.map(item => `${item.project} • ${item.stage} ${item.label ? `• ${item.label}` : ''}\nStatus: ${item.status}\nLead: ${item.lead}${item.notes ? `\nNotes: ${item.notes}` : ''}`).join('\n\n') : '';
     const compact = dayWidth < 28;
-    return `<div class="gantt-day-label ${weekend?'weekend':''} ${isToday?'today':''} ${compact?'compact':''}" style="flex-basis:${dayWidth}px;min-width:${dayWidth}px"><span class="date-num">${fmtDateNum(d)}</span></div>`;
+    return `<div class="gantt-day-label ${weekend?'weekend':''} ${isToday?'today':''} ${highlight?'submission':''} ${compact?'compact':''}" title="${esc(tip)}" style="flex-basis:${dayWidth}px;min-width:${dayWidth}px"><span class="date-num">${fmtDateNum(d)}</span></div>`;
   }).join('');
   const leftRows=tasks.map(t=>{
     const assignee=personById(t.assigneeId);
     const project=projectById(t.projectId);
     const projectLabel=project?.shortName || (t.taskType==='leave' ? 'Leave' : 'Internal');
     const isAllocation = String(t.taskType||'')==='allocation';
+    const isMilestoneRow = t.id === '__milestones__' || t.isMilestoneRow;
     const badge = !isAllocation && t.taskType && t.taskType !== 'project' ? `<span class="badge badge-grey" style="margin-left:6px">${esc(taskTypeLabel(t))}</span>` : '';
     const stage = taskProjectStage(t) ? ` • ${taskProjectStageLabel(t)}` : '';
     const titleStyle = isAllocation ? 'color:var(--accent);font-weight:700' : '';
+    if (isMilestoneRow) {
+      return `<tr><td class="gantt-left gantt-task-name"><div class="gantt-task-stack" style="height:100%;justify-content:center"><b style="color:var(--accent)">${esc(t.name || 'No task created yet')}</b></div></td><td class="gantt-left gantt-assignee">—</td><td class="gantt-left gantt-project">${esc(projectLabel)}</td></tr>`;
+    }
     return `<tr><td class="gantt-left gantt-task-name"><div class="gantt-task-stack" style="cursor:pointer" onclick="openTaskModal('${t.id}')"><b style="${titleStyle}">${esc(t.name)}</b>${badge}<span>${esc(t.status)}${esc(stage)}</span></div></td><td class="gantt-left gantt-assignee">${esc(firstName(assignee?.name)||'Unassigned')}</td><td class="gantt-left gantt-project">${esc(projectLabel)}</td></tr>`;
   }).join('');
   const rightRows=tasks.map(t=>{
+    const isMilestoneRow = t.id === '__milestones__' || t.isMilestoneRow;
     const taskStart=parseGanttDate(t.startDate) || start;
     const taskEnd=parseGanttDate(t.dueDate) || taskStart;
     const leftDays=Math.max(0, ganttDayDiff(start, taskStart));
@@ -2411,16 +2476,24 @@ function renderGantt(){
     const projectLabel=project?.shortName || (t.taskType==='leave' ? 'Leave' : 'Internal');
     const overloadTitle=overloadDates && overloadDates.size ? ` | Overloaded days: ${[...overloadDates].map(fmtShortDate).join(', ')}` : '';
     const hourEditorsHtml = ganttTaskHourEditorsHtml(t, taskStart, dayWidth);
+    const submissionOverlays = ganttProjectId ? days.map((d, i) => {
+      const key = ganttIsoDate(d);
+      const highlight = submissionHighlights.get(key);
+      if (!highlight) return '';
+      const tip = highlight.items.map(item => `${item.project} • ${item.stage} ${item.label ? `• ${item.label}` : ''}\nStatus: ${item.status}\nLead: ${item.lead}${item.notes ? `\nNotes: ${item.notes}` : ''}`).join('\n\n');
+      return `<div class="gantt-submission-column" title="${esc(tip)}" style="left:${i * dayWidth}px;width:${dayWidth}px"></div>`;
+    }).join('') : '';
     return `<tr>
       <td class="gantt-scale-cell">
         <div class="gantt-row-lane" style="--gantt-day-width:${dayWidth}px;min-width:${dayCount*dayWidth}px">
+          ${submissionOverlays}
           <div class="gantt-grid-row">${days.map(d=>`<div class="gantt-grid-cell ${d.getDay()===0||d.getDay()===6?'weekend':''} ${d.getTime()===today.getTime()?'today':''}" style="width:${dayWidth}px;min-width:${dayWidth}px"></div>`).join('')}</div>
           ${todayIndex>=0&&todayIndex<dayCount?`<div class="gantt-today-line" style="left:${todayIndex*dayWidth}px"></div>`:''}
-          <div class="gantt-bar ${statusClass}${unscheduled?' not-started':''}${overloadClass}" data-task-id="${esc(t.id)}" style="left:${leftPx}px;width:${widthPx}px${unscheduled?';opacity:0.35':''}" title="${esc(t.name)}${taskProjectStage(t) ? ` | ${esc(taskProjectStageLabel(t))}` : ''} | ${esc(assignee?.name||'Unassigned')} | ${esc(projectLabel)} | ${esc(t.startDate||'')}${t.dueDate?` - ${esc(t.dueDate)}`:''}${overloadTitle}">
+          ${isMilestoneRow ? '' : `<div class="gantt-bar ${statusClass}${unscheduled?' not-started':''}${overloadClass}" data-task-id="${esc(t.id)}" style="left:${leftPx}px;width:${widthPx}px${unscheduled?';opacity:0.35':''}" title="${esc(t.name)}${taskProjectStage(t) ? ` | ${esc(taskProjectStageLabel(t))}` : ''} | ${esc(assignee?.name||'Unassigned')} | ${esc(projectLabel)} | ${esc(t.startDate||'')}${t.dueDate?` - ${esc(t.dueDate)}`:''}${overloadTitle}">
             <div class="gantt-resize-handle left"></div>
             ${hourEditorsHtml ? `<div class="gantt-bar-hours-layer">${hourEditorsHtml}</div>` : ''}
             <div class="gantt-resize-handle right"></div>
-          </div>
+          </div>`}
         </div>
       </td>
     </tr>`;
@@ -2609,7 +2682,7 @@ function openProjectModal(id){
     <div class="form-row"><div class="form-group"><label>Client</label><input name="client" value="${esc(p.client)}"></div><div class="form-group"><label>PM</label><input name="pm" value="${esc(p.pm)}"></div></div>
     <div class="form-row"><div class="form-group"><label>Lead</label><select name="sustainabilityLead"><option value="">—</option>${leadOpts}</select></div><div class="form-group"><label>NCR (%)</label><input type="number" name="ncr" value="${normalizeNcrValue(p.ncr)}" min="0" max="100" step="5"></div></div>
     <div class="form-row"><div class="form-group"><label>Start Date</label><input type="date" name="startDate" value="${esc(p.startDate)}"></div><div class="form-group"><label>End Date</label><input type="date" name="endDate" value="${esc(p.endDate)}"></div></div>
-    <div class="form-row"><div class="form-group"><label>Allocated Budget (AED)</label><input type="number" name="allocatedBudget" value="${+p.allocatedBudget||0}" min="0" step="0.01"></div><div class="form-group"><label>Status</label><select name="status">${stOpts}</select></div></div>
+    <div class="form-row"><div class="form-group"><label>Allocated Budget (AED)</label><input class="no-spinner" type="number" name="allocatedBudget" value="${+p.allocatedBudget||0}" min="0" step="0.01"></div><div class="form-group"><label>Status</label><select name="status">${stOpts}</select></div></div>
     <div class="form-group"><label>Notes</label><textarea name="notes">${esc(p.notes)}</textarea></div>
     <div class="cert-panel">
       <div class="cert-panel-head">
