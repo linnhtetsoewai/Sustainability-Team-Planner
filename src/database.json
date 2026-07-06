@@ -62,7 +62,7 @@
             "s": {
               "view": "setup",
               "stage": "concept",
-              "activeSetupSection": "IDP",
+              "activeSetupSection": "RE",
               "currentProjectId": "p_ta13",
               "projectDb": [],
               "selected": {
@@ -85,10 +85,15 @@
                 "RE-R3": true,
                 "SM-R1": true,
                 "SM-R2": true,
-                "SM-R3": true
+                "SM-R3": true,
+                "RE-1": true
               },
-              "creditPoints": {},
-              "dropdownChoice": {},
+              "creditPoints": {
+                "RE-1": 11
+              },
+              "dropdownChoice": {
+                "RE-1": 10
+              },
               "optionChecked": {},
               "secOpen": {},
               "notes": {}

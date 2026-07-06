@@ -168,17 +168,24 @@
   .credit-name { font-size: 13px; color: var(--espresso); font-weight: 600; line-height: 1.35; }
   .credit-pts-note { font-size: 11px; color: var(--warm-400); margin-top: 3px; }
   .credit-pts-picker { margin-top: 8px; max-width: 100%; }
-  .credit-pts-summary { list-style: none; border: 1px solid var(--border); border-radius: var(--radius); padding: 7px 10px; font-size: 12.5px; font-family: var(--font); background: var(--cream); color: var(--espresso); cursor: pointer; white-space: normal; line-height: 1.4; transition: border-color 0.12s; }
-  .credit-pts-summary:hover { border-color: var(--gold-mid); }
-  .credit-pts-picker[open] .credit-pts-summary { border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-color: var(--gold); }
-  .credit-pts-summary::-webkit-details-marker { display: none; }
-  .credit-pts-summary::marker { content: ''; }
-  .credit-pts-menu { border: 1px solid var(--gold); border-top: none; border-bottom-left-radius: var(--radius); border-bottom-right-radius: var(--radius); background: var(--cream); overflow: hidden; box-shadow: var(--shadow-md); }
-  .credit-pts-option { display: block; width: 100%; text-align: left; border: none; border-top: 1px solid var(--warm-100); background: var(--cream); color: var(--espresso); font: inherit; padding: 8px 12px; cursor: pointer; white-space: normal; line-height: 1.45; transition: background 0.1s; }
-  .credit-pts-option:first-child { border-top: none; }
-  .credit-pts-option:hover { background: var(--gold-light); }
-  .credit-pts-option.active { background: rgba(166,124,58,0.12); }
-  .credit-pts-points { font-weight: 700; color: var(--gold-dark); margin-right: 5px; }
+  .credit-pts-select {
+    width: 100%;
+    min-width: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 7px 10px;
+    font-size: 12.5px;
+    font-family: var(--font);
+    background: var(--cream);
+    color: var(--espresso);
+    cursor: pointer;
+    line-height: 1.4;
+    transition: border-color 0.12s, box-shadow 0.12s;
+  }
+  .credit-pts-select:hover { border-color: var(--gold-mid); }
+  .credit-pts-select:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(166,124,58,0.12); }
+  .credit-pts-select option { color: var(--espresso); }
+  .credit-pts-select option:first-child { color: var(--warm-400); }
 
   /* ---------- CHECKBOX OPTION ROWS ---------- */
   .option-check-row { display: flex; align-items: flex-start; gap: 8px; margin-top: 7px; cursor: pointer; }
@@ -681,16 +688,17 @@ function renderCreditRow(c) {
     const sel = !!S.selected[c.code];
     const currentPts = Number(S.creditPoints[c.code]) || 0;
     let currentChoice = Number(S.dropdownChoice[c.code]);
-    if (!Number.isInteger(currentChoice) && currentPts > 0) {
+    if (!Number.isInteger(currentChoice)) currentChoice = null;
+    if (currentChoice === null && currentPts > 0) {
       const legacyIdx = opts.findIndex(opt => Number(opt.pts) === currentPts);
       currentChoice = legacyIdx >= 0 ? legacyIdx : null;
     }
-    const optionsHtml = opts.map((opt, idx) =>
-      `<button type="button" class="credit-pts-option ${currentChoice===idx?'active':''}" onclick="setCreditPoints('${c.code}', ${idx})">
-        <span class="credit-pts-points">${opt.pts} pt${opt.pts>1?'s':''}</span>
-        <span>${opt.desc}</span>
-      </button>`
-    ).join('');
+    const optionsHtml = [
+      `<option value="" ${currentChoice===null?'selected':''}>Choose a level...</option>`,
+      ...opts.map((opt, idx) =>
+        `<option value="${idx}" ${currentChoice===idx?'selected':''}>${opt.pts} pt${opt.pts>1?'s':''} - ${opt.desc}</option>`
+      )
+    ].join('');
     return `<div class="credit-row ${sel?'checked':''}">
       <input type="checkbox" class="credit-cb" ${sel?'checked':''} onchange="toggleCredit('${c.code}', this.checked)"/>
       <div class="credit-meta">
@@ -701,12 +709,11 @@ function renderCreditRow(c) {
         <div class="credit-name">${c.title}</div>
         ${c.desc && c.desc !== 'Desc placeholder' ? `<div class="credit-description">${c.desc}</div>` : ''}
         <div class="credit-pts-note">${currentPts > 0 ? currentPts + ' pts selected' : `Up to ${c.pts} pts - choose a level`}</div>
-        <details class="credit-pts-picker">
-          <summary class="credit-pts-summary">${currentChoice===null ? 'Choose a level...' : `${currentPts} pts selected`}</summary>
-          <div class="credit-pts-menu">
+        <div class="credit-pts-picker">
+          <select class="credit-pts-select" aria-label="Choose a level for ${c.code}" onchange="setCreditPoints('${c.code}', this.value)">
             ${optionsHtml}
-          </div>
-        </details>
+          </select>
+        </div>
       </div>
     </div>`;
   }
@@ -902,7 +909,7 @@ function toggleCredit(code, checked) {
 
 function setCreditPoints(code, value) {
   const c = ALL_CREDITS.find(x => x.code === code);
-  const choiceIdx = Number(value);
+  const choiceIdx = value === '' || value === null || value === undefined ? NaN : Number(value);
   const choice = c && c.uiType === 'dropdown' && Number.isInteger(choiceIdx)
     ? (c.pointOptions || [])[choiceIdx]
     : null;
@@ -944,9 +951,15 @@ function goToStage() {
   saveState();
 }
 
-function goToPlanner() {
-  void saveDatabaseFile(true).catch(() => {});
-  window.location.assign(new URL('../index.html', window.location.href).href);
+async function goToPlanner() {
+  const target = new URL('../index.html', window.location.href).href;
+  const saved = await saveDatabaseFile(true).catch(() => false);
+  if (!saved && scorecardDirty) {
+    // Keep the user on the scorecard if the write failed so they do not lose work.
+    alert('Could not save the scorecard to database.json yet.');
+    return;
+  }
+  window.location.assign(target);
 }
 
 function goToSetup() {
